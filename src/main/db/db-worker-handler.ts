@@ -9,6 +9,9 @@ import { catalogMigrations } from "./migrations/catalog-migrations";
 import { getSchemaVersion, runMigrations } from "./migrations/runner";
 import { ensureDriveIdentity, getCatalogSummary } from "./repositories/catalog-repository";
 import { listRegisteredDrives, registerDrive } from "./repositories/app-repository";
+import { recoverInterruptedScans } from "./repositories/scan-session-repository";
+import { createScanDbHandlers } from "./scan-db-handlers";
+import { SCAN_DB_METHODS, type ScanDbMethod } from "./scan-worker-protocol";
 import { acquireCatalogLock } from "../platform/catalog-lock";
 import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
@@ -35,7 +38,12 @@ interface CatalogSession {
     schemaVersion: number,
     create: boolean,
   ): Database.Database;
+  get(): Database.Database;
   close(): void;
+}
+
+function isScanDbMethod(method: DbMethod): method is ScanDbMethod {
+  return (SCAN_DB_METHODS as readonly string[]).includes(method);
 }
 
 function createCatalogSession(): CatalogSession {
@@ -77,6 +85,9 @@ function createCatalogSession(): CatalogSession {
     try {
       runMigrations(db, catalogMigrations);
       ensureDriveIdentity(db, identity, schemaVersion);
+      if (!create) {
+        recoverInterruptedScans(db);
+      }
     } catch (error) {
       db.close();
       release();
@@ -88,13 +99,24 @@ function createCatalogSession(): CatalogSession {
     return db;
   };
 
-  return { open, close };
+  const get = (): Database.Database => {
+    if (catalogDb === null) {
+      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Open a catalog before scanning");
+    }
+    return catalogDb;
+  };
+
+  return { open, get, close };
 }
 
 export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
   const appDb = openDatabase(options.appDbPath);
   runMigrations(appDb, appMigrations);
   const catalogs = createCatalogSession();
+  const scanHandlers = createScanDbHandlers({
+    getCatalog: () => catalogs.get(),
+    getAppDb: () => appDb,
+  });
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);
@@ -119,6 +141,10 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   };
 
   const handle = (method: DbMethod, params: unknown): unknown => {
+    if (isScanDbMethod(method)) {
+      return scanHandlers.handle(method, params);
+    }
+
     switch (method) {
       case "health":
         return {

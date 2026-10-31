@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
@@ -9,6 +9,7 @@ const userDataPath = path.join(root, "user-data");
 const developmentDrivePath = path.join(root, "development-drive");
 await mkdir(userDataPath, { recursive: true });
 await mkdir(developmentDrivePath, { recursive: true });
+await writeFile(path.join(developmentDrivePath, "scan.txt"), "packaged scan fixture");
 
 const environment = {};
 for (const [key, value] of Object.entries(process.env)) {
@@ -39,7 +40,48 @@ try {
     throw new Error(`Preload bridge was not available: ${bridgeType}`);
   }
 
-  console.log("Packaged app launched, rendered, and exposed the preload bridge.");
+  const scanState = await page.evaluate(async () => {
+    const bridge = window.memoryLane;
+    const drives = await bridge.listDrives();
+    if (!drives.ok) {
+      throw new Error(drives.error.message);
+    }
+    const drive = drives.data.find((candidate) => candidate.label === "Development drive");
+    if (drive === undefined) {
+      throw new Error("Development drive was not detected");
+    }
+
+    const catalog = await bridge.initializeCatalog({ volumeId: drive.volumeId });
+    if (!catalog.ok) {
+      throw new Error(catalog.error.message);
+    }
+    const started = await bridge.startScan({ volumeId: drive.volumeId, intensity: "eco" });
+    if (!started.ok) {
+      throw new Error(started.error.message);
+    }
+
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+      const state = await bridge.getScanState({ volumeId: drive.volumeId });
+      if (!state.ok) {
+        throw new Error(state.error.message);
+      }
+      if (state.data.status === "complete") {
+        return state.data;
+      }
+      if (state.data.status === "error") {
+        throw new Error(state.data.errorMessage ?? "Packaged scan failed");
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    throw new Error("Timed out waiting for the packaged scan");
+  });
+
+  if (scanState.report?.newFiles !== 1) {
+    throw new Error(`Unexpected packaged scan report: ${JSON.stringify(scanState.report)}`);
+  }
+
+  console.log("Packaged app launched, rendered, exposed the preload bridge, and completed a scan.");
 } finally {
   if (app !== undefined) {
     await app.close();

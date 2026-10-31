@@ -1,7 +1,8 @@
 # Memory Lane — MVP Scope & Implementation Plan
 
 **Status:** Working scope baseline for v0.1 (interview decisions applied)  
-**Implementation status:** Phase 0 foundation implemented — Electron shell, secure IPC, DB worker, migrations, drive identity, quality gates, E2E, and Windows packaging. Scanning begins in Phase 1.  
+**Implementation status:** Phase 0 foundation and Phase 1 platform are implemented — Electron shell, secure IPC, DB worker, migrations, drive identity, drive connectivity/letter-change flags, scan coordinator with four persisted stages, pause/resume/intensity, interruption recovery, incremental change/missing/moved detection, completion report, quality gates, E2E, and Windows packaging. The Phase 1 renderer is built in parallel.
+
 **Platform:** Windows desktop  
 **Date:** 2026-10-31  
 **Companions:** `Memory_Lane_Product_Specification.md`, `ui-mockups/`

@@ -73,6 +73,11 @@ export function ensureDriveIdentity(
     );
   }
 
+  if (catalogIdentity.catalogSchema < schemaVersion) {
+    db.prepare("UPDATE drive_identity SET catalog_schema = ? WHERE id = 1").run(schemaVersion);
+    return { ...catalogIdentity, catalogSchema: schemaVersion };
+  }
+
   return catalogIdentity;
 }
 

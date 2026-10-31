@@ -20,6 +20,7 @@ export interface DriveServiceDependencies {
   listDetected: () => Promise<DetectedDrive[]>;
   logger: Logger;
   now?: () => Date;
+  onBeforeCatalogChange?: () => Promise<void>;
 }
 
 export function getCatalogPaths(rootPath: string): CatalogPaths {
@@ -43,17 +44,98 @@ async function pathExists(filePath: string): Promise<boolean> {
   }
 }
 
+function catalogStatusFor(
+  hasCatalog: boolean,
+  registered: boolean,
+): "none" | "registered" | "ready" {
+  if (hasCatalog) {
+    return "ready";
+  }
+  return registered ? "registered" : "none";
+}
+
+function registrationDefaults(registration: RegisteredDrive | undefined): {
+  lastSeenAt: string | null;
+  lastLetter: string | null;
+  lastScanAt: string | null;
+  indexedFiles: number;
+} {
+  if (registration === undefined) {
+    return { lastSeenAt: null, lastLetter: null, lastScanAt: null, indexedFiles: 0 };
+  }
+  return {
+    lastSeenAt: registration.lastSeenAt,
+    lastLetter: registration.lastLetter,
+    lastScanAt: registration.lastScanAt,
+    indexedFiles: registration.indexedFiles,
+  };
+}
+
+function letterChanged(current: string | null, previous: string | null): boolean {
+  return current !== null && previous !== null && current !== previous;
+}
+
+async function toConnectedDrive(
+  drive: DetectedDrive,
+  registration: RegisteredDrive | undefined,
+): Promise<DriveInfo> {
+  const hasCatalog = await pathExists(getCatalogPaths(drive.rootPath).catalogPath);
+  const registered = registrationDefaults(registration);
+  return {
+    volumeId: drive.volumeId,
+    label: drive.label,
+    letter: drive.letter,
+    rootPath: drive.rootPath,
+    fileSystem: drive.fileSystem,
+    serialNumber: drive.serialNumber,
+    totalBytes: drive.totalBytes,
+    freeBytes: drive.freeBytes,
+    driveType: drive.driveType,
+    isExternal: drive.isExternal,
+    catalogStatus: catalogStatusFor(hasCatalog, registration !== undefined),
+    lastSeenAt: registered.lastSeenAt,
+    isConnected: true,
+    lastLetter: registered.lastLetter,
+    lastScanAt: registered.lastScanAt,
+    indexedFiles: registered.indexedFiles,
+    requiresLetterConfirmation: letterChanged(drive.letter, registered.lastLetter),
+  };
+}
+
+function toOfflineDrive(drive: RegisteredDrive): DriveInfo {
+  return {
+    volumeId: drive.volumeId,
+    label: drive.label,
+    letter: drive.lastLetter,
+    rootPath: drive.rootPath,
+    fileSystem: drive.fileSystem,
+    serialNumber: drive.volumeSerial,
+    totalBytes: 0,
+    freeBytes: 0,
+    driveType: "unknown",
+    isExternal: true,
+    catalogStatus: "registered",
+    lastSeenAt: drive.lastSeenAt,
+    isConnected: false,
+    lastLetter: drive.lastLetter,
+    lastScanAt: drive.lastScanAt,
+    indexedFiles: drive.indexedFiles,
+  };
+}
+
 export class DriveService {
   private readonly db: DbClient;
   private readonly listDetected: () => Promise<DetectedDrive[]>;
   private readonly logger: Logger;
   private readonly now: () => Date;
+  private readonly onBeforeCatalogChange: (() => Promise<void>) | undefined;
 
   constructor(dependencies: DriveServiceDependencies) {
     this.db = dependencies.db;
     this.listDetected = dependencies.listDetected;
     this.logger = dependencies.logger;
     this.now = dependencies.now ?? (() => new Date());
+    this.onBeforeCatalogChange = dependencies.onBeforeCatalogChange;
   }
 
   async listDrives(): Promise<DriveInfo[]> {
@@ -62,29 +144,19 @@ export class DriveService {
       this.db.request<RegisteredDrive[]>("app.listDrives", {}),
     ]);
     const registeredByVolume = new Map(registered.map((drive) => [drive.volumeId, drive]));
+    const connectedVolumes = new Set(detected.map((drive) => drive.volumeId));
 
-    return Promise.all(
-      detected.map(async (drive) => {
-        const registration = registeredByVolume.get(drive.volumeId);
-        const hasCatalog = await pathExists(getCatalogPaths(drive.rootPath).catalogPath);
-        const catalogStatus = hasCatalog ? "ready" : registration ? "registered" : "none";
-
-        return {
-          volumeId: drive.volumeId,
-          label: drive.label,
-          letter: drive.letter,
-          rootPath: drive.rootPath,
-          fileSystem: drive.fileSystem,
-          serialNumber: drive.serialNumber,
-          totalBytes: drive.totalBytes,
-          freeBytes: drive.freeBytes,
-          driveType: drive.driveType,
-          isExternal: drive.isExternal,
-          catalogStatus,
-          lastSeenAt: registration?.lastSeenAt ?? null,
-        };
-      }),
+    const connected = await Promise.all(
+      detected.map(async (drive) =>
+        toConnectedDrive(drive, registeredByVolume.get(drive.volumeId)),
+      ),
     );
+
+    const offline = registered
+      .filter((drive) => !connectedVolumes.has(drive.volumeId))
+      .map(toOfflineDrive);
+
+    return [...connected, ...offline];
   }
 
   async initializeCatalog(volumeId: VolumeId): Promise<CatalogSummary> {
@@ -104,6 +176,7 @@ export class DriveService {
 
     await fs.mkdir(paths.appDirectory, { recursive: true });
     await fs.mkdir(paths.cachePath, { recursive: true });
+    await this.onBeforeCatalogChange?.();
 
     const identity = toDriveIdentity(drive);
     const summary = await this.db.request<CatalogSummary>("catalog.create", {
@@ -129,6 +202,7 @@ export class DriveService {
       });
     }
 
+    await this.onBeforeCatalogChange?.();
     const summary = await this.db.request<CatalogSummary>("catalog.open", {
       catalogPath: paths.catalogPath,
       identity: toDriveIdentity(drive),

@@ -16,6 +16,8 @@ const RegisteredDriveRowSchema = z.object({
   last_seen_at: z.string(),
   catalog_schema: z.number().int().nonnegative(),
   last_backup_at: z.string().nullable(),
+  last_scan_at: z.string().nullable(),
+  indexed_files: z.number().int().nonnegative(),
 });
 
 export interface RegisterDriveInput {
@@ -36,6 +38,8 @@ function toRegisteredDrive(row: z.infer<typeof RegisteredDriveRowSchema>): Regis
     lastSeenAt: row.last_seen_at,
     catalogSchema: row.catalog_schema,
     lastBackupAt: row.last_backup_at,
+    lastScanAt: row.last_scan_at,
+    indexedFiles: row.indexed_files,
   };
 }
 
@@ -98,4 +102,16 @@ export function listRegisteredDrives(db: Database.Database): RegisteredDrive[] {
   const rows = db.prepare("SELECT * FROM registered_drives ORDER BY last_seen_at DESC").all();
 
   return rows.map(parseRow);
+}
+
+export interface ScanStatsInput {
+  volumeId: string;
+  lastScanAt: string;
+  indexedFiles: number;
+}
+
+export function recordScanStats(db: Database.Database, input: ScanStatsInput): void {
+  db.prepare(
+    "UPDATE registered_drives SET last_scan_at = ?, indexed_files = ? WHERE volume_id = ?",
+  ).run(input.lastScanAt, input.indexedFiles, input.volumeId);
 }

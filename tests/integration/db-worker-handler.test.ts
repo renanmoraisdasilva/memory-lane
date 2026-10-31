@@ -68,7 +68,7 @@ describe("database worker handler", () => {
   it("reports health and an empty drive registry", async () => {
     const { handler, appDbPath } = await createHarness();
 
-    expect(handler.handle("health", {})).toMatchObject({ appDbPath, schemaVersion: 1 });
+    expect(handler.handle("health", {})).toMatchObject({ appDbPath, schemaVersion: 2 });
     expect(handler.handle("app.listDrives", {})).toEqual([]);
   });
 
@@ -92,7 +92,7 @@ describe("database worker handler", () => {
     ) as CatalogSummary;
 
     expect(created.fileCount).toBe(0);
-    expect(created.schemaVersion).toBe(1);
+    expect(created.schemaVersion).toBe(2);
     await expect(access(catalogPath)).resolves.toBeUndefined();
     await expect(access(cachePath)).resolves.toBeUndefined();
 

@@ -38,6 +38,15 @@ export const DriveInfoSchema = z.object({
   isExternal: z.boolean(),
   catalogStatus: CatalogStatusSchema,
   lastSeenAt: z.string().nullable(),
+  isConnected: z.boolean().optional(),
+  lastLetter: z
+    .string()
+    .regex(/^[A-Z]:$/)
+    .nullable()
+    .optional(),
+  lastScanAt: z.string().nullable().optional(),
+  indexedFiles: z.number().int().nonnegative().optional(),
+  requiresLetterConfirmation: z.boolean().optional(),
 });
 export type DriveInfo = z.infer<typeof DriveInfoSchema>;
 

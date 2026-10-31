@@ -24,6 +24,8 @@ export interface RegisteredDrive {
   lastSeenAt: string;
   catalogSchema: number;
   lastBackupAt: string | null;
+  lastScanAt: string | null;
+  indexedFiles: number;
 }
 
 export function toDriveIdentity(drive: DetectedDrive): DriveIdentity {

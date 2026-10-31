@@ -9,6 +9,7 @@ import type { MemoryLaneApi } from "@shared/contracts/api";
 import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import { toVolumeId } from "@shared/contracts/drives";
 import type { AppInfo, IpcResult } from "@shared/contracts/ipc";
+import type { ScanState } from "@shared/contracts/scan";
 import { FoundationPage } from "./FoundationPage";
 
 const volumeId = toVolumeId("development-drive");
@@ -56,11 +57,20 @@ function ok<T>(data: T): IpcResult<T> {
 }
 
 function createApi(overrides: Partial<MemoryLaneApi> = {}): MemoryLaneApi {
+  const scanFailure = async (): Promise<IpcResult<ScanState>> => ({
+    ok: false,
+    error: { code: "SCAN_STATE_INVALID", message: "Not used by the foundation screen" },
+  });
   const api: MemoryLaneApi = {
     getAppInfo: vi.fn(async () => ok(appInfo)),
     listDrives: vi.fn(async () => ok([drive])),
     initializeCatalog: vi.fn(async () => ok(summary)),
     openCatalog: vi.fn(async () => ok(summary)),
+    getScanState: scanFailure,
+    startScan: scanFailure,
+    pauseScan: scanFailure,
+    resumeScan: scanFailure,
+    setScanIntensity: scanFailure,
   };
   return { ...api, ...overrides };
 }

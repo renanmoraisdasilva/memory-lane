@@ -3,4 +3,9 @@ export const IPC_CHANNELS = {
   listDrives: "drives:list",
   initializeCatalog: "catalog:initialize",
   openCatalog: "catalog:open",
+  getScanState: "scan:get-state",
+  startScan: "scan:start",
+  pauseScan: "scan:pause",
+  resumeScan: "scan:resume",
+  setScanIntensity: "scan:set-intensity",
 } as const;

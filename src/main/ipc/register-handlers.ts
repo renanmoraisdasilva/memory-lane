@@ -7,14 +7,22 @@ import {
   type AppInfo,
   type IpcResult,
 } from "@shared/contracts/ipc";
+import {
+  ScanIntensityParamsSchema,
+  ScanStartParamsSchema,
+  ScanVolumeParamsSchema,
+  type ScanState,
+} from "@shared/contracts/scan";
 import { APP_ERROR_CODES, AppError, toAppErrorPayload } from "@shared/domain/errors";
 import type { AppService } from "../modules/app/application/app-service";
 import type { DriveService } from "../modules/drives/application/drive-service";
+import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { Logger } from "../logging/types";
 
 export interface IpcServices {
   appService: AppService;
   driveService: DriveService;
+  scanService: ScanService;
   logger: Logger;
 }
 
@@ -50,7 +58,7 @@ async function respond<T>(
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
-  const { appService, driveService, logger } = services;
+  const { appService, driveService, scanService, logger } = services;
 
   ipcMain.handle(IPC_CHANNELS.getAppInfo, (event) =>
     respond<AppInfo>(event, IPC_CHANNELS.getAppInfo, logger, () => appService.getInfo()),
@@ -70,5 +78,37 @@ export function registerIpcHandlers(services: IpcServices): void {
     respond<CatalogSummary>(event, IPC_CHANNELS.openCatalog, logger, () =>
       driveService.openCatalog(OpenCatalogParamsSchema.parse(params).volumeId),
     ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getScanState, (event, params: unknown) =>
+    respond<ScanState>(event, IPC_CHANNELS.getScanState, logger, () =>
+      scanService.getState(ScanVolumeParamsSchema.parse(params).volumeId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.startScan, (event, params: unknown) =>
+    respond<ScanState>(event, IPC_CHANNELS.startScan, logger, () => {
+      const parsed = ScanStartParamsSchema.parse(params);
+      return scanService.startScan(parsed.volumeId, parsed.intensity);
+    }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.pauseScan, (event, params: unknown) =>
+    respond<ScanState>(event, IPC_CHANNELS.pauseScan, logger, () =>
+      scanService.pauseScan(ScanVolumeParamsSchema.parse(params).volumeId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.resumeScan, (event, params: unknown) =>
+    respond<ScanState>(event, IPC_CHANNELS.resumeScan, logger, () =>
+      scanService.resumeScan(ScanVolumeParamsSchema.parse(params).volumeId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.setScanIntensity, (event, params: unknown) =>
+    respond<ScanState>(event, IPC_CHANNELS.setScanIntensity, logger, () => {
+      const parsed = ScanIntensityParamsSchema.parse(params);
+      return scanService.setIntensity(parsed.volumeId, parsed.intensity);
+    }),
   );
 }

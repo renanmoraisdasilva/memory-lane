@@ -8,6 +8,10 @@ import { registerIpcHandlers } from "./ipc/register-handlers";
 import { AppService } from "./modules/app/application/app-service";
 import { DriveService } from "./modules/drives/application/drive-service";
 import { listDetectedDrives } from "./modules/drives/application/list-detected-drives";
+import { ScanService } from "./modules/scanning/application/scan-service";
+import { createElectronThumbnailGenerator } from "./modules/scanning/infrastructure/electron-thumbnail-generator";
+import { createFileHasher } from "./modules/scanning/infrastructure/file-hasher";
+import { createFileMetadataExtractor } from "./modules/scanning/infrastructure/file-metadata";
 
 app.setName("Memory Lane");
 app.setAppUserModelId("com.memorylane.app");
@@ -17,6 +21,7 @@ const logger = configureLogging(paths.logPath);
 
 let mainWindow: BrowserWindow | null = null;
 let dbClient: DbWorkerClient | null = null;
+let scanService: ScanService | null = null;
 let shuttingDown = false;
 
 function createWindow(): void {
@@ -77,17 +82,31 @@ async function startServices(): Promise<void> {
     isPackaged: app.isPackaged,
   });
 
+  const scan = new ScanService({
+    db: dbClient,
+    listDetected: listDetectedDrives,
+    logger,
+    metadata: createFileMetadataExtractor(),
+    thumbnails: createElectronThumbnailGenerator(),
+    hasher: createFileHasher(),
+  });
+  scanService = scan;
+
   const driveService = new DriveService({
     db: dbClient,
     listDetected: listDetectedDrives,
     logger,
+    onBeforeCatalogChange: () => scan.interruptActive(),
   });
 
-  registerIpcHandlers({ appService, driveService, logger });
+  registerIpcHandlers({ appService, driveService, scanService: scan, logger });
   createWindow();
 }
 
 async function shutdown(): Promise<void> {
+  if (scanService !== null) {
+    await scanService.shutdown();
+  }
   if (dbClient !== null) {
     try {
       await dbClient.close();

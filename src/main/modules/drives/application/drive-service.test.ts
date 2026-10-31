@@ -61,6 +61,8 @@ class FakeDb implements DbClient {
         lastSeenAt: input.lastSeenAt,
         catalogSchema: input.catalogSchema,
         lastBackupAt: null,
+        lastScanAt: null,
+        indexedFiles: 0,
       };
       this.registered = [record];
       return record as T;
@@ -139,11 +141,66 @@ describe("DriveService", () => {
         lastSeenAt: "2026-01-01T00:00:00.000Z",
         catalogSchema: 1,
         lastBackupAt: null,
+        lastScanAt: null,
+        indexedFiles: 0,
       },
     ];
 
     const drives = await serviceFor(drive, db).listDrives();
     expect(drives[0]?.catalogStatus).toBe("registered");
+  });
+
+  it("flags a changed letter and includes offline registered drives", async () => {
+    const root = await createTempDirectory();
+    const detected = createDevelopmentDrive(root);
+    const connected: DetectedDrive = { ...detected, letter: "F:" };
+    const db = new FakeDb(summaryFor(connected, ""));
+    db.registered = [
+      {
+        id: 1,
+        volumeId: connected.volumeId,
+        volumeSerial: connected.serialNumber,
+        label: connected.label,
+        fileSystem: connected.fileSystem,
+        rootPath: connected.rootPath,
+        lastLetter: "E:",
+        lastSeenAt: "2026-01-01T00:00:00.000Z",
+        catalogSchema: 2,
+        lastBackupAt: null,
+        lastScanAt: "2026-01-02T00:00:00.000Z",
+        indexedFiles: 12,
+      },
+      {
+        id: 2,
+        volumeId: toVolumeId("offline-volume"),
+        volumeSerial: "OFFLINE",
+        label: "Offline archive",
+        fileSystem: "NTFS",
+        rootPath: "G:\\",
+        lastLetter: "G:",
+        lastSeenAt: "2025-12-01T00:00:00.000Z",
+        catalogSchema: 2,
+        lastBackupAt: null,
+        lastScanAt: null,
+        indexedFiles: 4,
+      },
+    ];
+
+    const drives = await serviceFor(connected, db).listDrives();
+    expect(drives[0]).toMatchObject({
+      isConnected: true,
+      lastLetter: "E:",
+      requiresLetterConfirmation: true,
+      lastScanAt: "2026-01-02T00:00:00.000Z",
+      indexedFiles: 12,
+    });
+    expect(drives[1]).toMatchObject({
+      volumeId: "offline-volume",
+      label: "Offline archive",
+      isConnected: false,
+      catalogStatus: "registered",
+      indexedFiles: 4,
+    });
   });
 
   it("marks a drive with a catalog file as ready", async () => {
