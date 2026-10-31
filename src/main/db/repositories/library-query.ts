@@ -17,6 +17,7 @@ export const LibraryRowSchema = z.object({
   precision: z.enum(["year", "month", "exact"]).nullable(),
   source: z.string().nullable(),
   is_override: z.number().int().min(0).max(1).nullable(),
+  is_duplicate: z.number().int().min(0).max(1).nullable(),
   thumbnail_status: z.enum(["pending", "ready", "failed"]).nullable(),
   file_path: z.string().min(1),
 });
@@ -131,6 +132,7 @@ export function toLibraryItem(row: LibraryRow): LibraryItem {
     thumbnailStatus,
     thumbnailUrl: thumbnailUrlFor(row.id, thumbnailStatus),
     isMissing: row.state === "missing",
+    isDuplicate: row.is_duplicate === 1,
   };
 }
 
@@ -149,10 +151,12 @@ export const LIBRARY_SELECT = `
     fd.precision,
     fd.source,
     fd.is_override,
+    CASE WHEN dm.file_id IS NULL THEN 0 ELSE 1 END AS is_duplicate,
     c.status AS thumbnail_status,
     f.path AS file_path
   FROM files f
   LEFT JOIN file_dates fd ON fd.file_id = f.id
+  LEFT JOIN duplicate_members dm ON dm.file_id = f.id
   LEFT JOIN cache_entries c ON c.file_id = f.id AND c.kind = 'thumbnail'
 `;
 

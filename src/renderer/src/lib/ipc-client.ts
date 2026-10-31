@@ -2,6 +2,18 @@ import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import type { IpcResult } from "@shared/contracts/ipc";
 import type { MemoryLaneApi } from "@shared/contracts/api";
 import type {
+  DuplicateGroupsPage,
+  DuplicateGroupsParams,
+  HealthSummary,
+  MissingFilesPage,
+  MissingFilesParams,
+  MovedActionResult,
+  MovedCandidateTargets,
+  MovedCandidatesPage,
+  ValidationStartParams,
+  ValidationState,
+} from "@shared/contracts/health";
+import type {
   LibraryClearDateParams,
   LibraryDateMutationResult,
   LibraryFilter,
@@ -69,6 +81,21 @@ export const api = {
     unwrap(getApi().setLibraryDate(params)),
   clearLibraryDate: (params: LibraryClearDateParams): Promise<LibraryDateMutationResult> =>
     unwrap(getApi().clearLibraryDate(params)),
+  getHealthSummary: (): Promise<HealthSummary> => unwrap(getApi().getHealthSummary()),
+  getHealthDuplicates: (params: DuplicateGroupsParams): Promise<DuplicateGroupsPage> =>
+    unwrap(getApi().getHealthDuplicates(params)),
+  getHealthMissing: (params: MissingFilesParams): Promise<MissingFilesPage> =>
+    unwrap(getApi().getHealthMissing(params)),
+  getHealthMoved: (): Promise<MovedCandidatesPage> => unwrap(getApi().getHealthMoved()),
+  confirmHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>
+    unwrap(getApi().confirmHealthMoved(params)),
+  dismissHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>
+    unwrap(getApi().dismissHealthMoved(params)),
+  getValidationState: (): Promise<ValidationState> => unwrap(getApi().getValidationState()),
+  startValidation: (params: ValidationStartParams): Promise<ValidationState> =>
+    unwrap(getApi().startValidation(params)),
+  pauseValidation: (): Promise<ValidationState> => unwrap(getApi().pauseValidation()),
+  resumeValidation: (): Promise<ValidationState> => unwrap(getApi().resumeValidation()),
   revealLibraryItem: (fileId: number): Promise<void> =>
     unwrap(getApi().revealLibraryItem({ fileId })),
   openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),

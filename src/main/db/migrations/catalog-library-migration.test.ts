@@ -26,7 +26,7 @@ describe("catalog library migration", () => {
     ).run(row.id);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(4);
+    expect(result.version).toBe(5);
 
     const media = db
       .prepare("SELECT width, height, duration_seconds FROM files WHERE id = ?")
@@ -54,7 +54,7 @@ describe("catalog library migration", () => {
        VALUES (?, '2011-07-04T15:30:00', 'exact', 'exif.datetimeOriginal', 0.95, '2011:07:04 15:30:00')`,
     ).run(row.id);
 
-    expect(runMigrations(db, catalogMigrations).version).toBe(4);
+    expect(runMigrations(db, catalogMigrations).version).toBe(5);
     expect(
       db
         .prepare(

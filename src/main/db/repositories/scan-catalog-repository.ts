@@ -11,6 +11,7 @@ import {
   readLatestScanSession,
   type ScanSessionRow,
 } from "./scan-session-repository";
+import { rebuildDuplicateGroups } from "./health-repository";
 
 const ExistingFileRowSchema = z.object({
   id: z.number().int().positive(),
@@ -276,6 +277,7 @@ export function finalizeScan(catalogDb: Database.Database, input: FinalizeScanIn
     lastScanAt: input.now,
     indexedFiles: countRow?.count ?? 0,
   });
+  rebuildDuplicateGroups(catalogDb);
 
   return getScanState(catalogDb, input.volumeId);
 }

@@ -138,8 +138,9 @@ current drive letter differs from the last registered letter.
   index.
 - Catalog migration 4 adds reversible extracted-date fields and undated lookup
   indexes.
+- Catalog migration 5 adds validation progress and per-result levels.
 
-The current catalog schema version is 4. Opening an older catalog applies
+The current catalog schema version is 5. Opening an older catalog applies
 pending migrations checksum-safely.
 
 ## Current limits
@@ -153,5 +154,5 @@ pending migrations checksum-safely.
   filesystem date.
 - Hashing resumes at file granularity. A file interrupted mid-hash starts that
   file again; byte-offset resume is a later hardening step.
-- Moved candidates have no confirmation UI or IPC yet.
-- Duplicate groups, missing-file management, and validation are Phase 4.
+- Moved candidates, duplicate groups, missing-file management, and validation are
+  implemented in Library health (Phase 4).

@@ -9,6 +9,18 @@ import {
   type IpcResult,
 } from "@shared/contracts/ipc";
 import {
+  DuplicateGroupsParamsSchema,
+  MissingFilesParamsSchema,
+  MovedCandidateTargetsSchema,
+  ValidationStartParamsSchema,
+  type DuplicateGroupsPage,
+  type HealthSummary,
+  type MissingFilesPage,
+  type MovedActionResult,
+  type MovedCandidatesPage,
+  type ValidationState,
+} from "@shared/contracts/health";
+import {
   LibraryClearDateParamsSchema,
   LibraryItemParamsSchema,
   LibraryItemTargetParamsSchema,
@@ -32,6 +44,7 @@ import {
 import { APP_ERROR_CODES, AppError, toAppErrorPayload } from "@shared/domain/errors";
 import type { AppService } from "../modules/app/application/app-service";
 import type { DriveService } from "../modules/drives/application/drive-service";
+import type { HealthService } from "../modules/health/application/health-service";
 import type { LibraryService } from "../modules/library/application/library-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { Logger } from "../logging/types";
@@ -41,6 +54,7 @@ export interface IpcServices {
   driveService: DriveService;
   scanService: ScanService;
   libraryService: LibraryService;
+  healthService: HealthService;
   logger: Logger;
 }
 
@@ -76,7 +90,7 @@ async function respond<T>(
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
-  const { appService, driveService, scanService, libraryService, logger } = services;
+  const { appService, driveService, scanService, libraryService, healthService, logger } = services;
 
   ipcMain.handle(IPC_CHANNELS.getAppInfo, (event) =>
     respond<AppInfo>(event, IPC_CHANNELS.getAppInfo, logger, () => appService.getInfo()),
@@ -178,6 +192,8 @@ export function registerIpcHandlers(services: IpcServices): void {
     ),
   );
 
+  registerHealthHandlers(healthService, logger);
+
   ipcMain.handle(IPC_CHANNELS.revealLibraryItem, (event, params: unknown) =>
     respond<void>(event, IPC_CHANNELS.revealLibraryItem, logger, () =>
       libraryService.reveal(LibraryItemTargetParamsSchema.parse(params).fileId),
@@ -187,6 +203,70 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(IPC_CHANNELS.openLibraryItem, (event, params: unknown) =>
     respond<void>(event, IPC_CHANNELS.openLibraryItem, logger, () =>
       libraryService.open(LibraryItemTargetParamsSchema.parse(params).fileId),
+    ),
+  );
+}
+
+function registerHealthHandlers(healthService: HealthService, logger: Logger): void {
+  ipcMain.handle(IPC_CHANNELS.getHealthSummary, (event) =>
+    respond<HealthSummary>(event, IPC_CHANNELS.getHealthSummary, logger, () =>
+      healthService.getSummary(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getHealthDuplicates, (event, params: unknown) =>
+    respond<DuplicateGroupsPage>(event, IPC_CHANNELS.getHealthDuplicates, logger, () => {
+      const parsed = DuplicateGroupsParamsSchema.parse(params);
+      return healthService.getDuplicates(parsed.offset, parsed.limit);
+    }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getHealthMissing, (event, params: unknown) =>
+    respond<MissingFilesPage>(event, IPC_CHANNELS.getHealthMissing, logger, () => {
+      const parsed = MissingFilesParamsSchema.parse(params);
+      return healthService.getMissing(parsed.offset, parsed.limit);
+    }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getHealthMoved, (event) =>
+    respond<MovedCandidatesPage>(event, IPC_CHANNELS.getHealthMoved, logger, () =>
+      healthService.getMoved(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.confirmHealthMoved, (event, params: unknown) =>
+    respond<MovedActionResult>(event, IPC_CHANNELS.confirmHealthMoved, logger, () =>
+      healthService.confirmMoved(MovedCandidateTargetsSchema.parse(params).candidateIds),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.dismissHealthMoved, (event, params: unknown) =>
+    respond<MovedActionResult>(event, IPC_CHANNELS.dismissHealthMoved, logger, () =>
+      healthService.dismissMoved(MovedCandidateTargetsSchema.parse(params).candidateIds),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getValidationState, (event) =>
+    respond<ValidationState>(event, IPC_CHANNELS.getValidationState, logger, () =>
+      healthService.getValidationState(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.startValidation, (event, params: unknown) =>
+    respond<ValidationState>(event, IPC_CHANNELS.startValidation, logger, () =>
+      healthService.startValidation(ValidationStartParamsSchema.parse(params).levels),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.pauseValidation, (event) =>
+    respond<ValidationState>(event, IPC_CHANNELS.pauseValidation, logger, () =>
+      healthService.pauseValidation(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.resumeValidation, (event) =>
+    respond<ValidationState>(event, IPC_CHANNELS.resumeValidation, logger, () =>
+      healthService.resumeValidation(),
     ),
   );
 }

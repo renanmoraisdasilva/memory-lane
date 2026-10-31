@@ -14,6 +14,8 @@ import { createScanDbHandlers } from "./scan-db-handlers";
 import { SCAN_DB_METHODS, type ScanDbMethod } from "./scan-worker-protocol";
 import { createLibraryDbHandlers } from "./library-db-handlers";
 import { LIBRARY_DB_METHODS, type LibraryDbMethod } from "./library-worker-protocol";
+import { createHealthDbHandlers } from "./health-db-handlers";
+import { HEALTH_DB_METHODS, type HealthDbMethod } from "./health-worker-protocol";
 import { acquireCatalogLock } from "../platform/catalog-lock";
 import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
@@ -51,6 +53,10 @@ function isScanDbMethod(method: DbMethod): method is ScanDbMethod {
 
 function isLibraryDbMethod(method: DbMethod): method is LibraryDbMethod {
   return (LIBRARY_DB_METHODS as readonly string[]).includes(method);
+}
+
+function isHealthDbMethod(method: DbMethod): method is HealthDbMethod {
+  return (HEALTH_DB_METHODS as readonly string[]).includes(method);
 }
 
 function createCatalogSession(): CatalogSession {
@@ -138,6 +144,9 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
     getCatalog: () => catalogs.get(),
     getCatalogPath: () => catalogs.getPath(),
   });
+  const healthHandlers = createHealthDbHandlers({
+    getCatalog: () => catalogs.get(),
+  });
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);
@@ -167,6 +176,9 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
     }
     if (isLibraryDbMethod(method)) {
       return libraryHandlers.handle(method, params);
+    }
+    if (isHealthDbMethod(method)) {
+      return healthHandlers.handle(method, params);
     }
 
     switch (method) {

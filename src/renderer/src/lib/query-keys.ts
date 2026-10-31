@@ -8,4 +8,10 @@ export const queryKeys = {
   libraryTimelineIndex: (filter: string) => ["library", "timeline-index", filter] as const,
   libraryItem: (fileId: number, filter: string) => ["library", "item", fileId, filter] as const,
   libraryUndated: ["library", "undated"] as const,
+  healthSummary: ["health", "summary"] as const,
+  healthDuplicates: (offset: number, limit: number) =>
+    ["health", "duplicates", offset, limit] as const,
+  healthMissing: (offset: number, limit: number) => ["health", "missing", offset, limit] as const,
+  healthMoved: ["health", "moved"] as const,
+  healthValidation: ["health", "validation"] as const,
 };

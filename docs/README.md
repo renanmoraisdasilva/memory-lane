@@ -8,6 +8,8 @@ Start here:
 | `Memory_Lane_Scope_and_Implementation.md` | Current v0.1 scope, architecture, data model, and quality gates |
 | `roadmap.md` | Delivered phases and the next implementation steps |
 | `phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
+| `phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
+| `health-contract.md` | Library health IPC, duplicate, missing/moved, and validation contract |
 | `scan-contract.md` | Current scan IPC, state, stage, and report contract |
 | `library-contract.md` | Current library IPC, timeline, media protocol, and viewer contract |
 | `agent-workstreams.md` | Rules for running parallel coding agents |

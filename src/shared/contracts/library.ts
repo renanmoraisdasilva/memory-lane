@@ -30,6 +30,7 @@ export const LibraryItemSchema = z.object({
   thumbnailStatus: ThumbnailStatusSchema,
   thumbnailUrl: z.string().min(1).nullable(),
   isMissing: z.boolean(),
+  isDuplicate: z.boolean().optional(),
 });
 export type LibraryItem = z.infer<typeof LibraryItemSchema>;
 

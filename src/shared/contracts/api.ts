@@ -7,6 +7,18 @@ import type {
   OpenCatalogParams,
 } from "./ipc";
 import type {
+  DuplicateGroupsPage,
+  DuplicateGroupsParams,
+  HealthSummary,
+  MissingFilesPage,
+  MissingFilesParams,
+  MovedActionResult,
+  MovedCandidateTargets,
+  MovedCandidatesPage,
+  ValidationStartParams,
+  ValidationState,
+} from "./health";
+import type {
   LibraryClearDateParams,
   LibraryDateMutationResult,
   LibraryItemDetails,
@@ -43,6 +55,16 @@ export interface MemoryLaneApi {
   getLibraryUndated(params: LibraryUndatedParams): Promise<IpcResult<LibraryUndatedPage>>;
   setLibraryDate(params: LibrarySetDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
   clearLibraryDate(params: LibraryClearDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
+  getHealthSummary(): Promise<IpcResult<HealthSummary>>;
+  getHealthDuplicates(params: DuplicateGroupsParams): Promise<IpcResult<DuplicateGroupsPage>>;
+  getHealthMissing(params: MissingFilesParams): Promise<IpcResult<MissingFilesPage>>;
+  getHealthMoved(): Promise<IpcResult<MovedCandidatesPage>>;
+  confirmHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
+  dismissHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
+  getValidationState(): Promise<IpcResult<ValidationState>>;
+  startValidation(params: ValidationStartParams): Promise<IpcResult<ValidationState>>;
+  pauseValidation(): Promise<IpcResult<ValidationState>>;
+  resumeValidation(): Promise<IpcResult<ValidationState>>;
   revealLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
   openLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
 }

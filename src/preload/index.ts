@@ -10,6 +10,18 @@ import type {
   OpenCatalogParams,
 } from "@shared/contracts/ipc";
 import type {
+  DuplicateGroupsPage,
+  DuplicateGroupsParams,
+  HealthSummary,
+  MissingFilesPage,
+  MissingFilesParams,
+  MovedActionResult,
+  MovedCandidateTargets,
+  MovedCandidatesPage,
+  ValidationStartParams,
+  ValidationState,
+} from "@shared/contracts/health";
+import type {
   LibraryClearDateParams,
   LibraryDateMutationResult,
   LibraryItemDetails,
@@ -78,6 +90,34 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.clearLibraryDate, params) as Promise<
       IpcResult<LibraryDateMutationResult>
     >,
+  getHealthSummary: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthSummary) as Promise<IpcResult<HealthSummary>>,
+  getHealthDuplicates: (params: DuplicateGroupsParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthDuplicates, params) as Promise<
+      IpcResult<DuplicateGroupsPage>
+    >,
+  getHealthMissing: (params: MissingFilesParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthMissing, params) as Promise<
+      IpcResult<MissingFilesPage>
+    >,
+  getHealthMoved: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthMoved) as Promise<IpcResult<MovedCandidatesPage>>,
+  confirmHealthMoved: (params: MovedCandidateTargets) =>
+    ipcRenderer.invoke(IPC_CHANNELS.confirmHealthMoved, params) as Promise<
+      IpcResult<MovedActionResult>
+    >,
+  dismissHealthMoved: (params: MovedCandidateTargets) =>
+    ipcRenderer.invoke(IPC_CHANNELS.dismissHealthMoved, params) as Promise<
+      IpcResult<MovedActionResult>
+    >,
+  getValidationState: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getValidationState) as Promise<IpcResult<ValidationState>>,
+  startValidation: (params: ValidationStartParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.startValidation, params) as Promise<IpcResult<ValidationState>>,
+  pauseValidation: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.pauseValidation) as Promise<IpcResult<ValidationState>>,
+  resumeValidation: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.resumeValidation) as Promise<IpcResult<ValidationState>>,
   revealLibraryItem: (params: LibraryItemTargetParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,
   openLibraryItem: (params: LibraryItemTargetParams) =>

@@ -1,4 +1,16 @@
 import type {
+  DuplicateGroupsPage,
+  DuplicateGroupsParams,
+  HealthSummary,
+  MissingFilesPage,
+  MissingFilesParams,
+  MovedActionResult,
+  MovedCandidateTargets,
+  MovedCandidatesPage,
+  ValidationStartParams,
+  ValidationState,
+} from "@shared/contracts/health";
+import type {
   LibraryClearDateParams,
   LibraryDateMutationResult,
   LibraryFilter,
@@ -21,6 +33,16 @@ export interface LibraryClient {
   getUndated(params: LibraryUndatedParams): Promise<LibraryUndatedPage>;
   setDate(params: LibrarySetDateParams): Promise<LibraryDateMutationResult>;
   clearDate(params: LibraryClearDateParams): Promise<LibraryDateMutationResult>;
+  getHealthSummary(): Promise<HealthSummary>;
+  getDuplicates(params: DuplicateGroupsParams): Promise<DuplicateGroupsPage>;
+  getMissing(params: MissingFilesParams): Promise<MissingFilesPage>;
+  getMoved(): Promise<MovedCandidatesPage>;
+  confirmMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
+  dismissMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
+  getValidationState(): Promise<ValidationState>;
+  startValidation(params: ValidationStartParams): Promise<ValidationState>;
+  pauseValidation(): Promise<ValidationState>;
+  resumeValidation(): Promise<ValidationState>;
   revealItem(params: { fileId: number }): Promise<void>;
   openItem(params: { fileId: number }): Promise<void>;
 }
@@ -37,6 +59,16 @@ export function createLibraryClient(): LibraryClient {
     getUndated: (params) => api.getLibraryUndated(params),
     setDate: (params) => api.setLibraryDate(params),
     clearDate: (params) => api.clearLibraryDate(params),
+    getHealthSummary: () => api.getHealthSummary(),
+    getDuplicates: (params) => api.getHealthDuplicates(params),
+    getMissing: (params) => api.getHealthMissing(params),
+    getMoved: () => api.getHealthMoved(),
+    confirmMoved: (params) => api.confirmHealthMoved(params),
+    dismissMoved: (params) => api.dismissHealthMoved(params),
+    getValidationState: () => api.getValidationState(),
+    startValidation: (params) => api.startValidation(params),
+    pauseValidation: () => api.pauseValidation(),
+    resumeValidation: () => api.resumeValidation(),
     revealItem: (params) => api.revealLibraryItem(params.fileId),
     openItem: (params) => api.openLibraryItem(params.fileId),
   };

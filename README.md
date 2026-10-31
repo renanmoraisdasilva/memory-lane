@@ -6,7 +6,7 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-Phases 0-3 are implemented:
+Phases 0-4 are implemented:
 
 - Electron application shell with a narrow preload IPC boundary.
 - Dedicated SQLite database worker for PC and per-drive catalogs.
@@ -22,9 +22,12 @@ Phases 0-3 are implemented:
 - ExifTool-based EXIF/XMP/video date extraction with filesystem fallbacks.
 - Date unavailable, bulk year/year-month assignment, and reversible catalog-only
   overrides in the viewer.
+- Library health with duplicate groups, missing/moved-file management, duplicate
+  badges, and whole-catalog validation with pause/resume.
 - Windows installer, portable build, E2E flows, and a packaged EXIF smoke test.
 
-Phase 4 (integrity) is next. See `docs/roadmap.md` for the remaining work.
+Phase 5 (other files and settings) is next. See `docs/roadmap.md` for the
+remaining work.
 
 ## Documentation
 
@@ -36,6 +39,8 @@ Start at `docs/README.md`.
 | `docs/Memory_Lane_Scope_and_Implementation.md` | Current scope, architecture, data model, and quality gates |
 | `docs/roadmap.md` | Delivered phases and next steps |
 | `docs/phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
+| `docs/phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
+| `docs/health-contract.md` | Library health IPC and validation contract |
 | `docs/scan-contract.md` | Scan IPC and state contract |
 | `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
 | `docs/agent-workstreams.md` | Parallel agent rules |

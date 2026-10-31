@@ -377,7 +377,15 @@
   pointer-events: none;
 }
 
+.tileFlags {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
 .missingBadge,
+.duplicateBadge,
 .videoBadge {
   display: inline-flex;
   align-items: center;
@@ -394,6 +402,11 @@
 .missingBadge {
   border: 1px solid rgba(255, 180, 171, 0.24);
   color: var(--red);
+}
+
+.duplicateBadge {
+  border: 1px solid rgba(242, 179, 92, 0.24);
+  color: var(--amber-2);
 }
 
 .videoBadge {

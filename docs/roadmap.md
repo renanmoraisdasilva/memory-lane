@@ -4,7 +4,7 @@ Last updated: 2026-10-31
 
 ## Current state
 
-Phases 0-3 are implemented:
+Phases 0-4 are implemented:
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -17,9 +17,12 @@ Phases 0-3 are implemented:
 - ExifTool-based date and video metadata extraction, a deterministic date
   priority chain, suspicious-date handling, Date unavailable, and catalog-only
   manual overrides.
+- Library health with exact duplicate groups, missing/moved-file management,
+  four-level whole-catalog validation, duplicate badges, and catalog-only
+  actions.
 
-Verification at the Phase 3 integration point: 272 unit/component/integration
-tests, 5 Electron E2E flows, coverage above the configured floors, and a
+Verification at the Phase 4 integration point: 291 unit/component/integration
+tests, 6 Electron E2E flows, coverage above the configured floors, and a
 packaged smoke test that resolves an EXIF date through the packaged ExifTool
 binary.
 
@@ -52,22 +55,26 @@ Known limits: EXIF timezone offsets are preserved but not applied to the
 wall-clock date; legacy camcorder metadata depends on the container; ExifTool
 does not add playback or thumbnails for unsupported video.
 
-## Phase 4 - Integrity (next)
+## Phase 4 - Integrity (delivered)
 
-Goal: one Library health hub with no destructive actions.
+- Duplicate detection covers all catalog files and rebuilds after scans and
+  validation.
+- Memory Lane tiles show duplicate badges.
+- Missing files retain catalog rows and former paths.
+- Moved candidates are rechecked by existence and SHA-256 before a batch
+  confirmation updates catalog paths.
+- Validation supports existence, basic metadata, deep SHA-256, and metadata
+  revalidation across the whole catalog, with pause/resume and persisted
+  progress.
+- Deep validation updates stale hashes; metadata revalidation preserves manual
+  date overrides.
+- Library health is available at `/health`.
 
-- Group exact duplicates by SHA-256 and show every copy.
-- Surface missing files with former locations and preserve their catalog rows.
-- Present hash-matched moved candidates as a batch, with per-file confirmation.
-- Implement the four validation levels: existence, basic metadata, deep SHA-256,
-  and metadata revalidation.
-- Add last-run validation reporting and pause/resume for deep hashing.
-- Add Library health tabs and E2E coverage.
+Known limits: validation report counts are per-result checks, pause is
+cooperative between files, and very large duplicate sets still need a performance
+benchmark.
 
-Exit criteria: duplicates, missing files, moved files, and validation work from
-one hub, and no action deletes, moves, or renames an original.
-
-## Phase 5 - Other files and settings
+## Phase 5 - Other files and settings (next)
 
 Goal: complete the remaining v0.1 screens.
 

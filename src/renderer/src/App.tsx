@@ -7,6 +7,7 @@ import { createLibraryClient, type LibraryClient } from "./features/library/libr
 import { LibraryClientProvider } from "./features/library/library-client-context";
 import { UndatedPage } from "./features/library/UndatedPage";
 import { ViewerShell } from "./features/library/ViewerShell";
+import { HealthPage } from "./features/health/HealthPage";
 import { ScanPage } from "./features/scan/ScanPage";
 import { AppShell } from "./features/shell/AppShell";
 import { PhaseOneClientProvider } from "./lib/client-context";
@@ -53,6 +54,18 @@ function UndatedRoute(): React.JSX.Element {
   );
 }
 
+function HealthRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return (
+    <AppShell crumbs={["Library", "Library health"]}>
+      <HealthPage />
+    </AppShell>
+  );
+}
+
 function ViewerRoute(): React.JSX.Element {
   const { catalog, drive } = useWorkspace();
   if (catalog === null || drive === null) {
@@ -80,6 +93,7 @@ export function App({
             <Route path="/scan" element={<ScanRoute />} />
             <Route path="/library" element={<LibraryRoute />} />
             <Route path="/undated" element={<UndatedRoute />} />
+            <Route path="/health" element={<HealthRoute />} />
             <Route path="/library/item/:fileId" element={<ViewerRoute />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

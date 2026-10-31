@@ -1,8 +1,8 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-3 implemented\
+**Status:** Product baseline; Phases 0-4 implemented\
 **Platform:** Windows desktop\
-**Version:** 0.3\
+**Version:** 0.4\
 **Date:** 2026-10-31\
 **Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
 

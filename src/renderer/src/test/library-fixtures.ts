@@ -1,4 +1,5 @@
 import type { LibraryClient } from "../features/library/library-client";
+import type { ValidationState } from "@shared/contracts/health";
 import type {
   LibraryClearDateParams,
   LibraryFilter,
@@ -13,6 +14,19 @@ import type {
 
 const MB = 1024 ** 2;
 const GB = 1024 ** 3;
+
+const idleValidation: ValidationState = {
+  sessionId: null,
+  status: "idle",
+  levels: [],
+  total: 0,
+  processed: 0,
+  currentLevel: null,
+  startedAt: null,
+  finishedAt: null,
+  errorMessage: null,
+  report: null,
+};
 
 export const libraryFixtureItems: LibraryItem[] = [
   {
@@ -349,6 +363,25 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
       }),
     clearDate: (params: LibraryClearDateParams) =>
       Promise.resolve().then(() => ({ updated: params.fileIds.length })),
+    getHealthSummary: () =>
+      Promise.resolve({
+        duplicateGroups: 0,
+        duplicateFiles: 0,
+        duplicateBytes: 0,
+        missingFiles: 0,
+        movedCandidates: 0,
+        lastValidationAt: null,
+      }),
+    getDuplicates: () =>
+      Promise.resolve({ groups: [], totalGroups: 0, totalFiles: 0, totalBytes: 0 }),
+    getMissing: () => Promise.resolve({ items: [], total: 0 }),
+    getMoved: () => Promise.resolve({ items: [], total: 0 }),
+    confirmMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
+    dismissMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
+    getValidationState: () => Promise.resolve(idleValidation),
+    startValidation: () => Promise.resolve(idleValidation),
+    pauseValidation: () => Promise.resolve(idleValidation),
+    resumeValidation: () => Promise.resolve(idleValidation),
     revealItem: () =>
       Promise.resolve().then(() => {
         throwIf(options.failures?.reveal);
@@ -360,30 +393,4 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
   };
 }
 
-export function createLargeLibraryFixture(count = 500): LibraryItem[] {
-  const base = Date.parse("2024-08-18T18:42:00.000Z");
-  return Array.from({ length: count }, (_, index) => {
-    const fileId = index + 1;
-    const video = index % 5 === 0;
-    return {
-      fileId,
-      name: video
-        ? `CLIP_${String(fileId).padStart(4, "0")}.MP4`
-        : `IMG_${String(fileId).padStart(4, "0")}.JPG`,
-      mediaClass: video ? "video" : "image",
-      format: video ? "MP4" : "JPEG",
-      sizeBytes: (video ? 120 : 8) * MB,
-      width: video ? 1920 : 3000,
-      height: video ? 1080 : 2000,
-      durationSeconds: video ? 75 : null,
-      date: {
-        value: new Date(base - index * 86_400_000).toISOString(),
-        precision: "exact",
-        source: "EXIF DateTimeOriginal",
-      },
-      thumbnailStatus: "ready",
-      thumbnailUrl: `ml-media://thumbnail/${String(fileId)}`,
-      isMissing: false,
-    } satisfies LibraryItem;
-  });
-}
+export { createLargeLibraryFixture } from "./large-library-fixtures";

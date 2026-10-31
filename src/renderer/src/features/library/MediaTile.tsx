@@ -1,4 +1,4 @@
-import { AlertTriangle, ImageOff, Play } from "lucide-react";
+import { AlertTriangle, Copy, ImageOff, Play } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { formatBytes, formatMediaDuration } from "../../lib/format";
@@ -75,14 +75,20 @@ function TileOverlays({ item }: { item: LibraryItem }): React.JSX.Element {
   return (
     <>
       <span className={styles.tileTop}>
-        {item.isMissing ? (
-          <span className={styles.missingBadge}>
-            <AlertTriangle size={11} aria-hidden="true" />
-            Missing
-          </span>
-        ) : (
-          <span />
-        )}
+        <span className={styles.tileFlags}>
+          {item.isMissing ? (
+            <span className={styles.missingBadge}>
+              <AlertTriangle size={11} aria-hidden="true" />
+              Missing
+            </span>
+          ) : null}
+          {item.isDuplicate === true ? (
+            <span className={styles.duplicateBadge}>
+              <Copy size={10} aria-hidden="true" />
+              Duplicate
+            </span>
+          ) : null}
+        </span>
         {item.mediaClass === "video" ? (
           <span className={styles.videoBadge}>
             <Play size={10} aria-hidden="true" />

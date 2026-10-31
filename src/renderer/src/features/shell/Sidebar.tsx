@@ -1,7 +1,8 @@
-import { CalendarClock, HardDrive, Image, Images, Radar } from "lucide-react";
+import { CalendarClock, HardDrive, Image, Images, Radar, ShieldCheck } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { formatBytes } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
+import { useHealthSummary } from "../health/use-health";
 import { useLibrarySummary } from "../library/use-library";
 import { isScanRunning } from "../scan/types";
 import { useScanState } from "../scan/use-scan";
@@ -21,6 +22,53 @@ function navClass({ isActive }: { isActive: boolean }): string {
   return `${styles.navItem}${isActive ? ` ${styles.navItemActive}` : ""}`;
 }
 
+function healthIssueCount(data: ReturnType<typeof useHealthSummary>["data"]): number {
+  return (data?.missingFiles ?? 0) + (data?.movedCandidates ?? 0);
+}
+
+function SidebarDriveCard({
+  drive,
+  onOpenDrawer,
+}: {
+  drive: DriveSelectionItem;
+  onOpenDrawer: () => void;
+}): React.JSX.Element {
+  const percent = usedPercent(drive);
+  const letter = drive.letter === null ? "" : ` (${drive.letter})`;
+  return (
+    <button
+      className={styles.driveCard}
+      type="button"
+      onClick={onOpenDrawer}
+      aria-label={`Open drive details for ${drive.label}`}
+    >
+      <span className={styles.driveCardTop}>
+        <span className={styles.driveCardIcon}>
+          <HardDrive size={16} aria-hidden="true" />
+        </span>
+        <span className={styles.driveCardText}>
+          <span className={styles.driveCardName}>
+            {drive.label}
+            {letter}
+          </span>
+          <span className={styles.driveCardState}>
+            {drive.connection === "connected" ? "Connected · Read-only" : "Not connected"}
+          </span>
+        </span>
+      </span>
+      <span className={styles.driveCardMeta}>
+        <span>
+          {formatBytes(drive.freeBytes)} free of {formatBytes(drive.totalBytes)}
+        </span>
+        <span>{percent === null ? "" : `${String(percent)}%`}</span>
+      </span>
+      <span className={styles.driveCardBar} aria-hidden="true">
+        <span style={percent === null ? undefined : { width: `${String(percent)}%` }} />
+      </span>
+    </button>
+  );
+}
+
 export function Sidebar({
   drive,
   onOpenDrawer,
@@ -30,8 +78,9 @@ export function Sidebar({
 }): React.JSX.Element {
   const scan = useScanState(drive.volumeId);
   const library = useLibrarySummary();
+  const health = useHealthSummary();
   const undatedCount = library.data?.undatedCount ?? 0;
-  const percent = usedPercent(drive);
+  const healthIssues = healthIssueCount(health.data);
 
   return (
     <aside className={styles.sidebar}>
@@ -56,6 +105,11 @@ export function Sidebar({
           <span>Date unavailable</span>
           {undatedCount > 0 ? <span className={styles.navBadge}>{undatedCount}</span> : null}
         </NavLink>
+        <NavLink to="/health" className={navClass}>
+          <ShieldCheck size={18} aria-hidden="true" />
+          <span>Library health</span>
+          {healthIssues > 0 ? <span className={styles.navBadge}>{healthIssues}</span> : null}
+        </NavLink>
 
         <div className={styles.navDivider} />
 
@@ -70,37 +124,8 @@ export function Sidebar({
       </nav>
 
       <div className={styles.sidebarBottom}>
-        <button
-          className={styles.driveCard}
-          type="button"
-          onClick={onOpenDrawer}
-          aria-label={`Open drive details for ${drive.label}`}
-        >
-          <span className={styles.driveCardTop}>
-            <span className={styles.driveCardIcon}>
-              <HardDrive size={16} aria-hidden="true" />
-            </span>
-            <span className={styles.driveCardText}>
-              <span className={styles.driveCardName}>
-                {drive.label}
-                {drive.letter === null ? "" : ` (${drive.letter})`}
-              </span>
-              <span className={styles.driveCardState}>
-                {drive.connection === "connected" ? "Connected · Read-only" : "Not connected"}
-              </span>
-            </span>
-          </span>
-          <span className={styles.driveCardMeta}>
-            <span>
-              {formatBytes(drive.freeBytes)} free of {formatBytes(drive.totalBytes)}
-            </span>
-            <span>{percent === null ? "" : `${percent}%`}</span>
-          </span>
-          <span className={styles.driveCardBar} aria-hidden="true">
-            <span style={percent === null ? undefined : { width: `${percent}%` }} />
-          </span>
-        </button>
-        <div className={styles.sidebarFootnote}>Phase 3 · local only · no telemetry</div>
+        <SidebarDriveCard drive={drive} onOpenDrawer={onOpenDrawer} />
+        <div className={styles.sidebarFootnote}>Phase 4 · local only · no telemetry</div>
       </div>
     </aside>
   );

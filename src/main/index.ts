@@ -16,6 +16,7 @@ import { createThumbnailScheduler } from "./modules/media/thumbnail-scheduler";
 import { registerMediaProtocol, registerMediaScheme } from "./modules/media/media-protocol";
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
+import { HealthService } from "./modules/health/application/health-service";
 
 registerMediaScheme();
 
@@ -28,6 +29,7 @@ const logger = configureLogging(paths.logPath);
 let mainWindow: BrowserWindow | null = null;
 let dbClient: DbWorkerClient | null = null;
 let scanService: ScanService | null = null;
+let healthService: HealthService | null = null;
 let shuttingDown = false;
 
 function createWindow(): void {
@@ -96,15 +98,23 @@ async function startServices(): Promise<void> {
     logger,
   });
 
+  const metadata = createFileMetadataExtractor({ logger });
   const scan = new ScanService({
     db,
     listDetected: listDetectedDrives,
     logger,
-    metadata: createFileMetadataExtractor(),
+    metadata,
     thumbnails,
     hasher: createFileHasher(),
   });
   scanService = scan;
+  const health = new HealthService({
+    db,
+    hasher: createFileHasher(),
+    metadata,
+    logger,
+  });
+  healthService = health;
 
   const driveService = new DriveService({
     db,
@@ -113,12 +123,22 @@ async function startServices(): Promise<void> {
     onBeforeCatalogChange: () => scan.interruptActive(),
   });
 
-  registerIpcHandlers({ appService, driveService, scanService: scan, libraryService, logger });
+  registerIpcHandlers({
+    appService,
+    driveService,
+    scanService: scan,
+    libraryService,
+    healthService: health,
+    logger,
+  });
   registerMediaProtocol({ db, thumbnails, logger });
   createWindow();
 }
 
 async function shutdown(): Promise<void> {
+  if (healthService !== null) {
+    await healthService.shutdown();
+  }
   if (scanService !== null) {
     await scanService.shutdown();
   }

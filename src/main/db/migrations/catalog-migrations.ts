@@ -2,6 +2,7 @@ import catalogInitial from "./catalog/0001-initial.sql?raw";
 import catalogScanState from "./catalog/0002-scan-state.sql?raw";
 import catalogLibrary from "./catalog/0003-library.sql?raw";
 import catalogDateOverrides from "./catalog/0004-date-overrides.sql?raw";
+import catalogValidation from "./catalog/0005-validation.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -24,5 +25,10 @@ export const catalogMigrations: Migration[] = [
     version: 4,
     name: "date override extraction fields",
     sql: catalogDateOverrides,
+  },
+  {
+    version: 5,
+    name: "validation progress and result levels",
+    sql: catalogValidation,
   },
 ];

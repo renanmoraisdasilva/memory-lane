@@ -15,6 +15,8 @@ and status.
 
 - `0001-exiftool-metadata-extraction.md` - ExifTool as the primary Phase 3
   metadata extractor, with in-process readers as fallbacks.
+- `0002-whole-catalog-integrity.md` - All-file duplicates, whole-catalog
+  validation, rehash-and-update, and defensive moved confirmation.
 
 Other implemented decisions are summarized in
 `docs/Memory_Lane_Scope_and_Implementation.md`.

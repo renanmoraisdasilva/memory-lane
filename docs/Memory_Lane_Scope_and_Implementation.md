@@ -1,6 +1,6 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-3 implemented. Phase 4 (integrity) is next.
+**Status:** Phases 0-4 implemented. Phase 5 (other files and settings) is next.
 **Platform:** Windows desktop
 **Last updated:** 2026-10-31
 **Companions:** `Memory_Lane_Product_Specification.md`, `roadmap.md`,
@@ -29,23 +29,22 @@ The guiding rule remains:
 | 1 - Drive and scan | Complete | Drive gate, catalog setup, four-stage scan, pause/resume/intensity, interruption recovery, incremental changes, completion report, drive drawer |
 | 2 - Memory Lane | Complete | Timeline, virtualized grid, filters, density, year/month navigation, viewport-priority thumbnails, photo/video viewer, details, reveal/open, scan handoff |
 | 3 - Dates | Complete | ExifTool extraction, EXIF/XMP/video date resolution, Date unavailable, manual overrides, suspicious-date review |
-| 4 - Integrity | Next | Duplicates, missing/moved management, validation, Library health |
-| 5 - Other files and settings | Planned | Category browser, cache controls, PC backup status, Settings |
+| 4 - Integrity | Complete | Duplicates, missing/moved management, validation, Library health |
+| 5 - Other files and settings | Next | Category browser, cache controls, PC backup status, Settings |
 | 6 - Hardening | Planned | Large-archive performance, disconnect recovery, codec matrix, clean-VM release pass |
 
-Verified at the Phase 3 integration point:
+Verified at the Phase 4 integration point:
 
-- 272 unit/component/integration tests across 55 files.
-- 5 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer and
-  Date unavailable -> assign -> clear.
-- Coverage above the configured floors.
+- 291 unit/component/integration tests across 60 files.
+- 6 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer,
+  Date unavailable, and Library health duplicates/validation.
+- Coverage above the configured floors, including the critical database branch
+  threshold.
 - Windows NSIS installer and portable build produced, verified, and smoke-tested.
 - The packaged smoke resolves an EXIF date through the packaged ExifTool binary.
 
 Known gaps:
 
-- Duplicate, missing/moved, and validation data is partly persisted or counted,
-  but the Library health workflows do not exist yet.
 - Other files, Settings, cache clearing, and scheduled PC backups do not exist
   yet.
 - The automated performance suite covers 10,000 items; the manual 100,000-item
@@ -279,10 +278,10 @@ Both databases are owned by the DB worker.
 | `cache_entries` | Thumbnail and preview cache records |
 | `schema_migrations` | Applied catalog migrations |
 
-Tables for integrity features exist at schema level. Phase 4 adds the services,
-queries, IPC, and UI that use them. Catalog migration 3 added media dimensions,
-video duration, and the timeline index. Migration 4 added extracted-date fields
-for reversible overrides and undated lookup indexes.
+Catalog migration 3 added media dimensions, video duration, and the timeline
+index. Migration 4 added extracted-date fields for reversible overrides and
+undated lookup indexes. Migration 5 added validation progress, current level,
+error state, and per-result levels.
 
 ### 5.5 Scan pipeline
 
@@ -446,8 +445,10 @@ Open:
 - `Memory_Lane_Product_Specification.md` - product requirements.
 - `roadmap.md` - delivered phases and remaining work.
 - `phase-3-scope.md` - implemented date extraction, overrides, and Date unavailable.
+- `phase-4-scope.md` - implemented duplicates, missing/moved files, and validation.
 - `scan-contract.md` - scan IPC and state contract.
 - `library-contract.md` - library IPC and media contract.
+- `health-contract.md` - Library health IPC and validation contract.
 - `agent-workstreams.md` - parallel agent rules.
 - `quality-exceptions.md` - approved exceptions.
 - `adr/` - architecture decision records.
