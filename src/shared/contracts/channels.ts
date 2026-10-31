@@ -9,4 +9,10 @@ export const IPC_CHANNELS = {
   pauseScan: "scan:pause",
   resumeScan: "scan:resume",
   setScanIntensity: "scan:set-intensity",
+  getLibrarySummary: "library:get-summary",
+  getLibraryTimeline: "library:get-timeline",
+  getLibraryTimelineIndex: "library:get-timeline-index",
+  getLibraryItem: "library:get-item",
+  revealLibraryItem: "shell:reveal-item",
+  openLibraryItem: "shell:open-item",
 } as const;

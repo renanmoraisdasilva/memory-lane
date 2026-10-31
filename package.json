@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "5.105.0",
+    "@tanstack/react-virtual": "3.14.24",
     "better-sqlite3": "12.11.1",
     "electron-log": "5.4.4",
     "lucide-react": "1.66.0",
