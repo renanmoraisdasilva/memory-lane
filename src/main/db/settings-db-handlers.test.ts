@@ -86,6 +86,10 @@ describe("settings DB handlers", () => {
         lastPath: null,
         lastBytes: null,
       });
+      expect(harness.handler.handle("settings.getCacheStats", {})).toEqual({
+        bytes: 10,
+        files: 1,
+      });
 
       const result = harness.handler.handle("settings.backup", { backupDir, now }) as Promise<{
         path: string;
@@ -132,6 +136,10 @@ describe("settings DB handlers", () => {
       });
 
       expect(harness.handler.handle("settings.clearCache", {})).toEqual({ removed: 1 });
+      expect(harness.handler.handle("settings.getCacheStats", {})).toEqual({
+        bytes: 0,
+        files: 0,
+      });
       expect(harness.catalog.prepare("SELECT COUNT(*) AS count FROM cache_entries").get()).toEqual({
         count: 0,
       });

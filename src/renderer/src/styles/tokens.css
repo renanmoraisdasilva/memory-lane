@@ -20,6 +20,9 @@
   --red-soft: rgba(255, 180, 171, 0.1);
   --blue: #b9c8de;
   --blue-soft: rgba(185, 200, 222, 0.1);
+  --scrollbar-size: 10px;
+  --scrollbar-thumb: #46424a;
+  --scrollbar-thumb-hover: #a4773e;
   --radius: 10px;
   --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: "Cascadia Mono", "Consolas", "Courier New", monospace;

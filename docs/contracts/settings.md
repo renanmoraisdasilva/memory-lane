@@ -20,7 +20,8 @@ Status: implemented in Phase 5. Types live in
 ## Cache
 
 - Cache location comes from the open catalog context: `<catalog-dir>/cache`.
-- Size and file count are measured recursively in the main process.
+- Size and file count come from `cache_entries`; Settings never recursively walks
+  the cache directory.
 - Clearing removes the cache directory and all `cache_entries` rows.
 - Cache clearing never changes `catalog.db`, date overrides, metadata, or any
   original file.

@@ -4,6 +4,7 @@ import type { BackupState, BackupResult } from "@shared/contracts/settings";
 
 export const SETTINGS_DB_METHODS = [
   "settings.getBackupState",
+  "settings.getCacheStats",
   "settings.backup",
   "settings.clearCache",
 ] as const;

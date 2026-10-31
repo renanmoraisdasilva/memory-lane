@@ -5,8 +5,10 @@ import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import {
   BackupResultSchema,
   BackupStateSchema,
+  CacheStatsSchema,
   type BackupResult,
   type BackupState,
+  type CacheStats,
 } from "@shared/contracts/settings";
 import type { SettingsDbHandler, SettingsDbHandlerOptions } from "./settings-worker-protocol";
 import { SettingsBackupDbParamsSchema } from "./settings-worker-protocol";
@@ -40,6 +42,16 @@ function readBackupState(appDb: Database.Database, catalog: Database.Database): 
     lastPath: history?.path ?? null,
     lastBytes: history?.bytes ?? null,
   });
+}
+
+function readCacheStats(catalog: Database.Database): CacheStats {
+  const row = catalog
+    .prepare(
+      `SELECT COUNT(*) AS files, COALESCE(SUM(bytes), 0) AS bytes
+       FROM cache_entries`,
+    )
+    .get() as CacheStats;
+  return CacheStatsSchema.parse(row);
 }
 
 async function runBackup(
@@ -96,6 +108,8 @@ export function createSettingsDbHandlers(options: SettingsDbHandlerOptions): Set
       switch (method) {
         case "settings.getBackupState":
           return readBackupState(options.getAppDb(), options.getCatalog());
+        case "settings.getCacheStats":
+          return readCacheStats(options.getCatalog());
         case "settings.backup": {
           const parsed = SettingsBackupDbParamsSchema.parse(params);
           return runBackup(options.getAppDb(), options.getCatalog(), parsed.backupDir, parsed.now);

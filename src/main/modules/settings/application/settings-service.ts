@@ -1,9 +1,10 @@
-import { readdir, rm, stat } from "node:fs/promises";
+import { rm, stat } from "node:fs/promises";
 import path from "node:path";
 import type {
   BackupResult,
   BackupState,
   CacheClearResult,
+  CacheStats,
   SettingsInfo,
 } from "@shared/contracts/settings";
 import {
@@ -23,11 +24,6 @@ interface CatalogContext {
   cachePath: string;
 }
 
-interface DirectoryStats {
-  bytes: number;
-  files: number;
-}
-
 export interface SettingsServiceDependencies {
   db: DbClient;
   appService: AppService;
@@ -38,34 +34,6 @@ export interface SettingsServiceDependencies {
 }
 
 const DEFAULT_BACKUP_INTERVAL_MS = 15 * 60 * 1000;
-
-async function directoryStats(directory: string): Promise<DirectoryStats> {
-  let entries;
-  try {
-    entries = await readdir(directory, { withFileTypes: true });
-  } catch {
-    return { bytes: 0, files: 0 };
-  }
-  let bytes = 0;
-  let files = 0;
-  for (const entry of entries) {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      const nested = await directoryStats(entryPath);
-      bytes += nested.bytes;
-      files += nested.files;
-    } else if (entry.isFile()) {
-      try {
-        const info = await stat(entryPath);
-        bytes += info.size;
-        files += 1;
-      } catch {
-        // A file can disappear while the cache is inspected.
-      }
-    }
-  }
-  return { bytes, files };
-}
 
 async function fileSize(filePath: string): Promise<number> {
   try {
@@ -92,7 +60,7 @@ export class SettingsService {
       this.context(),
     ]);
     const [cache, catalogBytes, backup] = await Promise.all([
-      directoryStats(context.cachePath),
+      this.dependencies.db.request<CacheStats>("settings.getCacheStats", {}),
       fileSize(context.catalogPath),
       this.dependencies.db.request<BackupState>("settings.getBackupState", {}),
     ]);
@@ -115,7 +83,7 @@ export class SettingsService {
 
   async clearCache(): Promise<CacheClearResult> {
     const context = await this.context();
-    const stats = await directoryStats(context.cachePath);
+    const stats = await this.dependencies.db.request<CacheStats>("settings.getCacheStats", {});
     await this.dependencies.db.request("settings.clearCache", {});
     await rm(context.cachePath, { recursive: true, force: true });
     this.dependencies.logger.info("Cleared thumbnail cache", {

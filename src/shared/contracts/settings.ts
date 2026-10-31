@@ -2,6 +2,12 @@ import { z } from "zod";
 
 export const BackupStatusSchema = z.enum(["success", "failed"]);
 
+export const CacheStatsSchema = z.object({
+  bytes: z.number().int().nonnegative(),
+  files: z.number().int().nonnegative(),
+});
+export type CacheStats = z.infer<typeof CacheStatsSchema>;
+
 export const BackupStateSchema = z.object({
   lastBackupAt: z.string().min(1).nullable(),
   lastStatus: BackupStatusSchema.nullable(),

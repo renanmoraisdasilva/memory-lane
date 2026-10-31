@@ -81,6 +81,7 @@ describe("SettingsService", () => {
     await writeFile(catalogPath, Buffer.alloc(100));
     const db = createDb({
       "library.getContext": { volumeId: "volume-1", catalogPath, cachePath },
+      "settings.getCacheStats": { bytes: 15, files: 2 },
       "settings.getBackupState": {
         lastBackupAt: createdAt,
         lastStatus: "success",
@@ -120,6 +121,7 @@ describe("SettingsService", () => {
     const clear = vi.fn(async () => ({ removed: 1 }));
     const db = createDb({
       "library.getContext": { volumeId: "volume-1", catalogPath, cachePath },
+      "settings.getCacheStats": { bytes: 12, files: 1 },
       "settings.clearCache": clear,
     });
     const service = new SettingsService({
