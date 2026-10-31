@@ -12,11 +12,14 @@
   --faint: #6e675f;
   --amber: #f2b35c;
   --amber-2: #ffc174;
+  --amber-ink: #2a1700;
   --amber-soft: rgba(242, 179, 92, 0.11);
   --green: #56e5a9;
   --green-soft: rgba(86, 229, 169, 0.11);
   --red: #ffb4ab;
   --red-soft: rgba(255, 180, 171, 0.1);
+  --blue: #b9c8de;
+  --blue-soft: rgba(185, 200, 222, 0.1);
   --radius: 10px;
   --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --mono: "Cascadia Mono", "Consolas", "Courier New", monospace;

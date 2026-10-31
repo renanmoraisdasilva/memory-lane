@@ -1,37 +1,40 @@
-import { NavLink, Route, Routes } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
-import { FoundationPage } from "./features/foundation/FoundationPage";
-import styles from "./App.module.css";
+import { useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { WorkspaceProvider, useWorkspace } from "./app/workspace";
+import { DriveSelectionPage } from "./features/drives/DriveSelectionPage";
+import { ScanPage } from "./features/scan/ScanPage";
+import { AppShell } from "./features/shell/AppShell";
+import { PhaseOneClientProvider } from "./lib/client-context";
+import { createDefaultPhaseOneClient, type PhaseOneClient } from "./lib/phase-one-client";
 
-export function App(): React.JSX.Element {
+function DriveGateRoute(): React.JSX.Element {
+  const { catalog } = useWorkspace();
+  return catalog === null ? <DriveSelectionPage /> : <Navigate to="/scan" replace />;
+}
+
+function ScanRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
   return (
-    <div className={styles.app}>
-      <header className={styles.header}>
-        <NavLink to="/" className={styles.brand ?? ""}>
-          <span className={styles.mark} aria-hidden="true">
-            ML
-          </span>
-          <span>
-            <span className={styles.name}>Memory Lane</span>
-            <span className={styles.subtitle}>Local archive foundation</span>
-          </span>
-        </NavLink>
-        <span className={styles.readonly}>
-          <ShieldCheck size={14} aria-hidden="true" />
-          Read-only archive
-        </span>
-      </header>
+    <AppShell>
+      <ScanPage />
+    </AppShell>
+  );
+}
 
-      <main className={styles.main}>
+export function App({ client }: { client?: PhaseOneClient } = {}): React.JSX.Element {
+  const [fallbackClient] = useState(createDefaultPhaseOneClient);
+  return (
+    <PhaseOneClientProvider client={client ?? fallbackClient}>
+      <WorkspaceProvider>
         <Routes>
-          <Route path="*" element={<FoundationPage />} />
+          <Route path="/" element={<DriveGateRoute />} />
+          <Route path="/scan" element={<ScanRoute />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </main>
-
-      <footer className={styles.footer}>
-        <span>Phase 0 · catalog ready for the scan pipeline</span>
-        <span>Local only · no telemetry</span>
-      </footer>
-    </div>
+      </WorkspaceProvider>
+    </PhaseOneClientProvider>
   );
 }
