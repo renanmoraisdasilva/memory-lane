@@ -206,3 +206,8 @@ These are post-v0.1 and are not part of current acceptance criteria:
   destination drives, with cumulative coverage.
 
 See `docs/roadmap.md` and the product specification for details.
+
+## License
+
+Memory Lane is released under the MIT License. See `LICENSE` for the full text.
+Third-party components are listed in `THIRD_PARTY_NOTICES.md`.

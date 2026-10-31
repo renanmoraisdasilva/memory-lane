@@ -4,7 +4,7 @@
   "private": true,
   "description": "Local-first, read-only archive catalog for Windows",
   "author": "Renan Silva",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "main": "out/main/index.js",
   "engines": {
     "node": ">=22.12.0"
