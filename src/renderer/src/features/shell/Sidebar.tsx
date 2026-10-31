@@ -1,4 +1,13 @@
-import { CalendarClock, HardDrive, Image, Images, Radar, ShieldCheck } from "lucide-react";
+import {
+  CalendarClock,
+  FileText,
+  HardDrive,
+  Image,
+  Images,
+  Radar,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { formatBytes } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
@@ -105,6 +114,10 @@ export function Sidebar({
           <span>Date unavailable</span>
           {undatedCount > 0 ? <span className={styles.navBadge}>{undatedCount}</span> : null}
         </NavLink>
+        <NavLink to="/files" className={navClass}>
+          <FileText size={18} aria-hidden="true" />
+          <span>Other files</span>
+        </NavLink>
         <NavLink to="/health" className={navClass}>
           <ShieldCheck size={18} aria-hidden="true" />
           <span>Library health</span>
@@ -121,11 +134,15 @@ export function Sidebar({
             <span className={styles.navPulse} title="Background processing active" />
           ) : null}
         </NavLink>
+        <NavLink to="/settings" className={navClass}>
+          <Settings size={18} aria-hidden="true" />
+          <span>Settings</span>
+        </NavLink>
       </nav>
 
       <div className={styles.sidebarBottom}>
         <SidebarDriveCard drive={drive} onOpenDrawer={onOpenDrawer} />
-        <div className={styles.sidebarFootnote}>Phase 4 · local only · no telemetry</div>
+        <div className={styles.sidebarFootnote}>Phase 5 · local only · no telemetry</div>
       </div>
     </aside>
   );

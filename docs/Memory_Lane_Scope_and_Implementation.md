@@ -1,6 +1,6 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-4 implemented. Phase 5 (other files and settings) is next.
+**Status:** Phases 0-5 implemented. Phase 6 (hardening) is next.
 **Platform:** Windows desktop
 **Last updated:** 2026-10-31
 **Companions:** `Memory_Lane_Product_Specification.md`, `roadmap.md`,
@@ -30,14 +30,14 @@ The guiding rule remains:
 | 2 - Memory Lane | Complete | Timeline, virtualized grid, filters, density, year/month navigation, viewport-priority thumbnails, photo/video viewer, details, reveal/open, scan handoff |
 | 3 - Dates | Complete | ExifTool extraction, EXIF/XMP/video date resolution, Date unavailable, manual overrides, suspicious-date review |
 | 4 - Integrity | Complete | Duplicates, missing/moved management, validation, Library health |
-| 5 - Other files and settings | Next | Category browser, cache controls, PC backup status, Settings |
-| 6 - Hardening | Planned | Large-archive performance, disconnect recovery, codec matrix, clean-VM release pass |
+| 5 - Other files and settings | Complete | Category browser, cache controls, PC backup status, Settings |
+| 6 - Hardening | Next | Large-archive performance, disconnect recovery, codec matrix, clean-VM release pass |
 
-Verified at the Phase 4 integration point:
+Verified at the Phase 5 integration point:
 
-- 291 unit/component/integration tests across 60 files.
-- 6 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer,
-  Date unavailable, and Library health duplicates/validation.
+- 308 unit/component/integration tests across 66 files.
+- 7 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer,
+  Date unavailable, Library health, and Other files/Settings backups.
 - Coverage above the configured floors, including the critical database branch
   threshold.
 - Windows NSIS installer and portable build produced, verified, and smoke-tested.
@@ -45,10 +45,10 @@ Verified at the Phase 4 integration point:
 
 Known gaps:
 
-- Other files, Settings, cache clearing, and scheduled PC backups do not exist
-  yet.
 - The automated performance suite covers 10,000 items; the manual 100,000-item
   check and an ExifTool mixed-corpus benchmark are still outstanding.
+- Backups run only while Memory Lane is open and overwrite the latest snapshot;
+  recovery is manual and there is no restore UI in v0.1.
 - ffmpeg/ffprobe and Sharp are not dependencies of the current build. ExifTool
   does not add playback or thumbnails for unsupported video.
 
@@ -111,11 +111,12 @@ Known gaps:
 
 **Other files and settings (Phase 5)**
 
-- Category-based browser for non-photo/video files.
-- Metadata, external open, and reveal.
-- Cache size and manual clear.
+- Category-based browser for every non-media catalog file.
+- Metadata, external open, reveal, and missing-file visibility.
+- Cache size and confirmed manual clear.
 - Catalog location and PC backup status.
-- Background controls and About.
+- Manual, scheduled (15-minute), and graceful-close SQLite backups.
+- Background-controls link and About.
 
 ### 3.2 Out of scope for v0.1
 
@@ -281,7 +282,9 @@ Both databases are owned by the DB worker.
 Catalog migration 3 added media dimensions, video duration, and the timeline
 index. Migration 4 added extracted-date fields for reversible overrides and
 undated lookup indexes. Migration 5 added validation progress, current level,
-error state, and per-result levels.
+error state, and per-result levels. Phase 5 reuses the existing
+`backup_history` and `registered_drives.last_backup_at` fields and adds no
+catalog migration.
 
 ### 5.5 Scan pipeline
 
@@ -310,7 +313,27 @@ requests use the same scheduler as bulk scan work and take priority. See
 
 See `library-contract.md` for channels, ordering, and presentation rules.
 
-### 5.7 Technology
+### 5.7 Other files and PC backups
+
+- `/files` filters `media_class = 'other'` rows into Documents, Spreadsheets,
+  Presentations, PDFs, Audio, Archives, and Other.
+- Results use offset pagination at 50 rows per page and show category counts
+  across the whole catalog.
+- Present files open externally or reveal in Explorer; missing files remain
+  visible and disable both actions.
+- `/settings` reports generated-cache size, catalog path/size, backup location
+  and last result, plus app/offline information.
+- Clearing generated cache removes `<catalog-dir>/cache` and `cache_entries`
+  rows. Catalog rows, metadata, date overrides, and originals are untouched.
+- `catalog.db` and `app.db` are backed up with the SQLite online backup API
+  every 15 minutes and on graceful close to
+  `%LOCALAPPDATA%\MemoryLane\backups\<volume-id>\`.
+- Backup success/failure is recorded in `backup_history`; recovery is manual in
+  v0.1 and there is no restore UI.
+
+See `other-files-contract.md` and `settings-contract.md` for the full contracts.
+
+### 5.8 Technology
 
 Current runtime and build stack:
 

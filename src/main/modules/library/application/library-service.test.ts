@@ -61,7 +61,7 @@ function createDb(mediaState: "present" | "missing" = "present"): DbClient {
       if (method === "library.getItem") {
         return details as T;
       }
-      if (method === "library.resolveMedia") {
+      if (method === "library.resolveFile") {
         return {
           fileId: (params as { fileId: number }).fileId,
           path: details.path,

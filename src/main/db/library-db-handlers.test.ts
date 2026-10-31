@@ -60,6 +60,9 @@ describe("library DB handlers", () => {
     expect(
       handler.handle("library.getTimeline", { filter: "all", cursor: undefined }),
     ).toMatchObject({ total: 1 });
+    expect(
+      handler.handle("library.getTimeline", { filter: "all", year: 2024, month: 8 }),
+    ).toMatchObject({ total: 1 });
     expect(handler.handle("library.getTimelineIndex", { filter: "photos" })).toMatchObject({
       months: [{ year: 2024, month: 8, count: 1 }],
     });
@@ -80,6 +83,10 @@ describe("library DB handlers", () => {
     expect(handler.handle("library.resolveMedia", { fileId })).toMatchObject({
       fileId,
       state: "present",
+    });
+    expect(handler.handle("library.resolveFile", { fileId })).toMatchObject({
+      fileId,
+      path: "C:\\archive\\a.jpg",
     });
     expect(handler.handle("library.resolveThumbnail", { fileId })).toMatchObject({
       status: "pending",

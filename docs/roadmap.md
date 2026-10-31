@@ -4,7 +4,7 @@ Last updated: 2026-10-31
 
 ## Current state
 
-Phases 0-4 are implemented:
+Phases 0-5 are implemented:
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -20,11 +20,14 @@ Phases 0-4 are implemented:
 - Library health with exact duplicate groups, missing/moved-file management,
   four-level whole-catalog validation, duplicate badges, and catalog-only
   actions.
+- Other files categories with external open/reveal, Settings with cache
+  controls and catalog details, and SQLite backups every 15 minutes and on
+  graceful close.
 
-Verification at the Phase 4 integration point: 291 unit/component/integration
-tests, 6 Electron E2E flows, coverage above the configured floors, and a
-packaged smoke test that resolves an EXIF date through the packaged ExifTool
-binary.
+Verification at the Phase 5 integration point: 308 unit/component/integration
+tests across 66 files, 7 Electron E2E flows, coverage above the configured
+floors, and a packaged smoke test that resolves an EXIF date through the packaged
+ExifTool binary.
 
 ## Immediate follow-ups
 
@@ -74,20 +77,24 @@ Known limits: validation report counts are per-result checks, pause is
 cooperative between files, and very large duplicate sets still need a performance
 benchmark.
 
-## Phase 5 - Other files and settings (next)
+## Phase 5 - Other files and settings (delivered)
 
-Goal: complete the remaining v0.1 screens.
+- `/files` browses every non-media catalog file by category, with counts,
+  pagination, external open, and reveal.
+- Missing files remain visible and disable open/reveal.
+- `/settings` shows generated cache size/location with confirmed clearing,
+  catalog path/size, backup status/location, background-controls link, and About.
+- `catalog.db` and `app.db` receive SQLite online backups every 15 minutes and
+  on graceful close.
+- Backup results are recorded, failures are visible in Settings, and recovery is
+  documented as manual.
+- Cache clearing removes generated files and `cache_entries` only; originals,
+  catalog rows, metadata, and overrides are preserved.
 
-- Category-based Other files browser with external open and reveal.
-- Settings: background controls, cache size and clear, catalog location, PC
-  backup status/location, and About.
-- Cache cleanup that never affects originals or catalog rows.
-- SQLite-safe PC backup on a 15-minute schedule and on graceful close.
-- Drive drawer polish and remaining empty/error/disconnect states.
+Known limits: the latest backup set is overwritten, backups only run while the
+app is open, cache clearing is all-or-nothing, and no restore UI ships in v0.1.
 
-Exit criteria: every visible v0.1 control maps to an implemented feature.
-
-## Phase 6 - Hardening
+## Phase 6 - Hardening (next)
 
 - 100k-200k file performance and memory tests.
 - USB disconnect, unclean shutdown, and resume tests.

@@ -4,6 +4,7 @@ import type { AppErrorPayload } from "@shared/domain/errors";
 import type { HealthDbMethod } from "./health-worker-protocol";
 import type { LibraryDbMethod } from "./library-worker-protocol";
 import type { ScanDbMethod } from "./scan-worker-protocol";
+import type { SettingsDbMethod } from "./settings-worker-protocol";
 
 export const CatalogCreateParamsSchema = z.object({
   catalogPath: z.string().min(1),
@@ -26,7 +27,8 @@ export const RegisterDriveParamsSchema = z.object({
 export type CoreDbMethod =
   "health" | "app.listDrives" | "app.registerDrive" | "catalog.create" | "catalog.open" | "close";
 
-export type DbMethod = CoreDbMethod | ScanDbMethod | LibraryDbMethod | HealthDbMethod;
+export type DbMethod =
+  CoreDbMethod | ScanDbMethod | LibraryDbMethod | HealthDbMethod | SettingsDbMethod;
 
 export interface DbRequest {
   id: number;

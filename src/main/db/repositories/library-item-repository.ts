@@ -19,7 +19,7 @@ const MediaRowSchema = z.object({
   mime: z.string().nullable(),
   size: z.number().int().nonnegative(),
   state: z.enum(["present", "missing"]),
-  media_class: z.enum(["image", "video"]),
+  media_class: z.enum(["image", "video", "other"]),
 });
 
 const DetailFileRowSchema = z.object({
@@ -55,7 +55,7 @@ export interface ResolvedMedia {
   mime: string | null;
   sizeBytes: number;
   state: "present" | "missing";
-  mediaClass: "image" | "video";
+  mediaClass: "image" | "video" | "other";
 }
 
 export interface ResolvedThumbnail {
@@ -180,6 +180,13 @@ export function resolveMediaFile(db: Database.Database, fileId: number): Resolve
       `SELECT id, path, mime, size, state, media_class
        FROM files WHERE id = ? AND media_class IN ('image', 'video')`,
     )
+    .get(fileId);
+  return row === undefined ? null : parseMedia(row);
+}
+
+export function resolveCatalogFile(db: Database.Database, fileId: number): ResolvedMedia | null {
+  const row = db
+    .prepare("SELECT id, path, mime, size, state, media_class FROM files WHERE id = ?")
     .get(fileId);
   return row === undefined ? null : parseMedia(row);
 }

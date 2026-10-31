@@ -36,6 +36,8 @@ import type {
   LibraryUndatedPage,
   LibraryUndatedParams,
 } from "@shared/contracts/library";
+import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
+import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import type {
   ScanIntensityParams,
   ScanStartParams,
@@ -82,6 +84,8 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.getLibraryUndated, params) as Promise<
       IpcResult<LibraryUndatedPage>
     >,
+  getOtherFiles: (params: OtherFilesParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getOtherFiles, params) as Promise<IpcResult<OtherFilesPage>>,
   setLibraryDate: (params: LibrarySetDateParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.setLibraryDate, params) as Promise<
       IpcResult<LibraryDateMutationResult>
@@ -118,6 +122,11 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.pauseValidation) as Promise<IpcResult<ValidationState>>,
   resumeValidation: () =>
     ipcRenderer.invoke(IPC_CHANNELS.resumeValidation) as Promise<IpcResult<ValidationState>>,
+  getSettingsInfo: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getSettingsInfo) as Promise<IpcResult<SettingsInfo>>,
+  clearCache: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.clearCache) as Promise<IpcResult<CacheClearResult>>,
+  runBackup: () => ipcRenderer.invoke(IPC_CHANNELS.runBackup) as Promise<IpcResult<BackupResult>>,
   revealLibraryItem: (params: LibraryItemTargetParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,
   openLibraryItem: (params: LibraryItemTargetParams) =>

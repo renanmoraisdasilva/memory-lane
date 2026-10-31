@@ -33,6 +33,8 @@ import type {
   LibraryUndatedPage,
   LibraryUndatedParams,
 } from "./library";
+import type { OtherFilesPage, OtherFilesParams } from "./other-files";
+import type { BackupResult, CacheClearResult, SettingsInfo } from "./settings";
 import type { ScanIntensityParams, ScanStartParams, ScanState, ScanVolumeParams } from "./scan";
 
 export interface MemoryLaneApi {
@@ -53,6 +55,7 @@ export interface MemoryLaneApi {
   ): Promise<IpcResult<LibraryTimelineIndex>>;
   getLibraryItem(params: LibraryItemParams): Promise<IpcResult<LibraryItemDetails>>;
   getLibraryUndated(params: LibraryUndatedParams): Promise<IpcResult<LibraryUndatedPage>>;
+  getOtherFiles(params: OtherFilesParams): Promise<IpcResult<OtherFilesPage>>;
   setLibraryDate(params: LibrarySetDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
   clearLibraryDate(params: LibraryClearDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
   getHealthSummary(): Promise<IpcResult<HealthSummary>>;
@@ -65,6 +68,9 @@ export interface MemoryLaneApi {
   startValidation(params: ValidationStartParams): Promise<IpcResult<ValidationState>>;
   pauseValidation(): Promise<IpcResult<ValidationState>>;
   resumeValidation(): Promise<IpcResult<ValidationState>>;
+  getSettingsInfo(): Promise<IpcResult<SettingsInfo>>;
+  clearCache(): Promise<IpcResult<CacheClearResult>>;
+  runBackup(): Promise<IpcResult<BackupResult>>;
   revealLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
   openLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
 }

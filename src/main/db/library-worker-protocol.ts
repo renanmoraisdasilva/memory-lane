@@ -7,6 +7,7 @@ import {
   LibraryTimelineParamsSchema,
   LibraryUndatedParamsSchema,
 } from "@shared/contracts/library";
+import { OtherFilesParamsSchema } from "@shared/contracts/other-files";
 
 export const LIBRARY_DB_METHODS = [
   "library.getSummary",
@@ -14,9 +15,11 @@ export const LIBRARY_DB_METHODS = [
   "library.getTimelineIndex",
   "library.getItem",
   "library.getUndated",
+  "library.getOtherFiles",
   "library.setDate",
   "library.clearDate",
   "library.getContext",
+  "library.resolveFile",
   "library.resolveMedia",
   "library.resolveThumbnail",
   "library.saveThumbnail",
@@ -40,5 +43,6 @@ export const LibraryTimelineDbParamsSchema = LibraryTimelineParamsSchema;
 export const LibraryTimelineIndexDbParamsSchema = LibraryTimelineIndexParamsSchema;
 export const LibraryItemDbParamsSchema = LibraryItemParamsSchema;
 export const LibraryUndatedDbParamsSchema = LibraryUndatedParamsSchema;
+export const LibraryOtherFilesDbParamsSchema = OtherFilesParamsSchema;
 export const LibrarySetDateDbParamsSchema = LibrarySetDateParamsSchema;
 export const LibraryClearDateDbParamsSchema = LibraryClearDateParamsSchema;

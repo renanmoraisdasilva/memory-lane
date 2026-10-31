@@ -6,7 +6,7 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-Phases 0-4 are implemented:
+Phases 0-5 are implemented:
 
 - Electron application shell with a narrow preload IPC boundary.
 - Dedicated SQLite database worker for PC and per-drive catalogs.
@@ -24,9 +24,13 @@ Phases 0-4 are implemented:
   overrides in the viewer.
 - Library health with duplicate groups, missing/moved-file management, duplicate
   badges, and whole-catalog validation with pause/resume.
+- Other files browser with categories, pagination, external open, and reveal.
+- Settings with generated-cache controls, catalog details, backup status, and
+  About.
+- SQLite-safe PC backups every 15 minutes and on graceful close.
 - Windows installer, portable build, E2E flows, and a packaged EXIF smoke test.
 
-Phase 5 (other files and settings) is next. See `docs/roadmap.md` for the
+Phase 6 (hardening and final acceptance) is next. See `docs/roadmap.md` for the
 remaining work.
 
 ## Documentation
@@ -40,7 +44,10 @@ Start at `docs/README.md`.
 | `docs/roadmap.md` | Delivered phases and next steps |
 | `docs/phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
 | `docs/phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
+| `docs/phase-5-scope.md` | Implemented Other files, Settings, cache clearing, and backups |
 | `docs/health-contract.md` | Library health IPC and validation contract |
+| `docs/other-files-contract.md` | Other files IPC and category contract |
+| `docs/settings-contract.md` | Settings, cache, and backup contract |
 | `docs/scan-contract.md` | Scan IPC and state contract |
 | `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
 | `docs/agent-workstreams.md` | Parallel agent rules |

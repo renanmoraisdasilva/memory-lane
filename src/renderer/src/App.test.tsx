@@ -50,7 +50,8 @@ describe("App shell", () => {
     expect(screen.getAllByText("Read-only").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Memory Lane" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Scan & processing" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Other files" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
   });
 
   it("navigates between Memory Lane and Scan & processing from the sidebar", async () => {

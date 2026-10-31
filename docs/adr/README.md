@@ -17,6 +17,8 @@ and status.
   metadata extractor, with in-process readers as fallbacks.
 - `0002-whole-catalog-integrity.md` - All-file duplicates, whole-catalog
   validation, rehash-and-update, and defensive moved confirmation.
+- `0003-scheduled-backups-and-cache.md` - SQLite online backups every 15
+  minutes and on close, plus all-or-nothing generated-cache clearing.
 
 Other implemented decisions are summarized in
 `docs/Memory_Lane_Scope_and_Implementation.md`.

@@ -17,6 +17,7 @@ import { registerMediaProtocol, registerMediaScheme } from "./modules/media/medi
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
 import { HealthService } from "./modules/health/application/health-service";
+import { SettingsService } from "./modules/settings/application/settings-service";
 
 registerMediaScheme();
 
@@ -30,6 +31,7 @@ let mainWindow: BrowserWindow | null = null;
 let dbClient: DbWorkerClient | null = null;
 let scanService: ScanService | null = null;
 let healthService: HealthService | null = null;
+let settingsService: SettingsService | null = null;
 let shuttingDown = false;
 
 function createWindow(): void {
@@ -90,6 +92,8 @@ async function startServices(): Promise<void> {
     platform: process.platform,
     isPackaged: app.isPackaged,
   });
+  const settings = new SettingsService({ db, appService, paths, logger });
+  settingsService = settings;
 
   const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());
   const libraryService = new LibraryService({
@@ -129,9 +133,11 @@ async function startServices(): Promise<void> {
     scanService: scan,
     libraryService,
     healthService: health,
+    settingsService: settings,
     logger,
   });
   registerMediaProtocol({ db, thumbnails, logger });
+  settings.startBackupTimer();
   createWindow();
 }
 
@@ -141,6 +147,9 @@ async function shutdown(): Promise<void> {
   }
   if (scanService !== null) {
     await scanService.shutdown();
+  }
+  if (settingsService !== null) {
+    await settingsService.shutdown();
   }
   if (dbClient !== null) {
     try {

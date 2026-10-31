@@ -20,13 +20,15 @@ if (!parsedData.success) {
 const handler = createDbWorkerHandler({ appDbPath: parsedData.data.appDbPath });
 
 parentPort.on("message", (request: DbRequest) => {
-  try {
-    const data = handler.handle(request.method, request.params);
-    parentPort?.postMessage(dbSuccess(request.id, data));
-    if (request.method === "close") {
-      setImmediate(() => process.exit(0));
-    }
-  } catch (error) {
-    parentPort?.postMessage(dbFailure(request.id, toAppErrorPayload(error)));
-  }
+  void Promise.resolve()
+    .then(() => handler.handle(request.method, request.params))
+    .then((data) => {
+      parentPort?.postMessage(dbSuccess(request.id, data));
+      if (request.method === "close") {
+        setImmediate(() => process.exit(0));
+      }
+    })
+    .catch((error: unknown) => {
+      parentPort?.postMessage(dbFailure(request.id, toAppErrorPayload(error)));
+    });
 });

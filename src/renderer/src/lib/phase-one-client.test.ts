@@ -101,6 +101,7 @@ function createApi(): MemoryLaneApi {
     getLibraryTimelineIndex: libraryFailure,
     getLibraryItem: libraryFailure,
     getLibraryUndated: libraryFailure,
+    getOtherFiles: libraryFailure,
     setLibraryDate: libraryFailure,
     clearLibraryDate: libraryFailure,
     getHealthSummary: libraryFailure,
@@ -113,6 +114,9 @@ function createApi(): MemoryLaneApi {
     startValidation: libraryFailure,
     pauseValidation: libraryFailure,
     resumeValidation: libraryFailure,
+    getSettingsInfo: libraryFailure,
+    clearCache: libraryFailure,
+    runBackup: libraryFailure,
     revealLibraryItem: libraryFailure,
     openLibraryItem: libraryFailure,
   };

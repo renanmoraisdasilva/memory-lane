@@ -23,6 +23,8 @@ import type {
   LibraryUndatedPage,
   LibraryUndatedParams,
 } from "./types";
+import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
+import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import { api } from "../../lib/ipc-client";
 
 export interface LibraryClient {
@@ -31,6 +33,7 @@ export interface LibraryClient {
   getTimelineIndex(params: { filter: LibraryFilter }): Promise<LibraryTimelineIndex>;
   getItem(params: { fileId: number; filter?: LibraryFilter }): Promise<LibraryItemDetails>;
   getUndated(params: LibraryUndatedParams): Promise<LibraryUndatedPage>;
+  getOtherFiles(params: OtherFilesParams): Promise<OtherFilesPage>;
   setDate(params: LibrarySetDateParams): Promise<LibraryDateMutationResult>;
   clearDate(params: LibraryClearDateParams): Promise<LibraryDateMutationResult>;
   getHealthSummary(): Promise<HealthSummary>;
@@ -43,6 +46,9 @@ export interface LibraryClient {
   startValidation(params: ValidationStartParams): Promise<ValidationState>;
   pauseValidation(): Promise<ValidationState>;
   resumeValidation(): Promise<ValidationState>;
+  getSettingsInfo(): Promise<SettingsInfo>;
+  clearCache(): Promise<CacheClearResult>;
+  runBackup(): Promise<BackupResult>;
   revealItem(params: { fileId: number }): Promise<void>;
   openItem(params: { fileId: number }): Promise<void>;
 }
@@ -57,6 +63,7 @@ export function createLibraryClient(): LibraryClient {
     getTimelineIndex: (params) => api.getLibraryTimelineIndex(params.filter),
     getItem: (params) => api.getLibraryItem(params.fileId, params.filter),
     getUndated: (params) => api.getLibraryUndated(params),
+    getOtherFiles: (params) => api.getOtherFiles(params),
     setDate: (params) => api.setLibraryDate(params),
     clearDate: (params) => api.clearLibraryDate(params),
     getHealthSummary: () => api.getHealthSummary(),
@@ -69,6 +76,9 @@ export function createLibraryClient(): LibraryClient {
     startValidation: (params) => api.startValidation(params),
     pauseValidation: () => api.pauseValidation(),
     resumeValidation: () => api.resumeValidation(),
+    getSettingsInfo: () => api.getSettingsInfo(),
+    clearCache: () => api.clearCache(),
+    runBackup: () => api.runBackup(),
     revealItem: (params) => api.revealLibraryItem(params.fileId),
     openItem: (params) => api.openLibraryItem(params.fileId),
   };

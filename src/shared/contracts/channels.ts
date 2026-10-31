@@ -14,6 +14,7 @@ export const IPC_CHANNELS = {
   getLibraryTimelineIndex: "library:get-timeline-index",
   getLibraryItem: "library:get-item",
   getLibraryUndated: "library:get-undated",
+  getOtherFiles: "library:get-other-files",
   setLibraryDate: "library:set-date",
   clearLibraryDate: "library:clear-date",
   getHealthSummary: "health:get-summary",
@@ -26,6 +27,9 @@ export const IPC_CHANNELS = {
   startValidation: "health:start-validation",
   pauseValidation: "health:pause-validation",
   resumeValidation: "health:resume-validation",
+  getSettingsInfo: "settings:get-info",
+  clearCache: "settings:clear-cache",
+  runBackup: "settings:run-backup",
   revealLibraryItem: "shell:reveal-item",
   openLibraryItem: "shell:open-item",
 } as const;

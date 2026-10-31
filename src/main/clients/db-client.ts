@@ -13,6 +13,11 @@ export interface DbClient {
 }
 
 const REQUEST_TIMEOUT_MS = 10_000;
+const BACKUP_TIMEOUT_MS = 120_000;
+
+function timeoutFor(method: DbMethod): number {
+  return method === "settings.backup" ? BACKUP_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
+}
 
 export class DbWorkerClient implements DbClient {
   private readonly worker: Worker;
@@ -54,7 +59,7 @@ export class DbWorkerClient implements DbClient {
       const timeout = setTimeout(() => {
         this.pending.delete(id);
         reject(new AppError(APP_ERROR_CODES.WORKER_ERROR, `Database request timed out: ${method}`));
-      }, REQUEST_TIMEOUT_MS);
+      }, timeoutFor(method));
       timeout.unref();
 
       this.pending.set(id, {

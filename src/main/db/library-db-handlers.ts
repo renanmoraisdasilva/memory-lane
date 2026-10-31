@@ -5,6 +5,7 @@ import {
   LibraryClearDateDbParamsSchema,
   LibraryFileParamsSchema,
   LibraryItemDbParamsSchema,
+  LibraryOtherFilesDbParamsSchema,
   LibrarySaveThumbnailParamsSchema,
   LibrarySetDateDbParamsSchema,
   LibraryTimelineDbParamsSchema,
@@ -24,10 +25,12 @@ import {
 import {
   getLibraryContext,
   getLibraryItem,
+  resolveCatalogFile,
   resolveMediaFile,
   resolveThumbnail,
   saveThumbnail,
 } from "./repositories/library-item-repository";
+import { getOtherFiles } from "./repositories/other-files-repository";
 
 type Handler = (params: unknown) => unknown;
 type HandlerMap = Partial<Record<LibraryDbMethod, Handler>>;
@@ -68,6 +71,15 @@ export function createLibraryDbHandlers(options: LibraryDbHandlerOptions): Libra
       const parsed = LibraryUndatedDbParamsSchema.parse(params);
       return getUndatedItems(catalog(), parsed.cursor ?? null, parsed.limit ?? 100);
     },
+    "library.getOtherFiles": (params) => {
+      const parsed = LibraryOtherFilesDbParamsSchema.parse(params);
+      return getOtherFiles(
+        catalog(),
+        parsed.category ?? "all",
+        parsed.offset ?? 0,
+        parsed.limit ?? 50,
+      );
+    },
     "library.setDate": (params) => {
       const parsed = LibrarySetDateDbParamsSchema.parse(params);
       return setDateOverride(catalog(), {
@@ -82,6 +94,8 @@ export function createLibraryDbHandlers(options: LibraryDbHandlerOptions): Libra
       return clearDateOverride(catalog(), parsed.fileIds, new Date().toISOString());
     },
     "library.getContext": () => getLibraryContext(catalog(), options.getCatalogPath()),
+    "library.resolveFile": (params) =>
+      resolveCatalogFile(catalog(), LibraryFileParamsSchema.parse(params).fileId),
     "library.resolveMedia": (params) =>
       resolveMediaFile(catalog(), LibraryFileParamsSchema.parse(params).fileId),
     "library.resolveThumbnail": (params) =>

@@ -142,6 +142,39 @@ describe("database worker handler", () => {
     }
   });
 
+  it("serves other files and database backups through the worker", async () => {
+    const { handler, root, appDbPath, catalogPath, cachePath } = await createHarness();
+    handler.handle("app.registerDrive", {
+      identity: identity(root),
+      lastSeenAt: "2026-10-31T12:00:00.000Z",
+      catalogSchema: 5,
+    });
+    handler.handle("catalog.create", {
+      ...createParams(root, catalogPath, cachePath),
+      catalogSchema: 5,
+    });
+
+    expect(handler.handle("library.getOtherFiles", {})).toMatchObject({
+      items: [],
+      total: 0,
+      counts: { all: 0 },
+    });
+
+    const backupDir = path.join(path.dirname(appDbPath), "backups", "volume-1");
+    const result = (await handler.handle("settings.backup", {
+      backupDir,
+      now: "2026-10-31T12:00:00.000Z",
+    })) as { status: string; bytes: number };
+    expect(result).toMatchObject({ status: "success" });
+    expect(result.bytes).toBeGreaterThan(0);
+    await expect(access(path.join(backupDir, "catalog.db"))).resolves.toBeUndefined();
+    await expect(access(path.join(backupDir, "app.db"))).resolves.toBeUndefined();
+    expect(handler.handle("settings.getBackupState", {})).toMatchObject({
+      lastStatus: "success",
+      lastBackupAt: "2026-10-31T12:00:00.000Z",
+    });
+  });
+
   it("rejects a relative catalog path and an unknown method", async () => {
     const { handler, root, cachePath } = await createHarness();
 

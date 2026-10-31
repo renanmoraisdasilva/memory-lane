@@ -1,8 +1,8 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-4 implemented\
+**Status:** Product baseline; Phases 0-5 implemented\
 **Platform:** Windows desktop\
-**Version:** 0.4\
+**Version:** 0.5\
 **Date:** 2026-10-31\
 **Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
 
@@ -579,11 +579,11 @@ phase:
     Sharp are needed for unsupported playback or thumbnails.
 -   Whether filesystem access-time updates must be prevented.
 -   Behavior for unreadable, encrypted, corrupt, or permission-restricted files.
--   Cache cleanup policy: all generated assets or selective cleanup (Phase 5).
--   Exact validation outcomes and UI wording (Phase 4).
--   Backup retention and the manual recovery procedure (Phase 5).
 -   Future backup conflict handling and destination capacity checks.
 -   Search design and whether SQLite FTS5 is required (post-v0.1).
+
+Resolved during Phases 4-5: validation outcomes and wording; all-generated-assets
+cache clearing; latest-snapshot backup retention with manual recovery.
 
 ## 19. Product name
 

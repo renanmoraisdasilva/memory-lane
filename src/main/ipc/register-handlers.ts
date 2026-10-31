@@ -35,6 +35,12 @@ import {
   type LibraryTimelinePage,
   type LibraryUndatedPage,
 } from "@shared/contracts/library";
+import { OtherFilesParamsSchema, type OtherFilesPage } from "@shared/contracts/other-files";
+import {
+  type BackupResult,
+  type CacheClearResult,
+  type SettingsInfo,
+} from "@shared/contracts/settings";
 import {
   ScanIntensityParamsSchema,
   ScanStartParamsSchema,
@@ -47,6 +53,7 @@ import type { DriveService } from "../modules/drives/application/drive-service";
 import type { HealthService } from "../modules/health/application/health-service";
 import type { LibraryService } from "../modules/library/application/library-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
+import type { SettingsService } from "../modules/settings/application/settings-service";
 import type { Logger } from "../logging/types";
 
 export interface IpcServices {
@@ -55,6 +62,7 @@ export interface IpcServices {
   scanService: ScanService;
   libraryService: LibraryService;
   healthService: HealthService;
+  settingsService: SettingsService;
   logger: Logger;
 }
 
@@ -90,7 +98,15 @@ async function respond<T>(
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
-  const { appService, driveService, scanService, libraryService, healthService, logger } = services;
+  const {
+    appService,
+    driveService,
+    scanService,
+    libraryService,
+    healthService,
+    settingsService,
+    logger,
+  } = services;
 
   ipcMain.handle(IPC_CHANNELS.getAppInfo, (event) =>
     respond<AppInfo>(event, IPC_CHANNELS.getAppInfo, logger, () => appService.getInfo()),
@@ -193,18 +209,9 @@ export function registerIpcHandlers(services: IpcServices): void {
   );
 
   registerHealthHandlers(healthService, logger);
-
-  ipcMain.handle(IPC_CHANNELS.revealLibraryItem, (event, params: unknown) =>
-    respond<void>(event, IPC_CHANNELS.revealLibraryItem, logger, () =>
-      libraryService.reveal(LibraryItemTargetParamsSchema.parse(params).fileId),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.openLibraryItem, (event, params: unknown) =>
-    respond<void>(event, IPC_CHANNELS.openLibraryItem, logger, () =>
-      libraryService.open(LibraryItemTargetParamsSchema.parse(params).fileId),
-    ),
-  );
+  registerSettingsHandlers(settingsService, logger);
+  registerOtherFilesHandler(libraryService, logger);
+  registerFileActionHandlers(libraryService, logger);
 }
 
 function registerHealthHandlers(healthService: HealthService, logger: Logger): void {
@@ -267,6 +274,46 @@ function registerHealthHandlers(healthService: HealthService, logger: Logger): v
   ipcMain.handle(IPC_CHANNELS.resumeValidation, (event) =>
     respond<ValidationState>(event, IPC_CHANNELS.resumeValidation, logger, () =>
       healthService.resumeValidation(),
+    ),
+  );
+}
+
+function registerOtherFilesHandler(libraryService: LibraryService, logger: Logger): void {
+  ipcMain.handle(IPC_CHANNELS.getOtherFiles, (event, params: unknown) =>
+    respond<OtherFilesPage>(event, IPC_CHANNELS.getOtherFiles, logger, () =>
+      libraryService.getOtherFiles(OtherFilesParamsSchema.parse(params)),
+    ),
+  );
+}
+
+function registerSettingsHandlers(settingsService: SettingsService, logger: Logger): void {
+  ipcMain.handle(IPC_CHANNELS.getSettingsInfo, (event) =>
+    respond<SettingsInfo>(event, IPC_CHANNELS.getSettingsInfo, logger, () =>
+      settingsService.getInfo(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.clearCache, (event) =>
+    respond<CacheClearResult>(event, IPC_CHANNELS.clearCache, logger, () =>
+      settingsService.clearCache(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.runBackup, (event) =>
+    respond<BackupResult>(event, IPC_CHANNELS.runBackup, logger, () => settingsService.runBackup()),
+  );
+}
+
+function registerFileActionHandlers(libraryService: LibraryService, logger: Logger): void {
+  ipcMain.handle(IPC_CHANNELS.revealLibraryItem, (event, params: unknown) =>
+    respond<void>(event, IPC_CHANNELS.revealLibraryItem, logger, () =>
+      libraryService.reveal(LibraryItemTargetParamsSchema.parse(params).fileId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.openLibraryItem, (event, params: unknown) =>
+    respond<void>(event, IPC_CHANNELS.openLibraryItem, logger, () =>
+      libraryService.open(LibraryItemTargetParamsSchema.parse(params).fileId),
     ),
   );
 }

@@ -16,12 +16,15 @@ import { createLibraryDbHandlers } from "./library-db-handlers";
 import { LIBRARY_DB_METHODS, type LibraryDbMethod } from "./library-worker-protocol";
 import { createHealthDbHandlers } from "./health-db-handlers";
 import { HEALTH_DB_METHODS, type HealthDbMethod } from "./health-worker-protocol";
+import { createSettingsDbHandlers } from "./settings-db-handlers";
+import { SETTINGS_DB_METHODS, type SettingsDbMethod } from "./settings-worker-protocol";
 import { acquireCatalogLock } from "../platform/catalog-lock";
 import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
   CatalogCreateParamsSchema,
   CatalogOpenParamsSchema,
   RegisterDriveParamsSchema,
+  type CoreDbMethod,
   type DbMethod,
 } from "./worker-protocol";
 
@@ -45,18 +48,6 @@ interface CatalogSession {
   get(): Database.Database;
   getPath(): string;
   close(): void;
-}
-
-function isScanDbMethod(method: DbMethod): method is ScanDbMethod {
-  return (SCAN_DB_METHODS as readonly string[]).includes(method);
-}
-
-function isLibraryDbMethod(method: DbMethod): method is LibraryDbMethod {
-  return (LIBRARY_DB_METHODS as readonly string[]).includes(method);
-}
-
-function isHealthDbMethod(method: DbMethod): method is HealthDbMethod {
-  return (HEALTH_DB_METHODS as readonly string[]).includes(method);
 }
 
 function createCatalogSession(): CatalogSession {
@@ -147,6 +138,27 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   const healthHandlers = createHealthDbHandlers({
     getCatalog: () => catalogs.get(),
   });
+  const settingsHandlers = createSettingsDbHandlers({
+    getAppDb: () => appDb,
+    getCatalog: () => catalogs.get(),
+  });
+  const domainHandlers = new Map<string, (params: unknown) => unknown>();
+  for (const method of SCAN_DB_METHODS as readonly string[]) {
+    domainHandlers.set(method, (params) => scanHandlers.handle(method as ScanDbMethod, params));
+  }
+  for (const method of LIBRARY_DB_METHODS as readonly string[]) {
+    domainHandlers.set(method, (params) =>
+      libraryHandlers.handle(method as LibraryDbMethod, params),
+    );
+  }
+  for (const method of HEALTH_DB_METHODS as readonly string[]) {
+    domainHandlers.set(method, (params) => healthHandlers.handle(method as HealthDbMethod, params));
+  }
+  for (const method of SETTINGS_DB_METHODS as readonly string[]) {
+    domainHandlers.set(method, (params) =>
+      settingsHandlers.handle(method as SettingsDbMethod, params),
+    );
+  }
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);
@@ -171,17 +183,12 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   };
 
   const handle = (method: DbMethod, params: unknown): unknown => {
-    if (isScanDbMethod(method)) {
-      return scanHandlers.handle(method, params);
-    }
-    if (isLibraryDbMethod(method)) {
-      return libraryHandlers.handle(method, params);
-    }
-    if (isHealthDbMethod(method)) {
-      return healthHandlers.handle(method, params);
+    const domainHandler = domainHandlers.get(method);
+    if (domainHandler !== undefined) {
+      return domainHandler(params);
     }
 
-    switch (method) {
+    switch (method as CoreDbMethod) {
       case "health":
         return {
           appDbPath: options.appDbPath,

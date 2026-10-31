@@ -26,6 +26,8 @@ import type {
   LibraryUndatedPage,
   LibraryUndatedParams,
 } from "@shared/contracts/library";
+import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
+import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { AppError, APP_ERROR_CODES } from "@shared/domain/errors";
 
@@ -77,6 +79,8 @@ export const api = {
     unwrap(getApi().getLibraryItem(filter === undefined ? { fileId } : { fileId, filter })),
   getLibraryUndated: (params: LibraryUndatedParams): Promise<LibraryUndatedPage> =>
     unwrap(getApi().getLibraryUndated(params)),
+  getOtherFiles: (params: OtherFilesParams): Promise<OtherFilesPage> =>
+    unwrap(getApi().getOtherFiles(params)),
   setLibraryDate: (params: LibrarySetDateParams): Promise<LibraryDateMutationResult> =>
     unwrap(getApi().setLibraryDate(params)),
   clearLibraryDate: (params: LibraryClearDateParams): Promise<LibraryDateMutationResult> =>
@@ -96,6 +100,9 @@ export const api = {
     unwrap(getApi().startValidation(params)),
   pauseValidation: (): Promise<ValidationState> => unwrap(getApi().pauseValidation()),
   resumeValidation: (): Promise<ValidationState> => unwrap(getApi().resumeValidation()),
+  getSettingsInfo: (): Promise<SettingsInfo> => unwrap(getApi().getSettingsInfo()),
+  clearCache: (): Promise<CacheClearResult> => unwrap(getApi().clearCache()),
+  runBackup: (): Promise<BackupResult> => unwrap(getApi().runBackup()),
   revealLibraryItem: (fileId: number): Promise<void> =>
     unwrap(getApi().revealLibraryItem({ fileId })),
   openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),

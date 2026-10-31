@@ -1,5 +1,7 @@
 import type { LibraryClient } from "../features/library/library-client";
-import type { ValidationState } from "@shared/contracts/health";
+import type { OtherFilesPage } from "@shared/contracts/other-files";
+import type { SettingsInfo } from "@shared/contracts/settings";
+import { idleValidation, otherFilesFixture, settingsFixture } from "./phase-five-fixtures";
 import type {
   LibraryClearDateParams,
   LibraryFilter,
@@ -14,19 +16,6 @@ import type {
 
 const MB = 1024 ** 2;
 const GB = 1024 ** 3;
-
-const idleValidation: ValidationState = {
-  sessionId: null,
-  status: "idle",
-  levels: [],
-  total: 0,
-  processed: 0,
-  currentLevel: null,
-  startedAt: null,
-  finishedAt: null,
-  errorMessage: null,
-  report: null,
-};
 
 export const libraryFixtureItems: LibraryItem[] = [
   {
@@ -293,6 +282,8 @@ export interface LibraryFixtureOptions {
   summary?: LibrarySummary;
   months?: LibraryMonth[];
   details?: Record<number, LibraryItemDetails>;
+  otherFiles?: OtherFilesPage;
+  settings?: SettingsInfo;
   failures?: Partial<Record<"summary" | "timeline" | "index" | "item" | "reveal" | "open", Error>>;
 }
 
@@ -301,7 +292,6 @@ function throwIf(error: Error | undefined): void {
     throw error;
   }
 }
-
 function undatedFromItems(items: LibraryItem[]): LibraryUndatedItem[] {
   return items
     .filter((item) => item.date.value === null)
@@ -354,6 +344,7 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
         const next = start + page.length < undated.length ? String(start + page.length) : null;
         return { items: page, nextCursor: next, total: undated.length };
       }),
+    getOtherFiles: () => Promise.resolve(options.otherFiles ?? otherFilesFixture),
     setDate: (params: LibrarySetDateParams) =>
       Promise.resolve().then(() => {
         const selected = new Set(params.fileIds);
@@ -382,6 +373,19 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
     startValidation: () => Promise.resolve(idleValidation),
     pauseValidation: () => Promise.resolve(idleValidation),
     resumeValidation: () => Promise.resolve(idleValidation),
+    getSettingsInfo: () => Promise.resolve(options.settings ?? settingsFixture),
+    clearCache: () =>
+      Promise.resolve({
+        removedFiles: settingsFixture.cache.files,
+        freedBytes: settingsFixture.cache.bytes,
+      }),
+    runBackup: () =>
+      Promise.resolve({
+        path: "C:\\archive\\catalog.db",
+        bytes: 24 * 1024 ** 2,
+        createdAt: "2026-10-31T12:00:00.000Z",
+        status: "success",
+      }),
     revealItem: () =>
       Promise.resolve().then(() => {
         throwIf(options.failures?.reveal);

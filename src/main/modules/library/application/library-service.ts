@@ -12,6 +12,7 @@ import type {
   LibraryUndatedPage,
   LibraryUndatedParams,
 } from "@shared/contracts/library";
+import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
 import type { Logger } from "../../../logging/types";
@@ -27,7 +28,7 @@ export interface ResolvedLibraryMedia {
   mime: string | null;
   sizeBytes: number;
   state: "present" | "missing";
-  mediaClass: "image" | "video";
+  mediaClass: "image" | "video" | "other";
 }
 
 export interface LibraryServiceDependencies {
@@ -59,6 +60,10 @@ export class LibraryService {
     return this.dependencies.db.request<LibraryUndatedPage>("library.getUndated", params);
   }
 
+  async getOtherFiles(params: OtherFilesParams): Promise<OtherFilesPage> {
+    return this.dependencies.db.request<OtherFilesPage>("library.getOtherFiles", params);
+  }
+
   async setDate(params: LibrarySetDateParams): Promise<LibraryDateMutationResult> {
     return this.dependencies.db.request<LibraryDateMutationResult>("library.setDate", params);
   }
@@ -84,7 +89,7 @@ export class LibraryService {
 
   private async resolveMedia(fileId: number): Promise<ResolvedLibraryMedia> {
     const media = await this.dependencies.db.request<ResolvedLibraryMedia | null>(
-      "library.resolveMedia",
+      "library.resolveFile",
       { fileId },
     );
     if (media === null) {

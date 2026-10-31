@@ -37,6 +37,10 @@ describe("IPC contracts", () => {
     expect(IPC_CHANNELS.getLibraryTimeline).toBe("library:get-timeline");
     expect(IPC_CHANNELS.getLibraryTimelineIndex).toBe("library:get-timeline-index");
     expect(IPC_CHANNELS.getLibraryItem).toBe("library:get-item");
+    expect(IPC_CHANNELS.getOtherFiles).toBe("library:get-other-files");
+    expect(IPC_CHANNELS.getSettingsInfo).toBe("settings:get-info");
+    expect(IPC_CHANNELS.clearCache).toBe("settings:clear-cache");
+    expect(IPC_CHANNELS.runBackup).toBe("settings:run-backup");
     expect(IPC_CHANNELS.revealLibraryItem).toBe("shell:reveal-item");
     expect(IPC_CHANNELS.openLibraryItem).toBe("shell:open-item");
   });
