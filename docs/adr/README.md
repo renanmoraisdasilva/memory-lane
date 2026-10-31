@@ -20,6 +20,8 @@ and status.
 - `0005-styling-and-component-primitives.md`
 - `0006-testing-and-quality-gates.md`
 - `0007-packaging-and-distribution.md`
+- `0008-places-map.md` (post-v0.1)
+- `0009-non-memory-classification.md` (post-v0.1)
 
 Create each record during Phase 0 of the implementation plan, before the related
 code is written. A decision that changes later gets a new ADR rather than a

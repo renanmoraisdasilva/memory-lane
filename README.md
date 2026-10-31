@@ -20,6 +20,7 @@ ui-mockups/                               Clickable static prototype
   assets/                                 Shared CSS, JS, fonts, and local images
 docs/
   adr/                                    Architecture decision records
+  agent-workstreams.md                    Parallel agent ownership and integration rules
   quality-exceptions.md                   Approved quality-rule exceptions
 .github/pull_request_template.md          Review and quality checklist
 ```
@@ -80,3 +81,29 @@ The project treats structural quality as a CI gate, not a review preference:
 
 The exact libraries, architecture, quality rules, CI pipeline, bundling, and
 release checklist are defined in `Memory_Lane_Scope_and_Implementation.md`.
+
+## Parallel development
+
+The project is designed to run with multiple coding agents from Phase 1 onward:
+
+- **Platform/Core** — Electron main process, DB worker, scanning, media tools,
+  packaging
+- **Renderer/UX** — React app, design system, screens, accessibility
+- **Quality/Release** — CI, E2E, fixtures, packaging smoke tests, ADRs
+
+Path ownership, contract-first integration, worktree/branch rules, and agent
+prompts are documented in `docs/agent-workstreams.md`. The summary and
+phase-by-phase split are in §15 of the implementation plan.
+
+## Future features
+
+These are explicitly post-v0.1 and are not part of current acceptance criteria:
+
+- **Places map** — a local-only globe showing only photos and videos with GPS
+  metadata. Items without location data are excluded.
+- **Non-memory images** — local AI classification of screenshots, app captures,
+  receipts, bank statements, documents, and similar low-value images. Review-only
+  by default; it never deletes or hides files automatically.
+
+The technical designs, data models, privacy rules, and acceptance criteria are in
+§16 of the implementation plan.

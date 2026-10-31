@@ -50,6 +50,8 @@ explicitly deferred to a later phase.
 | Installation state | A separate SQLite `app.db` on the PC stores window/UI preferences, registered drives, and backup history. `electron-store` is not used. |
 | Native binaries | ExifTool, ffmpeg, and ffprobe are fetched from pinned upstream releases, verified against a committed checksum manifest, cached in CI, and copied via `extraResources`. Binaries are not committed to git. |
 | Code signing | Remain unsigned indefinitely. SmartScreen warnings are documented; the decision is revisited only if public distribution or user acquisition requires signing. |
+| Development model | Contract-first parallel workstreams: Platform/Core and Renderer/UX from Phase 1, plus an optional Quality/Release agent. Path ownership and worktrees are defined in `docs/agent-workstreams.md`. |
+| Future features | Globe/Places map for GPS-tagged items only; local AI non-memory classification with review-only behavior. Both are post-v0.1. |
 | Quality gates | 400-line hard file limit, 300-line soft target, cyclomatic complexity 10, cognitive complexity 15, 80% overall coverage and 90% for critical modules. Enforced in CI. |
 
 ---
@@ -226,6 +228,12 @@ explicitly deferred to a later phase.
 - Multi-drive partial-backup workflow from specification §15.
 - Combined multi-drive browsing.
 - Additional format/preview support.
+- **Globe/Places map** for GPS-tagged photos and videos; items without GPS are
+  excluded, never guessed.
+- **Local AI non-memory classification** for screenshots, app captures,
+  receipts, bank statements, documents, and similar low-value images, with
+  review-only behavior and no deletion.
+- Optional offline reverse geocoding for map labels.
 
 ---
 
@@ -1698,6 +1706,19 @@ an implemented feature.
 **Exit:** specification §17 acceptance criteria are met, the packaged build
 passes E2E and smoke tests, and all quality gates are green.
 
+### Phase 7 — Post-v0.1 future features
+
+These are explicitly outside v0.1 acceptance:
+
+- **Globe/Places map** for GPS-tagged photos and videos.
+- **Local AI non-memory classification** with human review and no deletion.
+
+Each feature gets its own ADR, schema migration, UI route, evaluation set, and
+acceptance criteria before implementation. See §16.
+
+**Exit:** the feature-specific acceptance criteria in §16 are met, the feature is
+local-only, and no original file is modified.
+
 ---
 
 ## 10. Test strategy
@@ -1762,6 +1783,14 @@ Additional non-functional checks:
 - E2E tests use a temporary `userData` directory and fixture drive.
 - A test must not depend on a developer's real drive letter or local catalog.
 
+**Future-feature evaluation**
+- The Places map needs GPS/no-GPS fixtures, cluster correctness, and a
+  no-network assertion.
+- The non-memory classifier needs a labeled evaluation set and per-category
+  precision/recall targets; it is not judged by code coverage alone.
+- Both future features get their own E2E and privacy checks before release.
+- See §16 for acceptance criteria.
+
 ---
 
 ## 11. Acceptance-criteria mapping
@@ -1814,6 +1843,10 @@ Additional non-functional checks:
 | Unsigned installer triggers SmartScreen | Accepted for v0.1: document the warning, publish checksums, and revisit signing only if distribution needs it. |
 | DB worker becomes a serialization bottleneck | Keep queries indexed and paginated, batch writes, separate CPU pools, and measure queue latency under 100k–200k files. |
 | `app.db` is lost or corrupted | Back it up on graceful close, keep it small/recreatable, and never treat it as the archive catalog. |
+| AI false positive hides a real memory | Review-only default, high-precision threshold, reversible decisions, and per-category evaluation. |
+| Map tries to load too many GPS points | Cluster in the DB worker with an R-Tree and zoom grid; never send the full point set to the renderer. |
+| Map depends on online tiles or geocoding | Bundle Natural Earth geometry and keep all rendering local; no network in the map acceptance test. |
+| AI model licensing or size is unsuitable | Model manifest, checksum, license review, and a model spike before committing to distribution. |
 
 ---
 
@@ -1836,6 +1869,12 @@ These remain technical decisions, not product-scope changes:
 - Exact wording and thresholds for validation outcomes.
 - Future backup schema details (destinations, jobs, coverage snapshots).
 - Phase-2 search design and whether FTS5 is required.
+- Map renderer and offline basemap choice; cluster granularity; whether offline
+  reverse geocoding is included in the first Places release.
+- AI classifier choice, model size, label set, confidence thresholds, OCR use,
+  and model licensing.
+- Whether AI non-memory review is a standalone route or a Library health tab.
+- Whether video location/telemetry extraction ships with the first map release.
 
 ---
 
@@ -1863,3 +1902,311 @@ The revised `ui-mockups/` files are a **clickable static prototype**:
 
 The prototype is a design and scope artifact. The production app will replace
 static sample data with IPC-backed queries and real media rendering.
+
+---
+
+## 15. Parallel development with multiple agents
+
+### 15.1 Goal and guardrails
+
+Use at least two agents from Phase 1 onward, and a third agent for quality and
+release work once there is enough parallel surface. The goal is faster delivery
+without turning the repository into an integration experiment.
+
+Guardrails:
+- **Contract-first, not file-first.** Agree on IPC/domain contracts before
+  backend and renderer work diverge.
+- **Path ownership.** Each agent owns a directory tree; shared files have one
+  nominated owner.
+- **Short-lived branches.** Integrate vertical slices at least every two days.
+- **Green main.** No agent merges while the quality gate is red.
+- **Human review** for contracts, schema changes, dependencies, and architecture
+  decisions.
+
+Detailed operating rules live in `docs/agent-workstreams.md`.
+
+### 15.2 Workstreams
+
+| Workstream | Owns | Primary deliverables |
+|---|---|---|
+| **Platform/Core** | `src/main/**`, `src/preload/**`, `src/main/db/**`, `src/main/workers/**`, `electron-builder.yml`, `resources/bin`, `native-binaries.lock.json` | Electron bootstrap, DB worker, app.db/catalog.db, drive identity, scan coordinator, worker pools, media tools, packaging |
+| **Renderer/UX** | `src/renderer/**`, `src/renderer/**/*.test.tsx` | App shell, design system, Memory Lane, viewer, date UI, Other files, Library health, Settings, accessibility |
+| **Quality/Release** (optional third) | `.github/**`, `tests/e2e/**`, `tests/fixtures/**`, `scripts/**`, `vitest.config.ts`, `playwright.config.ts`, `docs/adr/**` | CI, E2E harness, fixtures, packaging smoke tests, performance suite, ADRs, release checks |
+
+Shared ownership:
+- `src/shared/contracts/**` and `src/shared/domain/**` are authored by
+  Platform/Core, reviewed by Renderer/UX, and approved by the human/architect.
+- `package.json` and the lockfile have one dependency steward at a time
+  (Quality/Release if present, otherwise Platform/Core). Other agents request
+  dependency changes instead of editing them directly.
+- `electron.vite.config.ts`, ESLint, TypeScript, and test configuration are
+  owned by Quality/Release. Platform and Renderer request changes.
+- The scope document, README, and ADRs are human/architect-owned. Agents propose
+  updates; they do not silently rewrite scope.
+
+### 15.3 Phase-by-phase split
+
+| Phase | Platform/Core | Renderer/UX | Quality/Release |
+|---|---|---|---|
+| 0 — Foundation | Scaffold, IPC contracts, DB worker skeleton, security, packaging config | Design tokens, app shell, and static screens against a mock IPC client after the contract freeze | CI, lint/type/test configs, file-size check, Playwright harness |
+| 1 — Drive + scan | app.db/catalog.db, registered drives, scan coordinator, stage progress | Drive gate, scan screen, progress states, drive drawer | Fixture drive, first E2E flow, CI packaging smoke |
+| 2 — Library + viewer | Worker pools, media metadata, thumbnail scheduling, query endpoints | Timeline, filters, density, viewer photo/video states | Timeline/viewer component and E2E coverage |
+| 3 — Dates | Date resolution, override repository, suspicious-date rules | Date unavailable, batch assignment, viewer date dialog | Date precision and override E2E |
+| 4 — Integrity | Hashing, duplicates, missing/moved, validation | Library health tabs and report states | Health E2E, moved-file batch tests |
+| 5 — Other files + settings | Cache, backup, settings persistence | Other files, settings, cache dialog | Installer/portable smoke, release checks |
+| 6 — Hardening | Performance, disconnect, security | Accessibility and empty/error states | Full E2E, coverage, release artifacts |
+| 7 — Future | Map and AI backend work | Places and non-memory review UI | Model evaluation and feature E2E |
+
+Phase 0 is mostly serial because it defines the contracts and tooling everything
+else depends on. If two agents must start on day one:
+- Agent A owns the scaffold and contracts.
+- Agent B starts with the design system and static shell using the mockups,
+  without touching `src/main` or `src/shared`.
+
+### 15.4 Contract-first workflow
+
+1. Platform defines the Zod schemas, DTOs, error codes, and IPC channel names in
+   `src/shared/contracts`.
+2. Platform adds contract tests and a typed mock adapter.
+3. Renderer builds against `src/renderer/lib/ipc-client.mock.ts` with fixture
+   data; it does not wait for the real backend.
+4. Platform implements handlers against the same contract.
+5. Contract changes require:
+   - a contract test update;
+   - both Platform and Renderer review;
+   - human approval if the change affects a released screen or data model.
+6. No process-boundary imports outside the approved contracts.
+
+### 15.5 Worktrees, branches, and integration
+
+- Each agent works in its own git worktree:
+  - `../memory-lane-platform` on `agent/platform`
+  - `../memory-lane-renderer` on `agent/renderer`
+  - `../memory-lane-quality` on `agent/quality`
+- Commit small, one-line messages.
+- Rebase on `main` daily; do not keep a branch alive for more than two days
+  without integration.
+- Agents do not push to `origin`. The human reviews and pushes.
+- Merge order: contracts → backend slice → renderer slice → tests/docs.
+- Run the full quality gate before merge. A red `main` blocks all agents.
+
+### 15.6 Conflict and dependency rules
+
+- Do not edit outside your owned paths without a coordinated change request.
+- Do not run drive-by refactors in another agent's area.
+- If a contract or schema change is required, pause the dependent work, update
+  the contract, and resume both streams from the new version.
+- One agent owns `package.json` at a time; dependency additions are small,
+  reviewed changes.
+- Shared config changes are proposed as a small PR, not bundled into feature work.
+- If two streams need the same file, the file's owner makes the change and the
+  other agent consumes it.
+
+### 15.7 Agent definition of done
+
+An agent's change is ready for integration when:
+
+- The owned slice builds and typechecks.
+- Tests at the right level are added or updated.
+- Architecture boundaries and file/complexity limits pass.
+- The read-only guarantee is preserved.
+- The contract is unchanged or the contract change is approved.
+- Documentation/ADR is updated for a significant decision.
+- The agent reports what changed, what was tested, and what remains blocked.
+
+### 15.8 When to add a third agent
+
+Add Quality/Release when:
+- CI and E2E are becoming the bottleneck.
+- Packaging or native-module work starts.
+- Two feature streams are waiting on test infrastructure.
+
+Do not add more than three agents before Phase 2. Coordination cost, shared
+contracts, and merge conflicts outweigh the throughput gain.
+
+---
+
+## 16. Future feature designs
+
+These features are **not part of v0.1 acceptance**. They are recorded so the v0.1
+schema and architecture do not block them.
+
+### 16.1 Globe / Places map
+
+**Status:** post-v0.1.  
+**Goal:** show where GPS-tagged photos and videos were taken on a globe. Items
+without location metadata are excluded, not guessed.
+
+**Scope**
+- Extract GPS from:
+  - photo EXIF GPS tags;
+  - video container location metadata (QuickTime/MP4 where present);
+  - supported action-camera/DJI telemetry where available.
+- Ignore files with no GPS metadata.
+- Validate latitude/longitude; discard invalid coordinates and treat `0,0` as
+  suspicious unless the user confirms it.
+- Store source and confidence so the UI can distinguish EXIF GPS from video
+  telemetry.
+- No filename/folder inference and no “pretend” location.
+
+**Data**
+- `gps_points` in `catalog.db`: `file_id`, `latitude`, `longitude`, `altitude`,
+  `source`, `confidence`, `extracted_at`.
+- `gps_rtree` SQLite R-Tree index for spatial queries.
+- Optional `place_labels` cache if offline reverse geocoding is added later.
+
+**Rendering**
+- A future **Places** screen with a globe projection.
+- Recommended: MapLibre GL JS globe projection with bundled Natural Earth
+  country/region geometry. No online tile server and no external geocoding.
+- Fallback evaluation: `react-globe.gl` / `globe.gl` with a local earth texture
+  if MapLibre without tiles cannot meet the visual/performance bar.
+- Cluster points in the DB worker by zoom-level grid; never send the entire
+  point set to the renderer.
+- Click a cluster to open a filtered grid; click an item to open the viewer.
+- Date and media-type filters apply to the map.
+- Show a note such as “12,480 items with location · 73,000 without location are
+  not shown.”
+
+**Performance**
+- Target <100 ms for cluster queries on 100k GPS points.
+- R-Tree + indexed date/media filters.
+- Cache cluster results per viewport/zoom/filter.
+- Lazy render; no full point set in renderer memory.
+
+**Privacy**
+- Local-only.
+- No external map tiles, geocoding APIs, or telemetry.
+- No location data uploaded.
+
+**Acceptance**
+- Only items with valid GPS appear.
+- Items without GPS are absent, not guessed.
+- No network requests are made by the map.
+- Clusters are correct and clickable.
+- The viewer and catalog-only actions work from the map.
+- Original files and metadata remain unchanged.
+
+**Phase:** after v0.1; likely first future feature because it is deterministic and
+lower risk than AI classification.
+
+### 16.2 Local AI non-memory classification
+
+**Status:** post-v0.1.  
+**User-facing name:** **Non-memory images** or **Smart filters**. Avoid calling a
+user's files “trash” in the UI.
+
+**Goal:** identify screenshots, app captures, food-delivery app screens, banking
+or finance screens, receipts, documents, memes, and similar low-value images so
+the user can hide or review them without deleting anything.
+
+**Scope**
+- Images first; videos later.
+- Run on thumbnails, not original files, to keep inference fast.
+- Local model only. No cloud API, no upload, no telemetry.
+- Default behavior: **suggest, do not auto-hide**.
+- The user can mark “This is a memory” or “Not a memory”; feedback is stored.
+- A future filter can hide confirmed/suggested non-memory images from Memory
+  Lane. The filter is off by default and reversible.
+- Never delete, move, rename, or edit originals.
+
+**Classification labels**
+- Screenshot / app UI
+- Food delivery or restaurant app
+- Banking / finance / statement
+- Receipt / invoice
+- Document / text page
+- Meme / social capture
+- Photo / memory
+- Other / unknown
+
+**Pipeline**
+- Optional background stage after thumbnails, or a separate “Smart filters” job.
+- Low priority, pauseable, resumable; it must not block scanning or browsing.
+- Use a local image encoder/classifier:
+  - recommended starting point: CLIP-style zero-shot classifier via ONNX Runtime
+    with precomputed label embeddings;
+  - evaluate a small fine-tuned classifier if zero-shot precision is insufficient;
+  - optional OCR (for example Tesseract) only on flagged text-heavy candidates
+    to improve bank-statement/receipt detection.
+- Batch inference on a thumbnail size suitable for classification.
+- Cache by file hash + model version; reclassify after a model update or on user
+  request.
+- Store confidence and model version for every result.
+
+**Data**
+- `image_classifications`: `file_id`, `label`, `confidence`, `model_version`,
+  `classified_at`, `source` (`auto`/`user`), `status`
+  (`suggested`/`confirmed`/`rejected`).
+- `classification_feedback`: `file_id`, `label`, `user_action`, `created_at`.
+- `model_versions`: `id`, `name`, `version`, `path`, `checksum`, `labels`,
+  `installed_at`.
+
+**UI**
+- Future **Non-memory images** review screen with category chips, thumbnails,
+  and “Keep in Memory Lane” / “Hide from Memory Lane” actions.
+- Memory Lane filter: **Hide non-memory images** (off by default).
+- Settings → Smart filters: enable/disable, sensitivity threshold, model version,
+  disk usage, reclassify action.
+- A count/banner when items are hidden: “X non-memory images hidden · Review.”
+- No bulk delete, move, rename, or cleanup actions.
+
+**Model packaging**
+- Models live in `resources/models` with a `model-manifest.json` and SHA-256
+  checksums.
+- `onnxruntime-node` and other native inference dependencies are unpacked with
+  `asarUnpack`.
+- Model licenses and attribution go in `THIRD_PARTY_NOTICES.md`.
+- Models are fetched/verified like native binaries, not committed blindly.
+- No model download at runtime unless the user explicitly requests it and the
+  product decides to allow a network feature. Default is offline.
+
+**Evaluation**
+- Build a labeled fixture set covering screenshots, banking apps, food-delivery
+  apps, receipts, documents, memes, and genuine photos.
+- Measure precision/recall per category; prioritize **precision** because a false
+  positive hides a memory.
+- Record the model card, thresholds, and known failure cases.
+- Classification quality is a separate evaluation suite, not just unit-test
+  coverage.
+
+**Privacy and ethics**
+- Local-only; no uploads.
+- User control and reversibility.
+- No automatic deletion.
+- Avoid judgmental UI language.
+- Clear “suggested” vs “confirmed” states.
+
+**Acceptance**
+- No network calls during classification.
+- No original file is modified.
+- Suggestions are reversible and reviewable.
+- The filter is off by default.
+- Results record model version and confidence.
+- False-positive review is possible for every category.
+- Classification never blocks browsing or scanning.
+
+**Phase:** after v0.1. Sequence map first, then AI classification after a model
+spike and evaluation set exist.
+
+### 16.3 Future navigation
+
+These add to the app only when implemented:
+- **Places** — 7th sidebar destination for the globe/map.
+- **Non-memory images** — review route, linked from Settings → Smart filters and
+  from the Memory Lane filter banner.
+
+They are not part of the v0.1 sidebar, acceptance criteria, or mockups.
+
+### 16.4 Future schema discipline
+
+Future features get:
+- a new ADR;
+- a new SQLite migration;
+- a feature flag or default-off setting;
+- unit/integration/E2E coverage;
+- a privacy review;
+- explicit acceptance criteria.
+
+No future feature may mutate original files or introduce an external API
+dependency without a scope change.
