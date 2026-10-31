@@ -75,7 +75,9 @@ export function DriveList({
       <div className={styles.listHeader}>
         <div>
           <div className={styles.eyebrow}>Detected volumes</div>
-          <h2 id="available-drives">{driveCountLabel(drives.length)}</h2>
+          <h2 id="available-drives">
+            {loading ? "Looking for drives…" : driveCountLabel(drives.length)}
+          </h2>
         </div>
         <button
           className={styles.secondaryButton}

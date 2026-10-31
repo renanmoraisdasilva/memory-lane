@@ -4,6 +4,7 @@ import { IPC_CHANNELS } from "@shared/contracts/channels";
 import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import type {
   AppInfo,
+  ConfirmDriveIdentityParams,
   InitializeCatalogParams,
   IpcResult,
   OpenCatalogParams,
@@ -24,6 +25,8 @@ const api: MemoryLaneApi = {
     >,
   openCatalog: (params: OpenCatalogParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.openCatalog, params) as Promise<IpcResult<CatalogSummary>>,
+  confirmDriveIdentity: (params: ConfirmDriveIdentityParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.confirmDriveIdentity, params) as Promise<IpcResult<void>>,
   getScanState: (params: ScanVolumeParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.getScanState, params) as Promise<IpcResult<ScanState>>,
   startScan: (params: ScanStartParams) =>

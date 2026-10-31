@@ -11,11 +11,10 @@ boundary, dedicated SQLite database worker, `app.db` + per-drive `catalog.db`
 migrations, Windows drive identity, logging, quality gates, unit/integration/E2E
 tests, and Windows packaging all work.
 
-Phase 1 platform work is implemented: drive-list connectivity and letter-change
-flags, the scan coordinator, four persisted stages, pause/resume/intensity,
-interruption recovery, incremental change/missing/moved detection, and the
-completion report. The renderer for the Phase 1 screens is being built in
-parallel. See `docs/phase-1-scan-contract.md` for the frozen scan contract.
+Phase 1 is implemented end to end: drive selection, setup and first scan, the
+four-stage scan coordinator with pause/resume/intensity, interruption recovery,
+incremental change/missing/moved detection, the completion report, and the
+drive drawer. See `docs/phase-1-scan-contract.md` for the frozen scan contract.
 
 The media browsing screens and full product UI remain later phases. The static
 prototype in `ui-mockups/` remains the design reference.

@@ -33,12 +33,12 @@ export interface ScanState {
   etaSeconds: number | null;
   intensity: ScanIntensity;
   report: ScanReport | null;
-  errorMessage?: string;
+  errorMessage?: string | null;
 }
 
 export interface ScanApi {
   getScanState(volumeId: VolumeId): Promise<ScanState | null>;
-  startScan(volumeId: VolumeId): Promise<ScanState>;
+  startScan(volumeId: VolumeId, intensity?: ScanIntensity): Promise<ScanState>;
   pauseScan(volumeId: VolumeId): Promise<ScanState>;
   resumeScan(volumeId: VolumeId): Promise<ScanState>;
   setScanIntensity(volumeId: VolumeId, intensity: ScanIntensity): Promise<ScanState>;

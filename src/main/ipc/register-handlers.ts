@@ -1,6 +1,7 @@
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
 import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import {
+  ConfirmDriveIdentityParamsSchema,
   InitializeCatalogParamsSchema,
   IPC_CHANNELS,
   OpenCatalogParamsSchema,
@@ -77,6 +78,12 @@ export function registerIpcHandlers(services: IpcServices): void {
   ipcMain.handle(IPC_CHANNELS.openCatalog, (event, params: unknown) =>
     respond<CatalogSummary>(event, IPC_CHANNELS.openCatalog, logger, () =>
       driveService.openCatalog(OpenCatalogParamsSchema.parse(params).volumeId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.confirmDriveIdentity, (event, params: unknown) =>
+    respond<void>(event, IPC_CHANNELS.confirmDriveIdentity, logger, () =>
+      driveService.confirmDriveIdentity(ConfirmDriveIdentityParamsSchema.parse(params).volumeId),
     ),
   );
 

@@ -31,4 +31,9 @@ export const OpenCatalogParamsSchema = z.object({
 });
 export type OpenCatalogParams = z.infer<typeof OpenCatalogParamsSchema>;
 
+export const ConfirmDriveIdentityParamsSchema = z.object({
+  volumeId: VolumeIdSchema,
+});
+export type ConfirmDriveIdentityParams = z.infer<typeof ConfirmDriveIdentityParamsSchema>;
+
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: AppErrorPayload };

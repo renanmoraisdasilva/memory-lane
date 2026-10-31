@@ -30,7 +30,7 @@ try {
   });
 
   const page = await app.firstWindow();
-  await page.getByRole("heading", { name: /Your archive/ }).waitFor({
+  await page.getByRole("heading", { name: "Open a memory archive" }).waitFor({
     state: "visible",
     timeout: 20_000,
   });

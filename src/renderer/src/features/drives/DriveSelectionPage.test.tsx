@@ -79,6 +79,7 @@ describe("DriveSelectionPage", () => {
     expect(
       within(card).getByText(/Connect this drive, then choose Rescan drives/),
     ).toBeInTheDocument();
+    expect(within(card).queryByText(/volume type is not supported/i)).not.toBeInTheDocument();
   });
 
   it("shows the no-external-drive empty state", async () => {
@@ -126,6 +127,7 @@ describe("DriveSelectionPage", () => {
     });
 
     expect(screen.getByText("Scanning Windows volumes and registered drives…")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Looking for drives…" })).toBeInTheDocument();
   });
 
   it("shows a drive-list error with a retry action", async () => {

@@ -3,6 +3,7 @@ export const IPC_CHANNELS = {
   listDrives: "drives:list",
   initializeCatalog: "catalog:initialize",
   openCatalog: "catalog:open",
+  confirmDriveIdentity: "drives:confirm-identity",
   getScanState: "scan:get-state",
   startScan: "scan:start",
   pauseScan: "scan:pause",

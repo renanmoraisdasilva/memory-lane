@@ -130,13 +130,14 @@ describe("ScanPage", () => {
     expect(await screen.findByRole("button", { name: "Pause" })).toBeInTheDocument();
   });
 
-  it("shows the error state with retry and switch-drive actions", async () => {
+  it("shows the error state with resume, retry, and switch-drive actions", async () => {
     renderScan(fixture("error"));
 
     expect(await screen.findByRole("heading", { name: "Scan unavailable" })).toBeInTheDocument();
     expect(
       screen.getByText("The drive was disconnected before the catalog stage completed."),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Resume scan" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Retry status" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Switch drive" })).toBeInTheDocument();
   });

@@ -1,16 +1,13 @@
 import type { CatalogSummary, VolumeId } from "@shared/contracts/drives";
 import type { AppInfo } from "@shared/contracts/ipc";
-import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { DriveSelectionItem } from "../features/drives/types";
 import { toDriveSelectionItem } from "../features/drives/types";
 import type { ScanApi } from "../features/scan/types";
-import { createMockScanController } from "./mock-scan-controller";
 import { api } from "./ipc-client";
 
 /**
- * One typed surface for everything the Phase 1 renderer needs. Drive and
- * catalog calls use the frozen Phase 0 IPC bridge; scan calls are backed by the
- * mock controller until Platform/Core freezes the scan IPC contract.
+ * One typed surface for everything the Phase 1 renderer needs. Drive, catalog,
+ * identity-confirmation, and scan calls all go through the real preload bridge.
  */
 export interface PhaseOneClient extends ScanApi {
   getAppInfo(): Promise<AppInfo>;
@@ -21,8 +18,6 @@ export interface PhaseOneClient extends ScanApi {
 }
 
 export function createDefaultPhaseOneClient(): PhaseOneClient {
-  const scans = createMockScanController({ autoAdvance: true });
-
   return {
     getAppInfo: () => api.getAppInfo(),
     listDrives: async () => {
@@ -31,13 +26,11 @@ export function createDefaultPhaseOneClient(): PhaseOneClient {
     },
     initializeCatalog: (volumeId) => api.initializeCatalog(volumeId),
     openCatalog: (volumeId) => api.openCatalog(volumeId),
-    confirmDriveLetter: () =>
-      Promise.reject(
-        new AppError(
-          APP_ERROR_CODES.FORBIDDEN,
-          "Changed drive letters are not available until the backend exposes volume relocation.",
-        ),
-      ),
-    ...scans,
+    confirmDriveLetter: (volumeId) => api.confirmDriveIdentity(volumeId),
+    getScanState: (volumeId) => api.getScanState(volumeId),
+    startScan: (volumeId, intensity) => api.startScan(volumeId, intensity),
+    pauseScan: (volumeId) => api.pauseScan(volumeId),
+    resumeScan: (volumeId) => api.resumeScan(volumeId),
+    setScanIntensity: (volumeId, intensity) => api.setScanIntensity(volumeId, intensity),
   };
 }

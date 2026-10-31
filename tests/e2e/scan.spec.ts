@@ -52,7 +52,7 @@ test("runs a four-stage scan through the real preload bridge", async () => {
 
   try {
     const page = await app.firstWindow();
-    await expect(page.getByRole("heading", { name: /Your archive/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Open a memory archive" })).toBeVisible();
 
     const volumeId = await page.evaluate(async () => {
       const bridge = (globalThis as unknown as { memoryLane: RendererBridge }).memoryLane;

@@ -166,7 +166,7 @@ function DrivePills({ drive }: { drive: DriveSelectionItem }): React.JSX.Element
 function DriveWarnings({ drive }: { drive: DriveSelectionItem }): React.JSX.Element {
   return (
     <>
-      {isSupportedDrive(drive) ? null : (
+      {isSupportedDrive(drive) || drive.connection === "offline" ? null : (
         <p className={styles.warning}>{unsupportedWarning(drive)}</p>
       )}
       {drive.connection === "offline" ? (
@@ -203,6 +203,11 @@ function cardClassFor(drive: DriveSelectionItem): string {
   return classes.join(" ");
 }
 
+function driveTitle(drive: DriveSelectionItem): string {
+  const letter = driveLetterLabel(drive);
+  return drive.label.includes(`(${letter})`) ? drive.label : `${drive.label} (${letter})`;
+}
+
 export function DriveOptionCard({
   drive,
   busy,
@@ -212,11 +217,12 @@ export function DriveOptionCard({
 }: DriveActionProps): React.JSX.Element {
   const headingId = useId();
   const supported = isSupportedDrive(drive);
+  const offline = drive.connection === "offline";
 
   return (
     <article className={cardClassFor(drive)} aria-labelledby={headingId} aria-busy={busy}>
       <div className={styles.driveIcon}>
-        {supported ? (
+        {supported || offline ? (
           <HardDrive size={20} aria-hidden="true" />
         ) : (
           <AlertTriangle size={20} aria-hidden="true" />
@@ -226,7 +232,7 @@ export function DriveOptionCard({
       <div className={styles.driveBody}>
         <div className={styles.titleRow}>
           <h3 id={headingId} className={styles.driveTitle}>
-            {drive.label} ({driveLetterLabel(drive)})
+            {driveTitle(drive)}
           </h3>
           <DrivePills drive={drive} />
         </div>

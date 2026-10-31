@@ -104,6 +104,15 @@ function LiveActions({
   if (state.status === "error") {
     return (
       <>
+        <button
+          className={styles.primaryButton}
+          type="button"
+          disabled={resumePending}
+          onClick={onResume}
+        >
+          {resumePending ? <Spinner /> : <Play size={14} aria-hidden="true" />}
+          {resumePending ? "Resuming…" : "Resume scan"}
+        </button>
         <button className={styles.secondaryButton} type="button" onClick={onRetry}>
           <RefreshCw size={14} aria-hidden="true" />
           Retry status

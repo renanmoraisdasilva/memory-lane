@@ -203,6 +203,35 @@ describe("DriveService", () => {
     });
   });
 
+  it("confirms a changed drive identity without opening the catalog", async () => {
+    const root = await createTempDirectory();
+    const detected = createDevelopmentDrive(root);
+    const drive: DetectedDrive = { ...detected, letter: "F:" };
+    await createCatalogFile(drive);
+    const db = new FakeDb(summaryFor(drive, ""));
+    db.registered = [
+      {
+        id: 1,
+        volumeId: drive.volumeId,
+        volumeSerial: drive.serialNumber,
+        label: drive.label,
+        fileSystem: drive.fileSystem,
+        rootPath: "E:\\",
+        lastLetter: "E:",
+        lastSeenAt: "2026-01-01T00:00:00.000Z",
+        catalogSchema: 2,
+        lastBackupAt: null,
+        lastScanAt: null,
+        indexedFiles: 0,
+      },
+    ];
+
+    await serviceFor(drive, db).confirmDriveIdentity(drive.volumeId);
+
+    expect(db.registered[0]).toMatchObject({ lastLetter: "F:", rootPath: drive.rootPath });
+    expect(db.calls.some((call) => call.method === "catalog.open")).toBe(false);
+  });
+
   it("marks a drive with a catalog file as ready", async () => {
     const root = await createTempDirectory();
     const drive = createDevelopmentDrive(root);

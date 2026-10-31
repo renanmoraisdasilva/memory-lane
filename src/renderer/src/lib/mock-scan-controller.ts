@@ -134,13 +134,13 @@ export function createMockScanController(options: MockScanControllerOptions = {}
         states.set(key, next);
         return cloneScanState(next);
       }),
-    startScan: (volumeId) =>
+    startScan: (volumeId, intensity) =>
       Promise.resolve().then(() => {
         const current = states.get(String(volumeId));
         const next = createActiveScanState(
           volumeId,
           current?.driveLabel ?? label,
-          current?.intensity ?? "balanced",
+          intensity ?? current?.intensity ?? "balanced",
           nowIso(now),
         );
         states.set(String(volumeId), next);

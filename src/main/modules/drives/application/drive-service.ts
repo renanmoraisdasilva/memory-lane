@@ -213,6 +213,21 @@ export class DriveService {
     return summary;
   }
 
+  async confirmDriveIdentity(volumeId: VolumeId): Promise<void> {
+    const drive = await this.resolveDrive(volumeId);
+    this.assertSupported(drive);
+    const paths = getCatalogPaths(drive.rootPath);
+
+    if (!(await pathExists(paths.catalogPath))) {
+      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "No catalog was found on this drive", {
+        catalogPath: paths.catalogPath,
+      });
+    }
+
+    await this.registerDrive(drive);
+    this.logger.info("Drive identity confirmed", { volumeId, rootPath: drive.rootPath });
+  }
+
   private async resolveDrive(volumeId: VolumeId): Promise<DetectedDrive> {
     const drives = await this.listDetected();
     const drive = drives.find((candidate) => candidate.volumeId === volumeId);

@@ -27,6 +27,7 @@ describe("IPC contracts", () => {
     expect(IPC_CHANNELS.listDrives).toBe("drives:list");
     expect(IPC_CHANNELS.initializeCatalog).toBe("catalog:initialize");
     expect(IPC_CHANNELS.openCatalog).toBe("catalog:open");
+    expect(IPC_CHANNELS.confirmDriveIdentity).toBe("drives:confirm-identity");
     expect(IPC_CHANNELS.getScanState).toBe("scan:get-state");
     expect(IPC_CHANNELS.startScan).toBe("scan:start");
     expect(IPC_CHANNELS.pauseScan).toBe("scan:pause");

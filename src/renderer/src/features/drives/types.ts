@@ -1,4 +1,5 @@
 import type { DriveInfo } from "@shared/contracts/drives";
+import { catalogPathForRoot } from "../../lib/drive-paths";
 
 export type DriveConnection = "connected" | "offline";
 
@@ -10,15 +11,35 @@ export interface PendingLetterChange {
 }
 
 /**
- * Renderer-facing drive shape. The Phase 0 contract only reports connected
- * volumes, so offline-registry and changed-letter details are supplied by the
- * Phase 1 mock adapter until Platform/Core extends the drive contract.
+ * Renderer-facing drive shape. Platform supplies connectivity, last-scan stats,
+ * and the changed-letter flag; the renderer adds the catalog-path comparison it
+ * needs for the confirmation dialog.
  */
 export interface DriveSelectionItem extends DriveInfo {
   connection: DriveConnection;
   indexedItemCount: number | null;
   lastScanAt: string | null;
   pendingLetterChange: PendingLetterChange | null;
+}
+
+function pendingLetterChange(drive: DriveInfo): PendingLetterChange | null {
+  if (
+    drive.isConnected === false ||
+    drive.requiresLetterConfirmation !== true ||
+    drive.letter === null ||
+    drive.lastLetter === null ||
+    drive.lastLetter === undefined ||
+    drive.letter === drive.lastLetter
+  ) {
+    return null;
+  }
+
+  return {
+    previousLetter: drive.lastLetter,
+    newLetter: drive.letter,
+    previousRootPath: catalogPathForRoot(`${drive.lastLetter}\\`),
+    newRootPath: catalogPathForRoot(drive.rootPath),
+  };
 }
 
 export function isSupportedDrive(drive: DriveInfo): boolean {
@@ -28,11 +49,10 @@ export function isSupportedDrive(drive: DriveInfo): boolean {
 export function toDriveSelectionItem(drive: DriveInfo): DriveSelectionItem {
   return {
     ...drive,
-    connection: "connected",
-    indexedItemCount: null,
-    // The Phase 0 drive contract exposes last-seen time, not last-scan time.
-    lastScanAt: null,
-    pendingLetterChange: null,
+    connection: drive.isConnected === false ? "offline" : "connected",
+    indexedItemCount: drive.indexedFiles ?? null,
+    lastScanAt: drive.lastScanAt ?? null,
+    pendingLetterChange: pendingLetterChange(drive),
   };
 }
 

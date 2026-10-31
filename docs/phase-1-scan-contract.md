@@ -14,6 +14,11 @@ match these shapes. The real IPC surface is implemented in
 | `scan:pause` | `pauseScan` | `{ volumeId }` | `ScanState` |
 | `scan:resume` | `resumeScan` | `{ volumeId }` | `ScanState` |
 | `scan:set-intensity` | `setScanIntensity` | `{ volumeId, intensity }` | `ScanState` |
+| `drives:confirm-identity` | `confirmDriveIdentity` | `{ volumeId }` | `void` |
+
+`drives:confirm-identity` updates the app registry's last letter and root path
+after the user accepts a changed drive letter. It does not open the catalog;
+the normal `openCatalog` call still validates the catalog's volume identity.
 
 `volumeId` is the branded drive identity already used by Phase 0. The catalog
 must be open before calling any scan method.
