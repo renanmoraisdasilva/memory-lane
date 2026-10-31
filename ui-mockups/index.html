@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Revised Prototype</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="index-page">
+  <div class="index-wrap">
+    <div class="index-head">
+      <div>
+        <div class="eyebrow">Memory Lane · v0.1</div>
+        <h1>Revised UI prototype</h1>
+        <p>Scope-aligned screens built from the product specification and the review decisions. Click any screen to open the clickable prototype.</p>
+      </div>
+      <div class="list-links">
+        <a href="drive-selection.html">Start at drive selection <span class="icon icon--sm">arrow_forward</span></a>
+        <a href="../Memory_Lane_Scope_and_Implementation.md">Scope document <span class="icon icon--sm">description</span></a>
+      </div>
+    </div>
+
+    <div class="index-callout">
+      <span class="icon">info</span>
+      <p><strong>What changed:</strong> one shared shell, one combined photo/video viewer, manual-only dates, no advanced search or personal organization features, one Library health hub, and a drive drawer instead of a separate drive manager. Every visible control maps to a planned v0.1 feature.</p>
+    </div>
+
+    <div class="index-section">
+      <h2>App flow</h2>
+      <div class="flow">
+        <span>Drive selection</span>
+        <span class="icon">arrow_forward</span>
+        <span>Memory Lane</span>
+        <span class="icon">arrow_forward</span>
+        <span>Viewer</span>
+        <span class="icon">arrow_forward</span>
+        <span>Library health</span>
+        <span class="icon">arrow_forward</span>
+        <span>Scan &amp; processing</span>
+        <span class="icon">arrow_forward</span>
+        <span>Settings</span>
+      </div>
+    </div>
+
+    <div class="index-section">
+      <h2>Core screens</h2>
+      <div class="screen-grid">
+        <a class="screen-card" href="drive-selection.html">
+          <div class="screen-card__icon"><span class="icon">hard_drive</span></div>
+          <div>
+            <h3>Drive selection</h3>
+            <p>Gate for an existing catalog, a new archive, reconnect, and a changed drive letter. No drive-manager page.</p>
+            <div class="screen-card__file">drive-selection.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="chronological-gallery.html">
+          <div class="screen-card__icon"><span class="icon">photo_library</span></div>
+          <div>
+            <h3>Memory Lane</h3>
+            <p>One chronological photo/video timeline with year/month navigation, media filters, and bulk date selection.</p>
+            <div class="screen-card__file">chronological-gallery.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="media-viewer.html">
+          <div class="screen-card__icon"><span class="icon">image</span></div>
+          <div>
+            <h3>Media viewer</h3>
+            <p>Combined photo/video viewer with metadata, date override, duplicate copies, and reveal in Explorer. Photo state shown first.</p>
+            <div class="screen-card__file">media-viewer.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="date-unavailable.html">
+          <div class="screen-card__icon"><span class="icon">event_busy</span></div>
+          <div>
+            <h3>Date unavailable</h3>
+            <p>Manual year or year/month assignment for one item or a batch. No inference, suggestions, or exact-day invention.</p>
+            <div class="screen-card__file">date-unavailable.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="other-files.html">
+          <div class="screen-card__icon"><span class="icon">folder_open</span></div>
+          <div>
+            <h3>Other files</h3>
+            <p>New category browse for non-photo/video files with metadata, external open, and reveal. No in-app document viewer.</p>
+            <div class="screen-card__file">other-files.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="library-health.html">
+          <div class="screen-card__icon"><span class="icon">health_and_safety</span></div>
+          <div>
+            <h3>Library health</h3>
+            <p>One hub for missing files, duplicates, and four-level validation. Informational only; no cleanup actions.</p>
+            <div class="screen-card__file">library-health.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="scan-processing-dashboard.html">
+          <div class="screen-card__icon"><span class="icon">radar</span></div>
+          <div>
+            <h3>Scan &amp; processing</h3>
+            <p>Four-stage progress, pause/resume, intensity, interruption handling, and a completion report. No terminal or volume diagnostics.</p>
+            <div class="screen-card__file">scan-processing-dashboard.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="settings.html">
+          <div class="screen-card__icon"><span class="icon">settings</span></div>
+          <div>
+            <h3>Settings</h3>
+            <p>Background processing, cache size/clear, catalog location, PC backup status, and About. No cache relocation or restore UI.</p>
+            <div class="screen-card__file">settings.html</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="index-section">
+      <h2>Screen states</h2>
+      <div class="list-links">
+        <a href="media-viewer.html?type=photo">Viewer · photo</a>
+        <a href="media-viewer.html?type=video">Viewer · video</a>
+        <a href="library-health.html#missing">Health · missing files</a>
+        <a href="library-health.html#duplicates">Health · duplicates</a>
+        <a href="library-health.html#validation">Health · validation</a>
+        <a href="scan-processing-dashboard.html?state=idle">Scan · idle</a>
+        <a href="scan-processing-dashboard.html?state=active">Scan · active</a>
+        <a href="scan-processing-dashboard.html?state=paused">Scan · paused</a>
+        <a href="scan-processing-dashboard.html?state=interrupted">Scan · interrupted</a>
+        <a href="scan-processing-dashboard.html?state=complete">Scan · complete</a>
+        <a href="drive-selection.html?case=letter-change">Drive · changed letter</a>
+      </div>
+    </div>
+
+    <div class="index-section">
+      <h2>Deliberately not in v0.1</h2>
+      <div class="flow" style="display:block;line-height:1.8">
+        Advanced search and saved presets · favorites, collections, tags, and ratings · RAW develop, crop, or rotate · GPS maps
+        · CSV/JSON audit exports · delete/cleanup/keep-only actions · drive unmount, SMART, and IOPS diagnostics · NAS or internal
+        folder sources · cache relocation · heuristic date inference · validation history panels · telemetry settings · multi-drive
+        combined browsing · partial backups.
+      </div>
+    </div>
+
+    <div class="index-callout">
+      <span class="icon">verified_user</span>
+      <p><strong>Read-only by design:</strong> every screen uses catalog-only language. Actions that would touch the real filesystem show a prototype toast instead. The production app has no IPC channel for deleting, moving, renaming, or editing original files.</p>
+    </div>
+
+    <div class="flow" style="margin-top:8px">
+      <span>Shared shell</span><span class="icon">arrow_forward</span><span>assets/app.css</span><span class="icon">+</span><span>assets/app.js</span><span class="icon">→</span><span>local images + fonts</span><span class="icon">→</span><span>no external data</span>
+    </div>
+  </div>
+  <script src="assets/app.js"></script>
+</body>
+</html>

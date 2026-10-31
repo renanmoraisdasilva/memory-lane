@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Settings</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="settings" data-crumb="System / Settings">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Application preferences</div>
+            <h1>Settings</h1>
+            <p>Applies to this archive and this installation. Changes are local; no account or cloud service is involved.</p>
+          </div>
+          <div class="page-head__actions">
+            <span class="pill pill--green"><span class="icon">lock</span> Read-only archive</span>
+          </div>
+        </div>
+
+        <div class="callout callout--green" style="margin-bottom:18px">
+          <span class="icon">verified_user</span>
+          <div>
+            <div class="callout__title">The original archive is never modified</div>
+            <div class="callout__body">Only the catalog database, thumbnail cache, logs, and PC backups are written. All source files are opened read-only.</div>
+          </div>
+        </div>
+
+        <div class="settings-layout">
+          <nav class="settings-nav" aria-label="Settings sections">
+            <a href="#background" class="is-active">Background processing</a>
+            <a href="#storage">Storage</a>
+            <a href="#about">About</a>
+          </nav>
+
+          <div>
+            <section class="settings-section" id="background">
+              <h2>Background processing</h2>
+              <p>Control how much work runs while you browse. Browsing, scrolling, and video playback always take priority.</p>
+
+              <div class="settings-card">
+                <div class="card__head">
+                  <div>
+                    <h3 class="card__title">Worker intensity</h3>
+                    <p class="card__desc">Lower settings keep the drive and CPU quieter; higher settings finish background work faster.</p>
+                  </div>
+                </div>
+                <div class="radio-row" style="margin-bottom:14px">
+                  <button class="radio-card" type="button" data-intensity="eco"><strong>Eco</strong><span>2 workers · quiet</span></button>
+                  <button class="radio-card is-active" type="button" data-intensity="balanced"><strong>Balanced</strong><span>4 workers · responsive</span></button>
+                  <button class="radio-card" type="button" data-intensity="max"><strong>Max</strong><span>8 workers · fastest</span></button>
+                </div>
+
+                <div class="switch-row">
+                  <div>
+                    <div class="switch-row__label">Pause background processing</div>
+                    <div class="switch-row__hint">Pauses metadata extraction, thumbnail generation, and hashing. Browsing and playback stay available.</div>
+                  </div>
+                  <button class="toggle" type="button" id="pause-toggle" aria-label="Pause background processing" aria-pressed="false"></button>
+                </div>
+                <div class="switch-row">
+                  <div>
+                    <div class="switch-row__label">Browsing priority</div>
+                    <div class="switch-row__hint">Interactive thumbnail requests preempt bulk work. This is always on.</div>
+                  </div>
+                  <span class="pill pill--green">On</span>
+                </div>
+                <div class="switch-row" style="padding-bottom:0">
+                  <div>
+                    <div class="switch-row__label">Current activity</div>
+                    <div class="switch-row__hint">Metadata extraction · 83,000 of 97,902 files</div>
+                  </div>
+                  <a class="btn btn--sm" href="scan-processing-dashboard.html"><span class="icon">radar</span> View scan</a>
+                </div>
+              </div>
+            </section>
+
+            <section class="settings-section" id="storage">
+              <h2>Storage</h2>
+              <p>Catalog and cache locations are app-managed and live on the archive drive. The PC backup is the only catalog copy on the internal drive.</p>
+
+              <div class="settings-card">
+                <div class="storage-row">
+                  <div class="storage-row__main">
+                    <span class="icon">image</span>
+                    <div>
+                      <div class="storage-row__title">Thumbnail cache</div>
+                      <div class="storage-row__meta"><strong id="cache-size">14.8 GB</strong> · generated previews · disposable and regenerable</div>
+                      <div class="storage-row__path">E:\.memorylane\cache\</div>
+                    </div>
+                  </div>
+                  <button class="btn btn--danger" type="button" data-modal-open="clear-cache"><span class="icon">delete_sweep</span> Clear cache</button>
+                </div>
+
+                <div class="storage-row">
+                  <div class="storage-row__main">
+                    <span class="icon">database</span>
+                    <div>
+                      <div class="storage-row__title">Catalog database</div>
+                      <div class="storage-row__meta">SQLite · WAL mode · 482 MB · 97,902 records</div>
+                      <div class="storage-row__path">E:\.memorylane\catalog.db</div>
+                    </div>
+                  </div>
+                  <button class="btn" type="button" data-toast="Prototype only — would reveal the catalog folder in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+                </div>
+
+                <div class="storage-row">
+                  <div class="storage-row__main">
+                    <span class="icon">backup</span>
+                    <div>
+                      <div class="storage-row__title">PC backup</div>
+                      <div class="storage-row__meta"><span class="green">Healthy</span> · last backup today at 14:15 · automatic every 15 minutes and on close</div>
+                      <div class="storage-row__path">C:\Users\Archivist\AppData\Local\MemoryLane\backups\{a8f2-39c1-90be-e092}\</div>
+                    </div>
+                  </div>
+                  <span class="pill pill--green"><span class="icon">check_circle</span> Synced</span>
+                </div>
+              </div>
+
+              <div class="callout" style="margin-top:12px">
+                <span class="icon">info</span>
+                <div>
+                  <div class="callout__title">The cache is not part of the PC backup</div>
+                  <div class="callout__body">Only the SQLite catalog is backed up to the PC. Clearing the cache never affects original files or catalog records; thumbnails regenerate as needed.</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="settings-section" id="about">
+              <h2>About</h2>
+              <p>Local-first and offline by design.</p>
+
+              <div class="settings-card">
+                <div class="kv"><span>Version</span><span>0.1.0</span></div>
+                <div class="kv"><span>Platform</span><span>Windows desktop · Electron</span></div>
+                <div class="kv"><span>Account</span><span>Not required</span></div>
+                <div class="kv"><span>Telemetry</span><span class="green">None</span></div>
+                <div class="kv"><span>Network</span><span>No external API required</span></div>
+                <div class="kv"><span>Archive access</span><span>Read-only</span></div>
+                <div class="kv"><span>Catalog model</span><span>One independent catalog per source drive</span></div>
+              </div>
+
+              <div class="callout callout--green" style="margin-top:12px">
+                <span class="icon">photo_library</span>
+                <div>
+                  <div class="callout__title">Memory Lane v0.1</div>
+                  <div class="callout__body">A local-first archive catalog for rediscovering photos and videos without reorganizing or modifying the original drive.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" data-modal="clear-cache">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="clear-cache-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="clear-cache-title">Clear thumbnail cache?</h2>
+          <p>This removes 14.8 GB of generated previews from E:\.memorylane\cache\.</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="callout callout--amber">
+          <span class="icon">delete_sweep</span>
+          <div>
+            <div class="callout__title">Disposable and regenerable</div>
+            <div class="callout__body">Thumbnails will regenerate as you browse. Original photos and videos, catalog records, dates, duplicates, and missing-file state are not affected.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-modal-close>Cancel</button>
+        <button class="btn btn--danger" type="button" id="confirm-clear-cache"><span class="icon">delete_sweep</span> Clear cache</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      document.querySelectorAll("[data-intensity]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-intensity]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          ML.toast(`Worker intensity set to ${button.querySelector("strong").textContent}.`, "success");
+        });
+      });
+
+      const pauseToggle = document.getElementById("pause-toggle");
+      pauseToggle.addEventListener("click", () => {
+        const on = pauseToggle.classList.toggle("is-on");
+        pauseToggle.setAttribute("aria-pressed", on ? "true" : "false");
+        ML.toast(on ? "Background processing paused. Browsing stays available." : "Background processing resumed.", on ? "info" : "success");
+      });
+
+      document.getElementById("confirm-clear-cache").addEventListener("click", () => {
+        ML.closeModal("clear-cache");
+        document.getElementById("cache-size").textContent = "0 B";
+        ML.toast("Thumbnail cache cleared. 14.8 GB freed; previews will regenerate.", "success");
+      });
+
+      const page = document.querySelector(".page");
+      const navLinks = Array.from(document.querySelectorAll(".settings-nav a"));
+      navLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          navLinks.forEach((l) => l.classList.remove("is-active"));
+          link.classList.add("is-active");
+          const target = document.querySelector(link.getAttribute("href"));
+          if (target) {
+            const top = target.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop - 16;
+            page.scrollTo(0, top);
+          }
+        });
+      });
+
+      page.addEventListener("scroll", () => {
+        const position = page.scrollTop + 80;
+        const pageTop = page.getBoundingClientRect().top;
+        let current = navLinks[0];
+        navLinks.forEach((link) => {
+          const target = document.querySelector(link.getAttribute("href"));
+          if (!target) return;
+          const top = target.getBoundingClientRect().top - pageTop + page.scrollTop;
+          if (top <= position) current = link;
+        });
+        navLinks.forEach((link) => link.classList.toggle("is-active", link === current));
+      }, { passive: true });
+    })();
+  </script>
+</body>
+</html>

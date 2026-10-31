@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Memory Lane</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="memory" data-crumb="Library / Memory Lane">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page page--timeline">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">All photos and videos</div>
+            <h1>Memory Lane</h1>
+            <p>85,420 photos and videos · 1.42 TB indexed · Last scan today at 14:32</p>
+          </div>
+          <div class="page-head__actions">
+            <div class="segmented" aria-label="Media filter">
+              <button type="button" class="is-active" data-media-filter="all"><span class="icon">apps</span> All</button>
+              <button type="button" data-media-filter="photo"><span class="icon">image</span> Photos</button>
+              <button type="button" data-media-filter="video"><span class="icon">movie</span> Videos</button>
+            </div>
+            <div class="segmented" aria-label="Grid density">
+              <button type="button" class="is-active" data-density="comfortable"><span class="icon">grid_view</span> Comfortable</button>
+              <button type="button" data-density="dense"><span class="icon">view_comfy</span> Dense</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-bar">
+          <div class="timeline-bar__row">
+            <span class="nav-label" style="padding:0 4px 0 0">Year</span>
+            <div class="year-rail" aria-label="Jump to year">
+              <button class="year-btn is-active" type="button" data-scroll-to="section-aug-2024" data-year="2024">2024</button>
+              <button class="year-btn" type="button" data-scroll-to="section-dec-2023" data-year="2023">2023</button>
+              <button class="year-btn" type="button" data-scroll-to="section-oct-2018" data-year="2018">2018</button>
+              <button class="year-btn" type="button" data-scroll-to="section-jul-2008" data-year="2008">2008</button>
+              <button class="year-btn" type="button" data-scroll-to="section-1998" data-year="1998">1998</button>
+            </div>
+            <button class="btn btn--icon btn--sm btn--ghost" type="button" data-month-prev aria-label="Previous month"><span class="icon">chevron_left</span></button>
+            <span class="month-pill" id="active-month"><span class="icon">calendar_month</span> August 2024</span>
+            <button class="btn btn--icon btn--sm btn--ghost" type="button" data-month-next aria-label="Next month"><span class="icon">chevron_right</span></button>
+            <div class="timeline-summary"><strong>85,420</strong> items <span>·</span> <span class="mono">1.42 TB</span></div>
+          </div>
+        </div>
+
+        <section class="timeline-section" id="section-aug-2024" data-label="August 2024" data-year="2024">
+          <div class="section-head">
+            <div>
+              <h2>August 18, 2024</h2>
+              <div class="section-head__meta">
+                <span>Sunday</span>
+              </div>
+            </div>
+            <span class="section-head__count">14 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSC_4910.JPG, photo">
+              <img src="assets/images/chronological-gallery-02.jpg" alt="Sunset over the caldera in Santorini">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top">
+                <span class="tile-pill tile-pill--amber"><span class="icon">content_copy</span> 2 copies</span>
+                <button class="tile-check" type="button" data-select aria-label="Select DSC_4910.JPG"><span class="icon">check</span></button>
+              </div>
+              <div class="media-tile__bottom">
+                <div><div class="tile-name">DSC_4910.JPG</div><div class="tile-sub">18.4 MB · 6000 × 4000</div></div>
+              </div>
+            </article>
+
+            <article class="media-tile" data-media="video" data-href="media-viewer.html?type=video" tabindex="0" aria-label="MOV_0428.MP4, video">
+              <img src="assets/images/chronological-gallery-03.jpg" alt="Sailing catamaran on the Aegean">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top">
+                <span class="tile-pill"><span class="icon">play_circle</span> 4K · 03:24</span>
+                <button class="tile-check" type="button" data-select aria-label="Select MOV_0428.MP4"><span class="icon">check</span></button>
+              </div>
+              <div class="tile-play"><span class="icon">play_arrow</span></div>
+              <div class="media-tile__bottom">
+                <div><div class="tile-name">MOV_0428.MP4</div><div class="tile-sub">648 MB · 3840 × 2160</div></div>
+              </div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSC_4914.ARW, photo">
+              <img src="assets/images/chronological-gallery-04.jpg" alt="Whitewashed alley in Oia">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top">
+                <span></span>
+                <button class="tile-check" type="button" data-select aria-label="Select DSC_4914.ARW"><span class="icon">check</span></button>
+              </div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSC_4914.ARW</div><div class="tile-sub">24.1 MB · RAW</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSC_4918.JPG, photo">
+              <img src="assets/images/chronological-gallery-05.jpg" alt="Cliffside view of the caldera">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSC_4918.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSC_4918.JPG</div><div class="tile-sub">16.2 MB · 6000 × 4000</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSC_4922.JPG, photo">
+              <img src="assets/images/chronological-gallery-06.jpg" alt="Taverna table at twilight">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSC_4922.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSC_4922.JPG</div><div class="tile-sub">14.8 MB · 6000 × 4000</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSC_4929.ARW, photo">
+              <img src="assets/images/chronological-gallery-07.jpg" alt="Windmills of Mykonos">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSC_4929.ARW"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSC_4929.ARW</div><div class="tile-sub">26.5 MB · RAW</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="timeline-section" id="section-jun-2024" data-label="June 2024" data-year="2024">
+          <div class="section-head">
+            <div>
+              <h2>June 4, 2024</h2>
+              <div class="section-head__meta">
+                <span>Tuesday</span>
+              </div>
+            </div>
+            <span class="section-head__count">18 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSCF1042.RAF, photo">
+              <img src="assets/images/chronological-gallery-08.jpg" alt="Family barbecue">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSCF1042.RAF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSCF1042.RAF</div><div class="tile-sub">28.7 MB · RAW</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="video" data-href="media-viewer.html?type=video" tabindex="0" aria-label="CLIP_0019.MOV, video">
+              <img src="assets/images/video-playback-02.jpg" alt="Family gathering in the garden">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill"><span class="icon">play_circle</span> HD · 01:15</span><button class="tile-check" type="button" data-select aria-label="Select CLIP_0019.MOV"><span class="icon">check</span></button></div>
+              <div class="tile-play"><span class="icon">play_arrow</span></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">CLIP_0019.MOV</div><div class="tile-sub">184 MB · 1920 × 1080</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSCF1058.JPG, photo">
+              <img src="assets/images/chronological-gallery-10.jpg" alt="Child laughing outdoors">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSCF1058.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSCF1058.JPG</div><div class="tile-sub">9.2 MB · 6240 × 4160</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSCF1062.JPG, photo">
+              <img src="assets/images/chronological-gallery-11.jpg" alt="Garden table with flowers">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSCF1062.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSCF1062.JPG</div><div class="tile-sub">8.8 MB · 6240 × 4160</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSCF1090.RAF, photo">
+              <img src="assets/images/chronological-gallery-12.jpg" alt="Family toast at sunset">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSCF1090.RAF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSCF1090.RAF</div><div class="tile-sub">31.2 MB · RAW</div></div></div>
+            </article>
+
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="DSCF1050.JPG, photo">
+              <img src="assets/images/chronological-gallery-09.jpg" alt="Lawn games">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select DSCF1050.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">DSCF1050.JPG</div><div class="tile-sub">8.1 MB · 6240 × 4160</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="timeline-section" id="section-dec-2023" data-label="December 2023" data-year="2023">
+          <div class="section-head">
+            <div>
+              <h2>December 25, 2023</h2>
+              <div class="section-head__meta">
+                <span>Monday</span>
+              </div>
+            </div>
+            <span class="section-head__count">22 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8901.NEF, photo">
+              <img src="assets/images/chronological-gallery-13.jpg" alt="Fireplace in a log cabin">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8901.NEF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8901.NEF</div><div class="tile-sub">45.3 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8905.NEF, photo">
+              <img src="assets/images/chronological-gallery-14.jpg" alt="Snowy pines">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8905.NEF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8905.NEF</div><div class="tile-sub">42.8 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8911.JPG, photo">
+              <img src="assets/images/chronological-gallery-15.jpg" alt="Gifts under a Christmas tree">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8911.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8911.JPG</div><div class="tile-sub">12.4 MB · 6048 × 4024</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8914.NEF, photo">
+              <img src="assets/images/chronological-gallery-16.jpg" alt="Mugs by a snowy window">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8914.NEF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8914.NEF</div><div class="tile-sub">41.2 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8920.JPG, photo">
+              <img src="assets/images/chronological-gallery-17.jpg" alt="Cabin at night in the snow">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8920.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8920.JPG</div><div class="tile-sub">11.8 MB · 6048 × 4024</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="NZ_8924.JPG, photo">
+              <img src="assets/images/chronological-gallery-18.jpg" alt="Frozen lake and mountains">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select NZ_8924.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">NZ_8924.JPG</div><div class="tile-sub">13.1 MB · 6048 × 4024</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="timeline-section" id="section-oct-2018" data-label="October 2018" data-year="2018">
+          <div class="section-head">
+            <div>
+              <h2>October 12, 2018</h2>
+              <div class="section-head__meta">
+                <span>Friday</span>
+              </div>
+            </div>
+            <span class="section-head__count">36 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="L1002341.DNG, photo">
+              <img src="assets/images/chronological-gallery-19.jpg" alt="Neon alley in Shinjuku">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select L1002341.DNG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">L1002341.DNG</div><div class="tile-sub">38.2 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="L1002349.DNG, photo">
+              <img src="assets/images/chronological-gallery-20.jpg" alt="Autumn temple courtyard">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select L1002349.DNG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">L1002349.DNG</div><div class="tile-sub">37.9 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="L1002360.JPG, photo">
+              <img src="assets/images/chronological-gallery-21.jpg" alt="Ramen counter">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select L1002360.JPG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">L1002360.JPG</div><div class="tile-sub">9.4 MB · 6000 × 4000</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0142.TIFF, photo">
+              <img src="assets/images/duplicate-management-03.jpg" alt="Film scan">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0142.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0142.TIFF</div><div class="tile-sub">24.1 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="L1002402.DNG, photo">
+              <img src="assets/images/duplicate-management-01.jpg" alt="Frost on leaves">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span></span><button class="tile-check" type="button" data-select aria-label="Select L1002402.DNG"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">L1002402.DNG</div><div class="tile-sub">36.8 MB · RAW</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0088_FAMILY.TIFF, photo">
+              <img src="assets/images/chronological-gallery-10.jpg" alt="Black and white family photograph">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0088_FAMILY.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0088_FAMILY.TIFF</div><div class="tile-sub">48.2 MB · 6000 × 4000</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="timeline-section" id="section-jul-2008" data-label="July 2008" data-year="2008">
+          <div class="section-head">
+            <div>
+              <h2>July 2008</h2>
+              <div class="section-head__meta">
+                <span class="pill pill--amber"><span class="icon">event</span> Month precision</span>
+                <span>Date from file system</span>
+              </div>
+            </div>
+            <span class="section-head__count">9 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0084.TIFF, photo">
+              <img src="assets/images/chronological-gallery-22.jpg" alt="Vintage station wagon at Big Sur">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0084.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0084.TIFF</div><div class="tile-sub">52.4 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0089.TIFF, photo">
+              <img src="assets/images/chronological-gallery-23.jpg" alt="Retro motel sign">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0089.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0089.TIFF</div><div class="tile-sub">49.8 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0092.TIFF, photo">
+              <img src="assets/images/duplicate-management-04.jpg" alt="Big Sur coastline">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0092.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0092.TIFF</div><div class="tile-sub">51.1 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0098.TIFF, photo">
+              <img src="assets/images/chronological-gallery-18.jpg" alt="Mountain road">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0098.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0098.TIFF</div><div class="tile-sub">47.6 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0102.TIFF, photo">
+              <img src="assets/images/new-folder-02.jpg" alt="Children playing by a station wagon">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0102.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0102.TIFF</div><div class="tile-sub">46.2 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0108.TIFF, photo">
+              <img src="assets/images/duplicate-management-04.jpg" alt="Black and white wedding photograph">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0108.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0108.TIFF</div><div class="tile-sub">44.9 MB · 4800 DPI</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="timeline-section" id="section-1998" data-label="1998" data-year="1998">
+          <div class="section-head">
+            <div>
+              <h2>1998</h2>
+              <div class="section-head__meta">
+                <span class="pill pill--amber"><span class="icon">event</span> Year precision</span>
+                <span>Manual date</span>
+              </div>
+            </div>
+            <span class="section-head__count">24 items</span>
+          </div>
+          <div class="media-grid">
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0142_KODAK.TIFF, photo">
+              <img src="assets/images/new-folder-03.jpg" alt="Family gathering outdoors">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0142_KODAK.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0142_KODAK.TIFF</div><div class="tile-sub">24.1 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0145_BARKLEY.TIFF, photo">
+              <img src="assets/images/new-folder-05.jpg" alt="Birthday cake">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0145_BARKLEY.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0145_BARKLEY.TIFF</div><div class="tile-sub">31.2 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0148_DOG.TIFF, photo">
+              <img src="assets/images/new-folder-10.jpg" alt="Dog resting in autumn leaves">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0148_DOG.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0148_DOG.TIFF</div><div class="tile-sub">29.7 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0151_FAMILY.TIFF, photo">
+              <img src="assets/images/chronological-gallery-12.jpg" alt="Family party">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0151_FAMILY.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0151_FAMILY.TIFF</div><div class="tile-sub">28.4 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0155_PIZZA.TIFF, photo">
+              <img src="assets/images/duplicate-management-05.jpg" alt="Pizza on a wooden board">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0155_PIZZA.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0155_PIZZA.TIFF</div><div class="tile-sub">22.6 MB · 4800 DPI</div></div></div>
+            </article>
+            <article class="media-tile" data-media="photo" data-href="media-viewer.html?type=photo" tabindex="0" aria-label="SCAN_0160_HOUSE.TIFF, photo">
+              <img src="assets/images/missing-files-04.jpg" alt="Modern house at dusk">
+              <div class="media-tile__shade"></div>
+              <div class="media-tile__top"><span class="tile-pill">FILM SCAN</span><button class="tile-check" type="button" data-select aria-label="Select SCAN_0160_HOUSE.TIFF"><span class="icon">check</span></button></div>
+              <div class="media-tile__bottom"><div><div class="tile-name">SCAN_0160_HOUSE.TIFF</div><div class="tile-sub">27.3 MB · 4800 DPI</div></div></div>
+            </article>
+          </div>
+        </section>
+
+        <a class="callout callout--amber" href="date-unavailable.html" style="margin-top:6px">
+          <span class="icon">event_busy</span>
+          <div style="flex:1">
+            <div class="callout__title">142 items still need a date</div>
+            <div class="callout__body">Open Date unavailable to assign a year or year/month manually. No date is invented, and originals are never changed.</div>
+          </div>
+          <span class="icon">arrow_forward</span>
+        </a>
+      </main>
+    </div>
+  </div>
+
+  <div class="selection-bar" id="selection-bar">
+    <div class="selection-bar__count"><span id="selection-count">0</span> selected</div>
+    <button class="btn btn--sm btn--soft" type="button" id="bulk-date"><span class="icon">event</span> Set date</button>
+    <button class="btn btn--sm btn--ghost" type="button" id="clear-selection"><span class="icon">close</span> Clear</button>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      const page = document.querySelector(".page");
+      const bar = document.getElementById("selection-bar");
+      const countEl = document.getElementById("selection-count");
+      const activeMonth = document.getElementById("active-month");
+      const yearButtons = Array.from(document.querySelectorAll("[data-scroll-to]"));
+      const sections = Array.from(document.querySelectorAll(".timeline-section"));
+
+      const updateSelection = () => {
+        const count = document.querySelectorAll(".media-tile.is-selected").length;
+        countEl.textContent = String(count);
+        bar.classList.toggle("is-visible", count > 0);
+      };
+
+      document.querySelectorAll("[data-select]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const tile = button.closest(".media-tile");
+          tile.classList.toggle("is-selected");
+          button.setAttribute("aria-pressed", tile.classList.contains("is-selected") ? "true" : "false");
+          updateSelection();
+        });
+      });
+
+      document.querySelectorAll(".media-tile[data-href]").forEach((tile) => {
+        const go = () => { window.location.href = tile.getAttribute("data-href"); };
+        tile.addEventListener("click", go);
+        tile.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            go();
+          }
+        });
+      });
+
+      document.getElementById("clear-selection").addEventListener("click", () => {
+        document.querySelectorAll(".media-tile.is-selected").forEach((tile) => tile.classList.remove("is-selected"));
+        updateSelection();
+      });
+
+      document.getElementById("bulk-date").addEventListener("click", () => {
+        const count = document.querySelectorAll(".media-tile.is-selected").length;
+        if (!count) return;
+        ML.openDateModal({
+          count,
+          defaultYear: 2024,
+          defaultMonth: 8,
+          onApply: () => {
+            document.querySelectorAll(".media-tile.is-selected").forEach((tile) => tile.classList.remove("is-selected"));
+            updateSelection();
+          },
+        });
+      });
+
+      document.querySelectorAll("[data-media-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-media-filter]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          const filter = button.getAttribute("data-media-filter");
+          document.querySelectorAll(".media-tile").forEach((tile) => {
+            tile.style.display = filter === "all" || tile.getAttribute("data-media") === filter ? "" : "none";
+          });
+          sections.forEach((section) => {
+            const visible = Array.from(section.querySelectorAll(".media-tile")).some((tile) => tile.style.display !== "none");
+            section.style.display = visible ? "" : "none";
+          });
+        });
+      });
+
+      document.querySelectorAll("[data-density]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-density]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          document.querySelectorAll(".media-grid").forEach((grid) => {
+            grid.classList.toggle("is-dense", button.getAttribute("data-density") === "dense");
+          });
+        });
+      });
+
+      const sectionTop = (section) => section.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop;
+
+      const setActiveSection = (section) => {
+        if (!section) return;
+        activeMonth.innerHTML = `<span class="icon">calendar_month</span> ${section.getAttribute("data-label")}`;
+        yearButtons.forEach((button) => {
+          button.classList.toggle("is-active", button.getAttribute("data-year") === section.getAttribute("data-year"));
+        });
+      };
+
+      const scrollToSection = (section) => {
+        if (!section) return;
+        setActiveSection(section);
+        page.scrollTo(0, sectionTop(section) - 76);
+      };
+
+      yearButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const section = document.getElementById(button.getAttribute("data-scroll-to"));
+          scrollToSection(section);
+        });
+      });
+
+      document.querySelector("[data-month-prev]").addEventListener("click", () => {
+        const currentIndex = sections.findIndex((section) => sectionTop(section) > page.scrollTop + 90);
+        const target = currentIndex <= 0 ? sections[0] : sections[currentIndex - 1];
+        scrollToSection(target);
+      });
+
+      document.querySelector("[data-month-next]").addEventListener("click", () => {
+        const currentIndex = sections.findIndex((section) => sectionTop(section) > page.scrollTop + 90);
+        const target = currentIndex === -1 ? sections[sections.length - 1] : sections[Math.min(currentIndex + 1, sections.length - 1)];
+        scrollToSection(target);
+      });
+
+      const updateCurrent = () => {
+        const scrollTop = page.scrollTop + 130;
+        let current = sections[0];
+        sections.forEach((section) => {
+          if (sectionTop(section) <= scrollTop) current = section;
+        });
+        if (!current) return;
+        activeMonth.innerHTML = `<span class="icon">calendar_month</span> ${current.getAttribute("data-label")}`;
+        yearButtons.forEach((button) => {
+          button.classList.toggle("is-active", button.getAttribute("data-year") === current.getAttribute("data-year"));
+        });
+      };
+
+      page.addEventListener("scroll", updateCurrent, { passive: true });
+      updateCurrent();
+      updateSelection();
+    })();
+  </script>
+</body>
+</html>

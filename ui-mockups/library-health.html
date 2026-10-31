@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Library health</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="health" data-crumb="Library / Library health">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Integrity and reconciliation</div>
+            <h1>Library health</h1>
+            <p>Missing files, exact duplicates, and validation in one place. Informational only — Memory Lane never deletes, moves, or renames original files.</p>
+          </div>
+          <div class="page-head__actions">
+            <span class="pill pill--green"><span class="icon">check_circle</span> Catalog integrity OK</span>
+            <a class="btn" href="library-health.html#validation"><span class="icon">fact_check</span> Validate files</a>
+          </div>
+        </div>
+
+        <div data-tab-container>
+          <div class="tabs" data-tabs data-sync-hash role="tablist">
+            <button class="tab" type="button" data-tab="missing" role="tab"><span class="icon icon--sm">file_copy_off</span> Missing files <span class="pill pill--amber">15</span></button>
+            <button class="tab" type="button" data-tab="duplicates" role="tab"><span class="icon icon--sm">content_copy</span> Duplicates <span class="pill">84</span></button>
+            <button class="tab" type="button" data-tab="validation" role="tab"><span class="icon icon--sm">fact_check</span> Validation</button>
+          </div>
+
+          <!-- Missing files -->
+          <section class="tab-panel" data-panel="missing" role="tabpanel">
+            <div class="health-summary">
+              <span class="icon">notification_important</span>
+              <div>
+                <h2>15 files are missing since the last scan</h2>
+                <p>12 photos and 3 videos are no longer at their cataloged paths. They may have been moved or removed outside Memory Lane. Nothing was deleted by Memory Lane, and all records are retained.</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+                  <span class="pill pill--muted"><span class="icon">schedule</span> Last scan today, 14:32</span>
+                  <span class="pill pill--green"><span class="icon">swap_horiz</span> 9 candidates matched by SHA-256</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="moved-card">
+              <div class="moved-card__head">
+                <span class="icon">swap_horiz</span>
+                <div>
+                  <h3>9 likely moved files</h3>
+                  <p>SHA-256 matches at new locations. Confirm to update catalog paths only. The original files are not moved.</p>
+                </div>
+                <button class="btn btn--sm btn--soft" type="button" id="confirm-moves" style="margin-left:auto"><span class="icon">done_all</span> Update 9 catalog locations</button>
+              </div>
+              <div class="move-row">
+                <input type="checkbox" checked data-move-check aria-label="Confirm moved file SCAN_0088_FAMILY.TIFF">
+                <div>
+                  <div class="move-label">Old location</div>
+                  <div class="move-path">E:\Family_Scans\1988\SCAN_0088_FAMILY.TIFF</div>
+                </div>
+                <div class="move-dest">
+                  <div class="move-label">New location</div>
+                  <div class="move-path move-path--new">E:\Restored_Scans\1988\SCAN_0088_FAMILY.TIFF</div>
+                </div>
+                <button class="btn btn--sm btn--ghost" type="button" data-toast="Prototype only — would keep this file marked as missing."><span class="icon">close</span> Keep missing</button>
+              </div>
+              <div class="move-row">
+                <input type="checkbox" checked data-move-check aria-label="Confirm moved file DSC_1942.JPG">
+                <div>
+                  <div class="move-label">Old location</div>
+                  <div class="move-path">E:\Field_Recordings\2023_Trip\DSC_1942.JPG</div>
+                </div>
+                <div class="move-dest">
+                  <div class="move-label">New location</div>
+                  <div class="move-path move-path--new">E:\Restored_Scans\2023\DSC_1942.JPG</div>
+                </div>
+                <button class="btn btn--sm btn--ghost" type="button" data-toast="Prototype only — would keep this file marked as missing."><span class="icon">close</span> Keep missing</button>
+              </div>
+              <div class="move-row">
+                <input type="checkbox" checked data-move-check aria-label="Confirm moved file CLIP0019.AVI">
+                <div>
+                  <div class="move-label">Old location</div>
+                  <div class="move-path">E:\Camcorder_Archive\2002\CLIP0019.AVI</div>
+                </div>
+                <div class="move-dest">
+                  <div class="move-label">New location</div>
+                  <div class="move-path move-path--new">E:\Camcorder_Archive\2002_Restored\CLIP0019.AVI</div>
+                </div>
+                <button class="btn btn--sm btn--ghost" type="button" data-toast="Prototype only — would keep this file marked as missing."><span class="icon">close</span> Keep missing</button>
+              </div>
+              <div style="padding:10px 14px;border-top:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                <span class="muted" style="font-size:10px">Showing 3 of 9 matches. Every match is verified by SHA-256 before the catalog pointer changes.</span>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would show the remaining 6 matches.">Show all 9</button>
+              </div>
+            </div>
+
+            <div class="card card--pad-sm" style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:8px">
+                <h2 class="card__title">Missing files</h2>
+                <span class="pill pill--amber">15</span>
+              </div>
+              <div class="segmented" aria-label="Missing file filter">
+                <button type="button" class="is-active" data-missing-filter="all">All</button>
+                <button type="button" data-missing-filter="photo">Photos</button>
+                <button type="button" data-missing-filter="video">Videos</button>
+              </div>
+            </div>
+
+            <div class="data-list missing-table">
+              <div class="data-list__head">
+                <span>File</span>
+                <span>Type</span>
+                <span>Former location</span>
+                <span>Last seen</span>
+                <span>Size</span>
+                <span style="text-align:right">State</span>
+              </div>
+
+              <div class="data-row" data-missing-media="photo">
+                <div class="data-row__main">
+                  <div class="file-ico"><span class="icon">image</span></div>
+                  <div style="min-width:0">
+                    <div class="file-name">SCAN_0088_FAMILY.TIFF</div>
+                    <div class="file-path">E:\Family_Scans\1988\SCAN_0088_FAMILY.TIFF</div>
+                  </div>
+                </div>
+                <span class="muted">Photo</span>
+                <span class="mono faint">E:\Family_Scans\1988</span>
+                <span class="muted">Sep 12, 2024</span>
+                <span class="mono">48.2 MB</span>
+                <span style="text-align:right"><span class="pill pill--green"><span class="icon">link</span> Match found</span></span>
+              </div>
+
+              <div class="data-row" data-missing-media="video">
+                <div class="data-row__main">
+                  <div class="file-ico"><span class="icon">movie</span></div>
+                  <div style="min-width:0">
+                    <div class="file-name">CLIP0019.AVI</div>
+                    <div class="file-path">E:\Camcorder_Archive\2002\CLIP0019.AVI</div>
+                  </div>
+                </div>
+                <span class="muted">Video</span>
+                <span class="mono faint">E:\Camcorder_Archive\2002</span>
+                <span class="muted">Oct 4, 2024</span>
+                <span class="mono">412.8 MB</span>
+                <span style="text-align:right"><span class="pill pill--red"><span class="icon">search_off</span> No match</span></span>
+              </div>
+
+              <div class="data-row" data-missing-media="photo">
+                <div class="data-row__main">
+                  <div class="file-ico"><span class="icon">image</span></div>
+                  <div style="min-width:0">
+                    <div class="file-name">DSC_1942.JPG</div>
+                    <div class="file-path">E:\Field_Recordings\2023_Trip\DSC_1942.JPG</div>
+                  </div>
+                </div>
+                <span class="muted">Photo</span>
+                <span class="mono faint">E:\Field_Recordings\2023_Trip</span>
+                <span class="muted">Oct 12, 2023</span>
+                <span class="mono">14.2 MB</span>
+                <span style="text-align:right"><span class="pill pill--red"><span class="icon">search_off</span> No match</span></span>
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap">
+              <span class="muted" style="font-size:10.5px" id="missing-count">Showing 3 of 15 missing files</span>
+              <div style="display:flex;gap:5px">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — previous page."><span class="icon">chevron_left</span> Previous</button>
+                <button class="btn btn--sm btn--soft" type="button">1</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — next page.">2</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — next page.">Next <span class="icon">chevron_right</span></button>
+              </div>
+            </div>
+
+            <div class="callout" style="margin-top:14px">
+              <span class="icon">verified_user</span>
+              <div>
+                <div class="callout__title">Nothing is removed from the catalog</div>
+                <div class="callout__body">Missing files remain indexed and visible. If a hash match is found, only the catalog path changes after you confirm. The actual file is untouched.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Duplicates -->
+          <section class="tab-panel" data-panel="duplicates" role="tabpanel">
+            <div class="stat-strip">
+              <div class="stat"><div class="stat__value">84</div><div class="stat__label">Duplicate sets</div><div class="stat__hint">Identified by SHA-256</div></div>
+              <div class="stat"><div class="stat__value">194</div><div class="stat__label">Files in groups</div><div class="stat__hint">Every copy is preserved</div></div>
+              <div class="stat"><div class="stat__value">18.4 GB</div><div class="stat__label">Total footprint</div><div class="stat__hint">Informational only</div></div>
+              <div class="stat"><div class="stat__value green">100%</div><div class="stat__label">Hash coverage</div><div class="stat__hint">SHA-256 verified</div></div>
+            </div>
+
+            <div class="card card--pad-sm" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+              <div>
+                <h2 class="card__title">Exact duplicate groups</h2>
+                <p class="card__desc">Select a group to inspect every location.</p>
+              </div>
+              <div class="segmented" aria-label="Duplicate filter">
+                <button type="button" class="is-active" data-dup-filter="all">All</button>
+                <button type="button" data-dup-filter="photo">Photos</button>
+                <button type="button" data-dup-filter="video">Videos</button>
+                <button type="button" data-dup-filter="raw">RAW</button>
+              </div>
+            </div>
+
+            <div class="dup-layout">
+              <div id="dup-list">
+                <button class="dup-group is-active" type="button" data-dup="d1" data-dup-media="photo">
+                  <div class="dup-thumb"><img src="assets/images/chronological-gallery-02.jpg" alt="Santorini sunset"></div>
+                  <div style="min-width:0">
+                    <div class="dup-name">DSC_4910.JPG</div>
+                    <div class="dup-meta">18.4 MB per file · 6000 × 4000</div>
+                  </div>
+                  <div class="dup-copies"><strong>3</strong>copies</div>
+                </button>
+
+                <button class="dup-group" type="button" data-dup="d2" data-dup-media="video">
+                  <div class="dup-thumb"><img src="assets/images/video-playback-02.jpg" alt="Family video"></div>
+                  <div style="min-width:0">
+                    <div class="dup-name">CLIP0042.AVI</div>
+                    <div class="dup-meta">164.2 MB per file · 720 × 480</div>
+                  </div>
+                  <div class="dup-copies"><strong>2</strong>copies</div>
+                </button>
+
+                <button class="dup-group" type="button" data-dup="d3" data-dup-media="raw">
+                  <div class="dup-thumb"><img src="assets/images/duplicate-management-03.jpg" alt="Film scan"></div>
+                  <div style="min-width:0">
+                    <div class="dup-name">SCAN_0142_KODAK.TIFF</div>
+                    <div class="dup-meta">24.1 MB per file · 4800 DPI</div>
+                  </div>
+                  <div class="dup-copies"><strong>2</strong>copies</div>
+                </button>
+
+                <button class="dup-group" type="button" data-dup="d4" data-dup-media="video">
+                  <div class="dup-thumb"><img src="assets/images/chronological-gallery-03.jpg" alt="Sailing video"></div>
+                  <div style="min-width:0">
+                    <div class="dup-name">DJI_0088_DLOG.MP4</div>
+                    <div class="dup-meta">892.4 MB per file · 3840 × 2160</div>
+                  </div>
+                  <div class="dup-copies"><strong>2</strong>copies</div>
+                </button>
+
+                <button class="dup-group" type="button" data-dup="d5" data-dup-media="photo">
+                  <div class="dup-thumb"><img src="assets/images/chronological-gallery-12.jpg" alt="Family toast"></div>
+                  <div style="min-width:0">
+                    <div class="dup-name">IMG_2021-WA0019.jpg</div>
+                    <div class="dup-meta">840 KB per file · 1600 × 1200</div>
+                  </div>
+                  <div class="dup-copies"><strong>4</strong>copies</div>
+                </button>
+              </div>
+
+              <aside class="card" id="dup-detail" aria-label="Duplicate detail">
+                <div class="detail-head">
+                  <div>
+                    <h2 id="dup-title">DSC_4910.JPG</h2>
+                    <div class="muted" style="font-size:10px;margin-top:2px" id="dup-subtitle">3 exact copies · 55.2 MB total</div>
+                  </div>
+                  <span class="pill pill--green"><span class="icon">verified</span> SHA-256</span>
+                </div>
+                <div class="path-box" id="dup-hash">8f4a9b702e1c94d6e9f2a4c107e382b6184209aef1092837465abc1234567890</div>
+                <div class="copy-list" id="dup-copies"></div>
+                <div class="callout callout--amber" style="margin-top:12px">
+                  <span class="icon">info</span>
+                  <div>
+                    <div class="callout__title">All copies are preserved</div>
+                    <div class="callout__body">Duplicate detection is informational. Memory Lane does not offer delete, move, rename, or cleanup actions.</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <!-- Validation -->
+          <section class="tab-panel" data-panel="validation" role="tabpanel">
+            <div class="scan-layout">
+              <div class="card">
+                <div class="card__head">
+                  <div>
+                    <h2 class="card__title">Validate files</h2>
+                    <p class="card__desc">Compare the catalog with the drive. Choose one or more checks. Deep hashing runs in the background and can be paused.</p>
+                  </div>
+                  <span class="pill pill--muted"><span class="icon">lock</span> Read-only</span>
+                </div>
+
+                <div id="validation-idle">
+                  <div class="check-row">
+                    <input type="checkbox" id="check-existence" checked>
+                    <div>
+                      <label for="check-existence">Existence check</label>
+                      <p>Confirm that each cataloged path still exists. Fast routine check.</p>
+                    </div>
+                    <span class="pill pill--green">Fast</span>
+                  </div>
+                  <div class="check-row">
+                    <input type="checkbox" id="check-metadata" checked>
+                    <div>
+                      <label for="check-metadata">Basic metadata check</label>
+                      <p>Compare file size and modified time with the catalog.</p>
+                    </div>
+                    <span class="pill">Fast</span>
+                  </div>
+                  <div class="check-row">
+                    <input type="checkbox" id="check-hash" checked>
+                    <div>
+                      <label for="check-hash">Deep integrity check</label>
+                      <p>Calculate or compare SHA-256 hashes. Resumable and lower priority than browsing.</p>
+                    </div>
+                    <span class="pill pill--amber">Background</span>
+                  </div>
+                  <div class="check-row">
+                    <input type="checkbox" id="check-revalidate" checked>
+                    <div>
+                      <label for="check-revalidate">Metadata revalidation</label>
+                      <p>Re-extract metadata where the catalog may be stale.</p>
+                    </div>
+                    <span class="pill">Optional</span>
+                  </div>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px">
+                    <button class="btn btn--primary" type="button" id="run-validation"><span class="icon">fact_check</span> Run validation</button>
+                  </div>
+                </div>
+
+                <div id="validation-running" hidden>
+                  <div class="callout callout--amber" style="margin-bottom:12px">
+                    <span class="icon">sync</span>
+                    <div>
+                      <div class="callout__title">Validation running</div>
+                      <div class="callout__body" id="validation-stage">Checking existence · 42,000 of 97,902 files</div>
+                    </div>
+                  </div>
+                  <div class="progress-row"><span>Overall progress</span><span id="validation-percent">23%</span></div>
+                  <div class="progress"><span id="validation-progress" style="width:23%"></span></div>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:14px">
+                    <button class="btn" type="button" id="pause-validation"><span class="icon">pause</span> Pause</button>
+                    <button class="btn btn--ghost" type="button" data-toast="Prototype only — validation would continue in the background.">Continue in background</button>
+                  </div>
+                </div>
+
+                <div id="validation-report" hidden>
+                  <div class="callout callout--green" style="margin-bottom:12px">
+                    <span class="icon">check_circle</span>
+                    <div>
+                      <div class="callout__title">Validation complete</div>
+                      <div class="callout__body">Today at 14:22 · 1m 42s · 97,887 verified. Missing files remain cataloged and are listed in the Missing files tab.</div>
+                    </div>
+                  </div>
+                  <div class="stat-strip" style="margin-bottom:12px">
+                    <div class="stat"><div class="stat__value green">97,887</div><div class="stat__label">Verified</div></div>
+                    <div class="stat"><div class="stat__value amber">15</div><div class="stat__label">Missing</div></div>
+                    <div class="stat"><div class="stat__value amber">2</div><div class="stat__label">Metadata changed</div></div>
+                    <div class="stat"><div class="stat__value">0</div><div class="stat__label">Hash mismatch</div></div>
+                  </div>
+                  <div class="kv"><span>Unreadable / permission denied</span><span>0</span></div>
+                  <div class="kv"><span>Deep hash coverage</span><span>97,902 of 97,902 files</span></div>
+                  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+                    <button class="btn btn--primary" type="button" id="run-again"><span class="icon">refresh</span> Run again</button>
+                    <a class="btn" href="library-health.html#missing"><span class="icon">file_copy_off</span> Review missing files</a>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="stack">
+                <div class="card">
+                  <div class="card__head">
+                    <h2 class="card__title">Last validation</h2>
+                    <span class="pill pill--green">Complete</span>
+                  </div>
+                  <div class="kv"><span>Finished</span><span>Today, 14:22</span></div>
+                  <div class="kv"><span>Duration</span><span>1m 42s</span></div>
+                  <div class="kv"><span>Files checked</span><span>97,902</span></div>
+                  <div class="kv"><span>Missing</span><span class="amber">15</span></div>
+                  <div class="kv"><span>Metadata changed</span><span class="amber">2</span></div>
+                  <div class="kv"><span>Hash mismatch</span><span class="green">0</span></div>
+                  <div class="kv"><span>Unreadable</span><span class="green">0</span></div>
+                </div>
+                <div class="callout">
+                  <span class="icon">info</span>
+                  <div>
+                    <div class="callout__title">Validation never repairs or deletes</div>
+                    <div class="callout__body">It reports what it finds. Missing files stay in the catalog, and every file is opened read-only.</div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      // Missing filters
+      document.querySelectorAll("[data-missing-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-missing-filter]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          const filter = button.getAttribute("data-missing-filter");
+          let visible = 0;
+          document.querySelectorAll("[data-missing-media]").forEach((row) => {
+            const show = filter === "all" || row.getAttribute("data-missing-media") === filter;
+            row.style.display = show ? "" : "none";
+            if (show) visible += 1;
+          });
+          document.getElementById("missing-count").textContent = `Showing ${visible} of 15 missing files`;
+        });
+      });
+
+      const moveChecks = Array.from(document.querySelectorAll("[data-move-check]"));
+      const confirmMoves = document.getElementById("confirm-moves");
+      const updateMoves = () => {
+        const count = moveChecks.filter((input) => input.checked).length;
+        confirmMoves.innerHTML = `<span class="icon">done_all</span> Update ${count} catalog location${count === 1 ? "" : "s"}`;
+        confirmMoves.disabled = count === 0;
+      };
+      moveChecks.forEach((input) => input.addEventListener("change", updateMoves));
+      updateMoves();
+      confirmMoves.addEventListener("click", () => {
+        const count = moveChecks.filter((input) => input.checked).length;
+        ML.toast(`${count} catalog locations updated. No original files were moved or modified.`, "success");
+      });
+
+      // Duplicate groups
+      const DUPS = {
+        d1: {
+          title: "DSC_4910.JPG",
+          subtitle: "3 exact copies · 55.2 MB total",
+          hash: "8f4a9b702e1c94d6e9f2a4c107e382b6184209aef1092837465abc1234567890",
+          copies: [
+            { label: "Copy 1", path: "E:\\Archive\\2024\\Santorini\\DSC_4910.JPG", meta: "18.4 MB · Aug 18, 2024" },
+            { label: "Copy 2", path: "E:\\Backups\\2024\\Camera_Roll\\DSC_4910.JPG", meta: "18.4 MB · Sep 2, 2024" },
+            { label: "Copy 3", path: "E:\\Phone_Sync\\DCIM\\Camera\\DSC_4910.JPG", meta: "18.4 MB · Nov 14, 2024" },
+          ],
+        },
+        d2: {
+          title: "CLIP0042.AVI",
+          subtitle: "2 exact copies · 328.4 MB total",
+          hash: "d24c88b6f0a1c95e7329f4b81d0c6742a51e983b7c2d60f48a1b3e5c9d7f19ae",
+          copies: [
+            { label: "Copy 1", path: "E:\\Camcorder_Archive\\2004\\CLIP0042.AVI", meta: "164.2 MB · Jul 14, 2004" },
+            { label: "Copy 2", path: "E:\\Imports_Raw\\Tape_04\\CLIP0042.AVI", meta: "164.2 MB · Aug 3, 2004" },
+          ],
+        },
+        d3: {
+          title: "SCAN_0142_KODAK.TIFF",
+          subtitle: "2 exact copies · 48.2 MB total",
+          hash: "41ae93c7d0b8e2a6f4951370c2d8b9e6a4f17023c5d9e8b1a2c3d4e5f6a7b8c9",
+          copies: [
+            { label: "Copy 1", path: "E:\\Negatives_Vault\\Box_03\\SCAN_0142_KODAK.TIFF", meta: "24.1 MB · May 3, 2019" },
+            { label: "Copy 2", path: "E:\\Prints_Staging\\Exhibition_2022\\SCAN_0142_KODAK.TIFF", meta: "24.1 MB · May 3, 2019" },
+          ],
+        },
+        d4: {
+          title: "DJI_0088_DLOG.MP4",
+          subtitle: "2 exact copies · 1.74 GB total",
+          hash: "7710b1f4a9c2e8d6b3f5a7c0e9d1b4a6c8f2e0d3a5b7c9e1f4a6d8b0c2e4f6a8",
+          copies: [
+            { label: "Copy 1", path: "E:\\Drone_Flights\\2023_Coast\\DJI_0088_DLOG.MP4", meta: "892.4 MB · Jun 12, 2023" },
+            { label: "Copy 2", path: "E:\\Projects\\Coast_Reel\\RawMedia\\DJI_0088_DLOG.MP4", meta: "892.4 MB · Jun 12, 2023" },
+          ],
+        },
+        d5: {
+          title: "IMG_2021-WA0019.jpg",
+          subtitle: "4 exact copies · 3.36 MB total",
+          hash: "01bc83f5a7d2e9c4b6f1a3d8e0c5b7f2a4d6e8c0b1f3a5d7e9c2b4f6a8d0e1c3",
+          copies: [
+            { label: "Copy 1", path: "E:\\Messaging_Exports\\WhatsApp_Media\\IMG_2021-WA0019.jpg", meta: "840 KB · Nov 5, 2021" },
+            { label: "Copy 2", path: "E:\\Phone_Sync_Old\\WhatsApp\\Media\\Sent\\IMG_2021-WA0019.jpg", meta: "840 KB · Nov 5, 2021" },
+            { label: "Copy 3", path: "E:\\Phone_Sync_Old\\DCIM\\Camera\\IMG_2021-WA0019.jpg", meta: "840 KB · Nov 6, 2021" },
+            { label: "Copy 4", path: "E:\\Backups\\2022\\Messaging\\IMG_2021-WA0019.jpg", meta: "840 KB · Jan 9, 2022" },
+          ],
+        },
+      };
+
+      const renderDup = (id) => {
+        const group = DUPS[id];
+        if (!group) return;
+        document.getElementById("dup-title").textContent = group.title;
+        document.getElementById("dup-subtitle").textContent = group.subtitle;
+        document.getElementById("dup-hash").textContent = group.hash;
+        document.getElementById("dup-copies").innerHTML = group.copies
+          .map(
+            (copy) => `
+            <div class="copy-item">
+              <div class="copy-item__top">
+                <span class="copy-item__label">${copy.label}</span>
+                <span class="pill pill--muted">${copy.meta}</span>
+              </div>
+              <div class="copy-item__path">${copy.path}</div>
+              <div class="copy-item__actions">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal this copy in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+              </div>
+            </div>`
+          )
+          .join("");
+      };
+
+      document.querySelectorAll("[data-dup]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-dup]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          renderDup(button.getAttribute("data-dup"));
+        });
+      });
+
+      document.querySelectorAll("[data-dup-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-dup-filter]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          const filter = button.getAttribute("data-dup-filter");
+          document.querySelectorAll("[data-dup]").forEach((group) => {
+            const show = filter === "all" || group.getAttribute("data-dup-media") === filter;
+            group.style.display = show ? "" : "none";
+          });
+        });
+      });
+
+      renderDup("d1");
+
+      // Validation simulation
+      const validationChecks = Array.from(document.querySelectorAll("#validation-idle input[type=checkbox]"));
+      const runValidation = document.getElementById("run-validation");
+      const updateValidationButton = () => {
+        runValidation.disabled = !validationChecks.some((input) => input.checked);
+      };
+      validationChecks.forEach((input) => input.addEventListener("change", updateValidationButton));
+      updateValidationButton();
+
+      const idle = document.getElementById("validation-idle");
+      const running = document.getElementById("validation-running");
+      const report = document.getElementById("validation-report");
+      const progress = document.getElementById("validation-progress");
+      const percent = document.getElementById("validation-percent");
+      const stage = document.getElementById("validation-stage");
+      let interval = null;
+      let value = 23;
+
+      const startValidation = () => {
+        idle.hidden = true;
+        report.hidden = true;
+        running.hidden = false;
+        value = 23;
+        progress.style.width = "23%";
+        percent.textContent = "23%";
+        stage.textContent = "Checking existence · 42,000 of 97,902 files";
+        if (interval) window.clearInterval(interval);
+        interval = window.setInterval(() => {
+          value = Math.min(100, value + 9);
+          progress.style.width = `${value}%`;
+          percent.textContent = `${value}%`;
+          if (value >= 100) {
+            window.clearInterval(interval);
+            interval = null;
+            running.hidden = true;
+            report.hidden = false;
+            ML.toast("Validation complete. 15 missing files, 2 metadata changes, 0 hash mismatches.", "success");
+          }
+        }, 420);
+      };
+
+      document.getElementById("run-validation").addEventListener("click", startValidation);
+      document.getElementById("run-again").addEventListener("click", startValidation);
+      document.getElementById("pause-validation").addEventListener("click", () => {
+        if (interval) {
+          window.clearInterval(interval);
+          interval = null;
+          ML.toast("Validation paused. It can resume from the same point.", "info");
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

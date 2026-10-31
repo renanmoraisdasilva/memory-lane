@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Select archive drive</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body class="gate">
+  <header class="gate__header">
+    <div class="gate__brand">
+      <div class="brand-mark"><span class="icon">photo_library</span></div>
+      <div>
+        <div class="brand-name">Memory Lane</div>
+        <div class="brand-sub">Local archive catalog</div>
+      </div>
+    </div>
+    <span class="readonly-pill"><span class="icon">lock</span> Read-only archive</span>
+  </header>
+
+  <main class="gate__body">
+    <div class="gate__intro">
+      <div class="eyebrow">Archive source</div>
+      <h1>Open a memory archive</h1>
+      <p>Select a connected external drive. Memory Lane indexes files in place, keeps the catalog on the drive, and never moves, renames, edits, or deletes originals.</p>
+    </div>
+
+    <div class="gate__list" aria-label="Available archive drives">
+      <article class="drive-option is-primary">
+        <div class="drive-option__icon"><span class="icon">hard_drive</span></div>
+        <div>
+          <div class="drive-option__name">
+            WD My Passport 2TB (E:)
+            <span class="pill pill--green"><span class="icon">check_circle</span> Connected</span>
+            <span class="pill pill--amber">Catalog found</span>
+          </div>
+          <div class="drive-option__meta">MY_PASSPORT · NTFS · Volume ID {a8f2-39c1-90be-e092}</div>
+          <div class="drive-option__stats">
+            <div class="drive-stat"><strong>85,420</strong> media items</div>
+            <div class="drive-stat"><strong>12,482</strong> other files</div>
+            <div class="drive-stat"><strong>1.42 TB</strong> of 2.0 TB used</div>
+            <div class="drive-stat"><strong>Today, 14:32</strong> last scan</div>
+            <div class="drive-stat"><strong>142</strong> items need a date</div>
+          </div>
+        </div>
+        <div class="drive-option__actions">
+          <button class="btn btn--sm" type="button" data-modal-open="drive-details"><span class="icon">info</span> Details</button>
+          <a class="btn btn--primary" href="chronological-gallery.html"><span class="icon">play_arrow</span> Open Memory Lane</a>
+        </div>
+      </article>
+
+      <article class="drive-option">
+        <div class="drive-option__icon"><span class="icon">hard_drive</span></div>
+        <div>
+          <div class="drive-option__name">
+            Samsung T7 Shield 1TB (F:)
+            <span class="pill pill--green"><span class="icon">check_circle</span> Connected</span>
+            <span class="pill">No catalog</span>
+          </div>
+          <div class="drive-option__meta">T7 Shield · exFAT · 640 GB used · 360 GB free</div>
+          <div class="drive-option__stats">
+            <div class="drive-stat"><strong>Not indexed</strong> No Memory Lane catalog found</div>
+            <div class="drive-stat"><strong>External SSD</strong> USB-C</div>
+          </div>
+        </div>
+        <div class="drive-option__actions">
+          <button class="btn btn--sm btn--soft" type="button" data-modal-open="setup-drive"><span class="icon">add</span> Set up this drive</button>
+        </div>
+      </article>
+
+      <article class="drive-option is-offline">
+        <div class="drive-option__icon"><span class="icon">usb_off</span></div>
+        <div>
+          <div class="drive-option__name">
+            Seagate Backup Plus 4TB (G:)
+            <span class="pill pill--muted"><span class="icon">wifi_off</span> Not connected</span>
+          </div>
+          <div class="drive-option__meta">Previously registered · Last seen yesterday, 19:42</div>
+          <div class="drive-option__stats">
+            <div class="drive-stat"><strong>94,310</strong> cataloged items</div>
+            <div class="drive-stat"><strong>2.91 TB</strong> indexed</div>
+            <div class="drive-stat"><strong>Read-only</strong> catalog preserved</div>
+          </div>
+        </div>
+        <div class="drive-option__actions">
+          <button class="btn btn--sm" type="button" disabled><span class="icon">usb</span> Reconnect to browse</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="gate__foot">
+      <span>External volumes only in this version. Drives are identified by volume ID, not by drive letter.</span>
+      <button class="btn btn--sm btn--ghost" type="button" data-toast="Prototype only — would rescan the Windows storage bus." data-toast-type="info"><span class="icon">refresh</span> Rescan drives</button>
+    </div>
+
+    <div class="callout callout--green" style="margin-top:22px">
+      <span class="icon">verified_user</span>
+      <div>
+        <div class="callout__title">The archive stays yours</div>
+        <div class="callout__body">The catalog and thumbnail cache live in an app-managed folder on the drive. Original folders are never modified, and there is no delete, move, or rename operation in the app.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Drive details -->
+  <div class="modal-backdrop" data-modal="drive-details">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="drive-details-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="drive-details-title">WD My Passport 2TB</h2>
+          <p>Connected on E: · Read-only access verified</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="drawer-section">
+          <div class="drawer-section__label">Identity</div>
+          <div class="kv"><span>Label</span><span>MY_PASSPORT</span></div>
+          <div class="kv"><span>Volume ID</span><span class="mono">{a8f2-39c1-90be-e092}</span></div>
+          <div class="kv"><span>Serial</span><span class="mono">WDBYFT0020BBK-0A</span></div>
+          <div class="kv"><span>Filesystem</span><span>NTFS 3.1</span></div>
+          <div class="kv"><span>Assigned letter</span><span>E:</span></div>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section__label">App-managed locations</div>
+          <div class="path-box">E:\.memorylane\catalog.db</div>
+          <div class="path-box">E:\.memorylane\cache\</div>
+        </div>
+        <div class="drawer-section">
+          <div class="drawer-section__label">Catalog</div>
+          <div class="kv"><span>Cataloged items</span><span>97,902</span></div>
+          <div class="kv"><span>Last scan</span><span>Today, 14:32</span></div>
+          <div class="kv"><span>PC backup</span><span class="green">Today, 14:15</span></div>
+        </div>
+        <div class="callout callout--green">
+          <span class="icon">lock</span>
+          <div>
+            <div class="callout__title">Read-only volume access</div>
+            <div class="callout__body">The catalog and cache are app-managed. Original archive folders are never written to.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-modal-close>Close</button>
+        <a class="btn btn--primary" href="chronological-gallery.html"><span class="icon">play_arrow</span> Open Memory Lane</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- New archive setup -->
+  <div class="modal-backdrop" data-modal="setup-drive">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="setup-title">Set up a new archive</h2>
+          <p>Samsung T7 Shield 1TB (F:) · No catalog found</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="field">
+          <label>Catalog location</label>
+          <div class="path-box">F:\.memorylane\catalog.db</div>
+        </div>
+        <div class="field">
+          <label>Thumbnail cache</label>
+          <div class="path-box">F:\.memorylane\cache\</div>
+        </div>
+        <div class="callout callout--amber">
+          <span class="icon">radar</span>
+          <div>
+            <div class="callout__title">The first scan starts on this drive</div>
+            <div class="callout__body">Memory Lane will catalog every file type, then extract metadata, generate thumbnails, and calculate hashes as separate stages. You can browse as soon as the catalog stage is ready.</div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:10px">
+          <span class="icon">lock</span>
+          <div>
+            <div class="callout__title">No archive changes</div>
+            <div class="callout__body">Only the app-managed folder is written. Original files and folders are opened read-only.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-modal-close>Cancel</button>
+        <button class="btn btn--primary" type="button" id="setup-start"><span class="icon">play_arrow</span> Start first scan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Changed drive letter -->
+  <div class="modal-backdrop" data-modal="letter-change">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="letter-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="letter-title">This drive has a new letter</h2>
+          <p>The catalog matches, but Windows mounted the volume as H: instead of G:.</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="callout callout--amber">
+          <span class="icon">fingerprint</span>
+          <div>
+            <div class="callout__title">Volume ID matches {a8f2-39c1-90be-e092}</div>
+            <div class="callout__body">Memory Lane recognizes the catalog by volume identity, not by letter. Update the catalog root to H: and keep all existing records, dates, duplicates, and missing-file state.</div>
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Previous catalog root</label>
+          <div class="path-box">G:\.memorylane\catalog.db</div>
+        </div>
+        <div class="field">
+          <label>New catalog root</label>
+          <div class="path-box">H:\.memorylane\catalog.db</div>
+        </div>
+        <p class="muted" style="margin:0;font-size:10.5px">No files are moved. Only the catalog's recorded root path changes after confirmation.</p>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-modal-close>Keep current path</button>
+        <button class="btn btn--primary" type="button" id="confirm-letter"><span class="icon">check</span> Update to H:</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    document.getElementById("setup-start").addEventListener("click", () => {
+      window.location.href = "scan-processing-dashboard.html?state=active";
+    });
+
+    document.getElementById("confirm-letter").addEventListener("click", () => {
+      ML.closeModal("letter-change");
+      ML.toast("Catalog root updated to H:. No original files were moved.", "success");
+      window.setTimeout(() => { window.location.href = "chronological-gallery.html"; }, 700);
+    });
+
+    if (new URLSearchParams(window.location.search).get("case") === "letter-change") {
+      ML.openModal("letter-change");
+    }
+  </script>
+</body>
+</html>

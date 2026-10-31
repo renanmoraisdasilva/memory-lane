@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Scan &amp; processing</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="scan" data-crumb="System / Scan & processing" data-scan-chip="off">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Catalog pipeline</div>
+            <h1>Scan &amp; processing</h1>
+            <p>WD My Passport 2TB (E:) · Read-only access · Four independent stages. Browsing stays available while work continues.</p>
+          </div>
+          <div class="page-head__actions">
+            <span class="pill pill--amber" id="scan-state-pill"><span class="icon">sync</span> Cataloging</span>
+            <a class="btn" href="settings.html"><span class="icon">tune</span> Processing settings</a>
+          </div>
+        </div>
+
+        <!-- Idle -->
+        <section class="scan-state" data-scan-state="idle">
+          <div class="scan-hero">
+            <div>
+              <h2>Ready to scan</h2>
+              <p>The catalog is ready. Start an incremental scan to catalog new files, refresh metadata, generate missing thumbnails, and continue hashing. Completed work is reused, and you can keep browsing while it runs.</p>
+            </div>
+            <div class="scan-hero__actions">
+              <button class="btn btn--primary" type="button" data-scan-set="active"><span class="icon">play_arrow</span> Start scan</button>
+              <a class="btn" href="chronological-gallery.html"><span class="icon">photo_library</span> Open Memory Lane</a>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="stat__value">97,902</div><div class="stat__label">Files cataloged</div><div class="stat__hint">Last scan today, 14:32</div></div>
+            <div class="stat"><div class="stat__value">60,000</div><div class="stat__label">Thumbnails ready</div><div class="stat__hint">Photos and video posters</div></div>
+            <div class="stat"><div class="stat__value">97,902</div><div class="stat__label">Hashes calculated</div><div class="stat__hint">SHA-256</div></div>
+            <div class="stat"><div class="stat__value amber">15</div><div class="stat__label">Missing files</div><div class="stat__hint">Review in Library health</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">What the next scan does</h2>
+                <p class="card__desc">The stages run independently. The catalog becomes useful after the first stage, not after all four finish. On an incremental scan, only new or changed work is processed.</p>
+              </div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card__icon"><span class="icon">folder_open</span></div>
+              <div>
+                <div class="stage-card__head"><div class="stage-card__title">1. Catalog files</div><span class="pill pill--muted">Next run</span></div>
+                <div class="stage-card__desc">Enumerate directories and files; record paths and basic filesystem metadata.</div>
+              </div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card__icon"><span class="icon">info</span></div>
+              <div>
+                <div class="stage-card__head"><div class="stage-card__title">2. Extract metadata</div><span class="pill pill--muted">Next run</span></div>
+                <div class="stage-card__desc">Read EXIF and video container metadata; resolve dates and media types.</div>
+              </div>
+            </div>
+            <div class="stage-card">
+              <div class="stage-card__icon"><span class="icon">image</span></div>
+              <div>
+                <div class="stage-card__head"><div class="stage-card__title">3. Generate thumbnails</div><span class="pill pill--muted">Next run</span></div>
+                <div class="stage-card__desc">Create grid thumbnails and video posters. The current viewport is prioritized.</div>
+              </div>
+            </div>
+            <div class="stage-card" style="margin-bottom:0">
+              <div class="stage-card__icon"><span class="icon">fingerprint</span></div>
+              <div>
+                <div class="stage-card__head"><div class="stage-card__title">4. Calculate hashes</div><span class="pill pill--muted">Next run</span></div>
+                <div class="stage-card__desc">SHA-256 runs as a separate, resumable background stage for duplicates and validation.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Running / paused / interrupted -->
+        <section class="scan-state" data-scan-state="running">
+          <div class="scan-hero">
+            <div>
+              <h2 id="scan-running-title">Scanning WD My Passport 2TB</h2>
+              <p id="scan-running-desc">Stage 2 of 4 · Metadata extraction. Browsing and playback remain available.</p>
+            </div>
+            <div class="scan-hero__actions" id="scan-running-actions">
+              <button class="btn" type="button" data-scan-set="paused"><span class="icon">pause</span> Pause</button>
+              <a class="btn" href="chronological-gallery.html"><span class="icon">photo_library</span> Open Memory Lane</a>
+            </div>
+          </div>
+
+          <div class="scan-layout">
+            <div>
+              <div class="card card--pad-sm" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <h2 class="card__title">Pipeline stages</h2>
+                  <span class="pill pill--amber">4 stages</span>
+                </div>
+                <span class="muted" style="font-size:10px" id="scan-last-saved">Last saved 2 seconds ago</span>
+              </div>
+
+              <div class="stage-card is-complete">
+                <div class="stage-card__icon"><span class="icon">check</span></div>
+                <div>
+                  <div class="stage-card__head"><div class="stage-card__title">1. Catalog files</div><span class="pill pill--green">Complete</span></div>
+                  <div class="stage-card__desc">Filesystem crawl completed across 14,280 directories. All paths and basic metadata are recorded.</div>
+                  <div class="progress-row"><span>97,902 / 97,902 files</span><span>100%</span></div>
+                  <div class="progress progress--green"><span style="width:100%"></span></div>
+                </div>
+              </div>
+
+              <div class="stage-card is-active">
+                <div class="stage-card__icon"><span class="icon">info</span></div>
+                <div>
+                  <div class="stage-card__head"><div class="stage-card__title">2. Extract metadata</div><span class="pill pill--amber" data-stage-pill="metadata">Active</span></div>
+                  <div class="stage-card__desc">Reading camera, lens, GPS, and video container metadata. Current worker: Sony ARW buffer.</div>
+                  <div class="progress-row"><span>83,000 / 97,902 files</span><span>84.8%</span></div>
+                  <div class="progress"><span style="width:84.8%"></span></div>
+                </div>
+              </div>
+
+              <div class="stage-card is-active">
+                <div class="stage-card__icon"><span class="icon">image</span></div>
+                <div>
+                  <div class="stage-card__head"><div class="stage-card__title">3. Generate thumbnails</div><span class="pill pill--amber" data-stage-pill="thumbs">Viewport priority</span></div>
+                  <div class="stage-card__desc">Thumbnails for the current view render first, then nearby items, then the general background queue.</div>
+                  <div class="progress-row"><span>12,450 / 60,000 media items</span><span>20.8%</span></div>
+                  <div class="progress"><span style="width:20.8%"></span></div>
+                </div>
+              </div>
+
+              <div class="stage-card" style="margin-bottom:0">
+                <div class="stage-card__icon"><span class="icon">fingerprint</span></div>
+                <div>
+                  <div class="stage-card__head"><div class="stage-card__title">4. Calculate hashes</div><span class="pill pill--muted">Background</span></div>
+                  <div class="stage-card__desc">SHA-256 works in the background at low priority. It is resumable, continues from 9,200 hashed files, and never blocks browsing.</div>
+                  <div class="progress-row"><span>9,200 / 97,902 files</span><span>9.4%</span></div>
+                  <div class="progress"><span style="width:9.4%"></span></div>
+                </div>
+              </div>
+
+              <div class="callout callout--amber" style="margin-top:12px" id="scan-running-note">
+                <span class="icon">tips_and_updates</span>
+                <div>
+                  <div class="callout__title">Browsing takes priority</div>
+                  <div class="callout__body">Interactive thumbnail requests, scrolling, and video playback always preempt bulk work. Thumbnails for the current view are generated first.</div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="stack">
+              <div class="card">
+                <div class="card__head">
+                  <h2 class="card__title">Processing intensity</h2>
+                  <span class="pill pill--muted">Balanced</span>
+                </div>
+                <p class="card__desc" style="margin-bottom:10px">Controls background worker count. Browsing priority is always on.</p>
+                <div class="radio-row" style="margin-bottom:10px">
+                  <button class="radio-card" type="button" data-intensity="eco"><strong>Eco</strong><span>2 workers</span></button>
+                  <button class="radio-card is-active" type="button" data-intensity="balanced"><strong>Balanced</strong><span>4 workers</span></button>
+                  <button class="radio-card" type="button" data-intensity="max"><strong>Max</strong><span>8 workers</span></button>
+                </div>
+                <div class="switch-row" style="padding-bottom:0;border-bottom:0">
+                  <div>
+                    <div class="switch-row__label">Browsing priority</div>
+                    <div class="switch-row__hint">Interactive requests preempt bulk metadata, thumbnails, and hashing.</div>
+                  </div>
+                  <span class="pill pill--green">On</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card__head">
+                  <h2 class="card__title">Scan details</h2>
+                </div>
+                <div class="kv"><span>Drive</span><span>WD My Passport 2TB (E:)</span></div>
+                <div class="kv"><span>Started</span><span>Today, 13:48</span></div>
+                <div class="kv"><span>Current stage</span><span id="scan-current-stage">Metadata extraction</span></div>
+                <div class="kv"><span>Estimated remaining</span><span id="scan-eta">~48 minutes</span></div>
+                <div class="kv"><span>Last saved</span><span id="scan-last-saved-detail">2 seconds ago</span></div>
+              </div>
+
+              <div class="callout">
+                <span class="icon">info</span>
+                <div>
+                  <div class="callout__title">Safe interruption</div>
+                  <div class="callout__body">If the app closes or the drive disconnects, work stops safely. Progress is saved, and nothing resumes until you choose Resume.</div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- Complete -->
+        <section class="scan-state" data-scan-state="complete">
+          <div class="scan-hero">
+            <div>
+              <h2>Scan complete</h2>
+              <p>Cataloged 97,902 files in 24 minutes. New, changed, missing, and moved files are summarized below. Browsing is ready.</p>
+            </div>
+            <div class="scan-hero__actions">
+              <a class="btn btn--primary" href="chronological-gallery.html"><span class="icon">photo_library</span> Open Memory Lane</a>
+              <button class="btn" type="button" data-scan-set="active"><span class="icon">refresh</span> Scan again</button>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="stat__value">3,240</div><div class="stat__label">New files</div><div class="stat__hint">Added to the catalog</div></div>
+            <div class="stat"><div class="stat__value amber">12</div><div class="stat__label">Changed files</div><div class="stat__hint">Metadata refreshed</div></div>
+            <div class="stat"><div class="stat__value red">15</div><div class="stat__label">Missing files</div><div class="stat__hint">Retained in the catalog</div></div>
+            <div class="stat"><div class="stat__value green">9</div><div class="stat__label">Likely moved</div><div class="stat__hint">SHA-256 matches</div></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">Scan report</h2>
+                  <p class="card__desc">Completed today at 14:32 · 24m 12s · Read-only throughout.</p>
+                </div>
+                <span class="pill pill--green"><span class="icon">check_circle</span> Success</span>
+              </div>
+              <div class="kv"><span>Files cataloged</span><span>97,902</span></div>
+              <div class="kv"><span>Metadata processed</span><span>97,902</span></div>
+              <div class="kv"><span>Thumbnails generated</span><span>60,000</span></div>
+              <div class="kv"><span>Hashes calculated</span><span>97,902</span></div>
+              <div class="kv"><span>Directories scanned</span><span>14,280</span></div>
+            </div>
+
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">What changed</h2>
+                  <p class="card__desc">Review details in Library health. No file was moved, renamed, edited, or deleted by Memory Lane.</p>
+                </div>
+              </div>
+              <div class="callout callout--amber" style="margin-bottom:10px">
+                <span class="icon">file_copy_off</span>
+                <div>
+                  <div class="callout__title">12 photos and 3 videos are missing</div>
+                  <div class="callout__body">They may have been moved or removed outside Memory Lane. Missing files remain cataloged. 9 likely matches were found by SHA-256.</div>
+                </div>
+              </div>
+              <a class="btn btn--soft" href="library-health.html#missing" style="width:100%"><span class="icon">health_and_safety</span> Review in Library health</a>
+              <a class="btn" href="library-health.html#validation" style="width:100%;margin-top:6px"><span class="icon">fact_check</span> Validate files</a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      const states = Array.from(document.querySelectorAll("[data-scan-state]"));
+      const pill = document.getElementById("scan-state-pill");
+      const runningTitle = document.getElementById("scan-running-title");
+      const runningDesc = document.getElementById("scan-running-desc");
+      const runningActions = document.getElementById("scan-running-actions");
+      const runningNote = document.getElementById("scan-running-note");
+
+      const copy = {
+        active: {
+          title: "Scanning WD My Passport 2TB",
+          desc: "Stage 2 of 4 · Metadata extraction. Browsing and playback remain available.",
+          pill: '<span class="icon">sync</span> Cataloging',
+          pillClass: "pill--amber",
+          actions: `<button class="btn" type="button" data-scan-set="paused"><span class="icon">pause</span> Pause</button><a class="btn" href="chronological-gallery.html"><span class="icon">photo_library</span> Open Memory Lane</a>`,
+          note: `<span class="icon">tips_and_updates</span><div><div class="callout__title">Browsing takes priority</div><div class="callout__body">Interactive thumbnail requests, scrolling, and video playback always preempt bulk work. Thumbnails for the current view are generated first.</div></div>`,
+        },
+        paused: {
+          title: "Background processing paused",
+          desc: "Progress is saved. Browsing remains available. Resume when you are ready; nothing restarts automatically.",
+          pill: '<span class="icon">pause</span> Paused',
+          pillClass: "pill--amber",
+          actions: `<button class="btn btn--primary" type="button" data-scan-set="active"><span class="icon">play_arrow</span> Resume</button><a class="btn" href="chronological-gallery.html"><span class="icon">photo_library</span> Open Memory Lane</a>`,
+          note: `<span class="icon">pause_circle</span><div><div class="callout__title">No work is lost</div><div class="callout__body">Completed items and stage progress are persisted. Paused work never blocks browsing or video playback.</div></div>`,
+        },
+        interrupted: {
+          title: "Scan stopped — progress saved",
+          desc: "The drive was disconnected or the app closed. The catalog is safe. Reconnect the drive and resume manually; nothing starts automatically.",
+          pill: '<span class="icon">error</span> Interrupted',
+          pillClass: "pill--red",
+          actions: `<button class="btn btn--primary" type="button" data-scan-set="active"><span class="icon">play_arrow</span> Resume scan</button><a class="btn" href="drive-selection.html"><span class="icon">swap_horiz</span> Switch drive</a>`,
+          note: `<span class="icon">info</span><div><div class="callout__title">Why resume is manual</div><div class="callout__body">Memory Lane never resumes a scan without you. If the drive letter changed, confirm the drive identity first in Drive selection.</div></div>`,
+        },
+      };
+
+      const setState = (state) => {
+        const visual = state === "running" ? "active" : state;
+        const target = visual === "active" || visual === "paused" || visual === "interrupted" ? "running" : visual;
+        document.body.setAttribute("data-scan-status", target === "running" ? visual : target);
+        const scanNav = document.querySelector('.nav-item[href="scan-processing-dashboard.html"]');
+        const isRunning = target === "running" && visual === "active";
+        if (scanNav) {
+          const existing = scanNav.querySelector(".nav-pulse");
+          if (isRunning && !existing) {
+            const dot = document.createElement("span");
+            dot.className = "nav-pulse";
+            dot.title = "Background processing active";
+            scanNav.appendChild(dot);
+          } else if (!isRunning && existing) {
+            existing.remove();
+          }
+        }
+        states.forEach((section) => {
+          section.classList.toggle("is-active", section.getAttribute("data-scan-state") === target);
+        });
+        if (target === "running") {
+          const data = copy[visual];
+          runningTitle.textContent = data.title;
+          runningDesc.textContent = data.desc;
+          runningActions.innerHTML = data.actions;
+          runningNote.innerHTML = data.note;
+          runningNote.className = `callout ${visual === "interrupted" ? "callout--red" : "callout--amber"}`;
+          pill.className = `pill ${data.pillClass}`;
+          pill.innerHTML = data.pill;
+
+          const metadataPill = document.querySelector('[data-stage-pill="metadata"]');
+          const thumbsPill = document.querySelector('[data-stage-pill="thumbs"]');
+          const stageLabel = visual === "paused" ? "Paused" : visual === "interrupted" ? "Stopped" : "Active";
+          const thumbLabel = visual === "paused" ? "Paused" : visual === "interrupted" ? "Stopped" : "Viewport priority";
+          if (metadataPill) {
+            metadataPill.textContent = stageLabel;
+            metadataPill.className = visual === "active" ? "pill pill--amber" : "pill";
+          }
+          if (thumbsPill) {
+            thumbsPill.textContent = thumbLabel;
+            thumbsPill.className = visual === "active" ? "pill pill--amber" : "pill";
+          }
+          const savedLabel = visual === "active" ? "Last saved 2 seconds ago" : "Progress saved";
+          const savedDetail = visual === "active" ? "2 seconds ago" : "Saved";
+          const currentStage = visual === "active" ? "Metadata extraction" : visual === "paused" ? "Paused at metadata extraction" : "Stopped at metadata extraction";
+          const eta = visual === "active" ? "~48 minutes" : "Resume when ready";
+          document.getElementById("scan-last-saved").textContent = savedLabel;
+          document.getElementById("scan-last-saved-detail").textContent = savedDetail;
+          document.getElementById("scan-current-stage").textContent = currentStage;
+          document.getElementById("scan-eta").textContent = eta;
+        } else if (target === "complete") {
+          pill.className = "pill pill--green";
+          pill.innerHTML = '<span class="icon">check_circle</span> Complete';
+        } else {
+          pill.className = "pill";
+          pill.innerHTML = '<span class="icon">schedule</span> Ready';
+        }
+      };
+
+      document.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-scan-set]");
+        if (!button) return;
+        event.preventDefault();
+        setState(button.getAttribute("data-scan-set"));
+        document.querySelector(".page").scrollTo(0, 0);
+      });
+
+      document.querySelectorAll("[data-intensity]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-intensity]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          ML.toast(`Processing intensity set to ${button.querySelector("strong").textContent}.`, "success");
+        });
+      });
+
+      const requested = new URLSearchParams(window.location.search).get("state");
+      const initial = ["idle", "active", "paused", "interrupted", "complete"].includes(requested) ? requested : "active";
+      setState(initial);
+    })();
+  </script>
+</body>
+</html>

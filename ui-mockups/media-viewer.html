@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Media viewer</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body data-page="memory" data-crumb="Library / Media viewer">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page page--flush">
+        <!-- Photo state -->
+        <div class="viewer" data-media-state="photo">
+          <section class="viewer__stage" aria-label="Photo viewer">
+            <div class="viewer__bar">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <a class="btn btn--icon btn--ghost" href="chronological-gallery.html" aria-label="Back to Memory Lane"><span class="icon">arrow_back</span></a>
+                <div class="viewer__file">
+                  <h1>DSC_4910.JPG</h1>
+                  <p>August 18, 2024 · 6:42 PM · 6000 × 4000 · 18.4 MB</p>
+                </div>
+              </div>
+              <div class="viewer__nav">
+                <span class="pill pill--muted">1,482 of 3,920</span>
+                <a class="btn btn--icon" href="chronological-gallery.html" aria-label="Previous item"><span class="icon">chevron_left</span></a>
+                <a class="btn btn--icon" href="media-viewer.html?type=video" aria-label="Next item"><span class="icon">chevron_right</span></a>
+              </div>
+            </div>
+
+            <div class="viewer__canvas" id="photo-canvas">
+              <a class="viewer__arrow viewer__arrow--left" href="chronological-gallery.html" aria-label="Previous photo"><span class="icon">chevron_left</span></a>
+              <img src="assets/images/chronological-gallery-02.jpg" alt="Sunset over the caldera in Santorini">
+              <a class="viewer__arrow viewer__arrow--right" href="media-viewer.html?type=video" aria-label="Next item, video"><span class="icon">chevron_right</span></a>
+            </div>
+
+            <div class="viewer__controls">
+              <div class="viewer__controls-left">
+                <div class="segmented" aria-label="Zoom">
+                  <button type="button" class="is-active" data-zoom="fit"><span class="icon">fit_screen</span> Fit</button>
+                  <button type="button" data-zoom="actual"><span class="icon">zoom_in</span> 100%</button>
+                </div>
+                <span class="muted" style="font-size:10px">Read-only preview</span>
+              </div>
+              <div class="viewer__controls-right">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would open the original in the default Windows app."><span class="icon">open_in_new</span> Open externally</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal E:\Archive\2024\Santorini\DSC_4910.JPG in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="viewer__details" aria-label="Photo details">
+            <div class="detail-head">
+              <h2>Details</h2>
+              <span class="pill pill--green"><span class="icon">verified</span> Read-only</span>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Catalog date</div>
+              <div class="detail-date">
+                <div>
+                  <div class="detail-date__value" id="photo-date-value">August 18, 2024</div>
+                  <div class="detail-date__meta" id="photo-date-meta">6:42 PM · Exact date · EXIF DateTimeOriginal</div>
+                </div>
+                <button class="btn btn--sm btn--soft" type="button" id="photo-set-date"><span class="icon">event</span> Set date</button>
+              </div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Duplicates</div>
+              <div class="dup-banner">
+                <span class="icon">content_copy</span>
+                <div>
+                  <strong>2 exact copies found</strong>
+                  <span>SHA-256 match. Every copy is preserved; Memory Lane cannot delete, move, or rename them.</span>
+                </div>
+              </div>
+              <div class="copy-list">
+                <div class="copy-item">
+                  <div class="copy-item__top">
+                    <span class="copy-item__label">This file</span>
+                    <span class="pill pill--muted">E:</span>
+                  </div>
+                  <div class="copy-item__path">E:\Archive\2024\Santorini\DSC_4910.JPG</div>
+                  <div class="copy-item__actions">
+                    <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal the first copy in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+                  </div>
+                </div>
+                <div class="copy-item">
+                  <div class="copy-item__top">
+                    <span class="copy-item__label">Second copy</span>
+                    <span class="pill pill--muted">E:</span>
+                  </div>
+                  <div class="copy-item__path">E:\Backups\2024\Camera_Roll\DSC_4910.JPG</div>
+                  <div class="copy-item__actions">
+                    <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal the second copy in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">File</div>
+              <div class="kv"><span>Format</span><span>JPEG · 6000 × 4000</span></div>
+              <div class="kv"><span>Size</span><span>18.4 MB</span></div>
+              <div class="kv"><span>Resolution</span><span>24 MP</span></div>
+              <div class="kv"><span>Modified</span><span>Aug 18, 2024 · 18:42</span></div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Original location</div>
+              <div class="path-box">E:\Archive\2024\Santorini\DSC_4910.JPG</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal the folder in Windows Explorer."><span class="icon">folder_open</span> Reveal in Explorer</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would open the file in the default Windows app."><span class="icon">open_in_new</span> Open</button>
+              </div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Camera</div>
+              <div class="kv"><span>Camera</span><span>Sony α7R V</span></div>
+              <div class="kv"><span>Lens</span><span>FE 24-70mm F2.8 GM II</span></div>
+              <div class="kv"><span>Exposure</span><span>f/5.6 · 1/250s · ISO 100</span></div>
+              <div class="kv"><span>Focal length</span><span>35 mm</span></div>
+            </div>
+
+            <div class="callout">
+              <span class="icon">info</span>
+              <div>
+                <div class="callout__title">Catalog-only changes</div>
+                <div class="callout__body">Date overrides are stored in the catalog. Original EXIF and filesystem timestamps are never modified.</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <!-- Video state -->
+        <div class="viewer" data-media-state="video" hidden>
+          <section class="viewer__stage" aria-label="Video viewer">
+            <div class="viewer__bar">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0">
+                <a class="btn btn--icon btn--ghost" href="chronological-gallery.html" aria-label="Back to Memory Lane"><span class="icon">arrow_back</span></a>
+                <div class="viewer__file">
+                  <h1>MOV_0428.MP4</h1>
+                  <p>August 18, 2024 · 6:45 PM · 3840 × 2160 · 03:24</p>
+                </div>
+              </div>
+              <div class="viewer__nav">
+                <span class="pill pill--muted">1,483 of 3,920</span>
+                <a class="btn btn--icon" href="media-viewer.html?type=photo" aria-label="Previous item"><span class="icon">chevron_left</span></a>
+                <a class="btn btn--icon" href="chronological-gallery.html" aria-label="Back to gallery"><span class="icon">chevron_right</span></a>
+              </div>
+            </div>
+
+            <div class="viewer__canvas" style="padding:20px">
+              <div class="video-stage">
+                <img src="assets/images/chronological-gallery-03.jpg" alt="Sailing catamaran on the Aegean">
+                <div class="video-stage__overlay"></div>
+                <div class="video-stage__top">
+                  <span>4K · 29.97 FPS · H.264</span>
+                  <span>MOV_0428.MP4</span>
+                </div>
+                <button class="video-stage__play" type="button" id="video-play" aria-label="Play video"><span class="icon">play_arrow</span></button>
+                <div class="video-stage__bottom">
+                  <div class="video-progress"><span></span></div>
+                  <div class="video-controls">
+                    <span class="icon" id="video-play-icon">play_arrow</span>
+                    <span>01:18</span>
+                    <span class="muted">/ 03:24</span>
+                    <span class="spacer"></span>
+                    <span class="icon">volume_up</span>
+                    <span class="icon">closed_caption</span>
+                    <span class="icon">fullscreen</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="viewer__controls">
+              <div class="viewer__controls-left">
+                <span class="pill pill--green"><span class="icon">play_circle</span> In-app playback</span>
+                <span class="muted" style="font-size:10px">Original file is read directly; nothing is transcoded or modified.</span>
+              </div>
+              <div class="viewer__controls-right">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would open the original video in the default Windows app."><span class="icon">open_in_new</span> Open externally</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal E:\Archive\2024\Santorini\MOV_0428.MP4 in Windows Explorer."><span class="icon">folder_open</span> Reveal</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="viewer__details" aria-label="Video details">
+            <div class="detail-head">
+              <h2>Details</h2>
+              <span class="pill pill--green"><span class="icon">verified</span> Read-only</span>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Catalog date</div>
+              <div class="detail-date">
+                <div>
+                  <div class="detail-date__value" id="video-date-value">August 18, 2024</div>
+                  <div class="detail-date__meta" id="video-date-meta">6:45 PM · Exact date · Container creation time</div>
+                </div>
+                <button class="btn btn--sm btn--soft" type="button" id="video-set-date"><span class="icon">event</span> Set date</button>
+              </div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Duplicates</div>
+              <div class="callout callout--green">
+                <span class="icon">check_circle</span>
+                <div>
+                  <div class="callout__title">No duplicates found</div>
+                  <div class="callout__body">This file has not been hash-matched with another copy on the drive.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Video</div>
+              <div class="kv"><span>Format</span><span>MP4 · H.264</span></div>
+              <div class="kv"><span>Resolution</span><span>3840 × 2160 · 4K</span></div>
+              <div class="kv"><span>Frame rate</span><span>29.97 fps</span></div>
+              <div class="kv"><span>Duration</span><span>00:03:24</span></div>
+              <div class="kv"><span>Size</span><span>648 MB</span></div>
+            </div>
+
+            <div class="detail-block">
+              <div class="detail-block__label">Original location</div>
+              <div class="path-box">E:\Archive\2024\Santorini\MOV_0428.MP4</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would reveal the folder in Windows Explorer."><span class="icon">folder_open</span> Reveal in Explorer</button>
+                <button class="btn btn--sm" type="button" data-toast="Prototype only — would open the video in the default Windows app."><span class="icon">open_in_new</span> Open</button>
+              </div>
+            </div>
+
+            <div class="callout">
+              <span class="icon">info</span>
+              <div>
+                <div class="callout__title">Catalog-only changes</div>
+                <div class="callout__body">Date overrides are stored in the catalog. Original EXIF and filesystem timestamps are never modified.</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      const type = new URLSearchParams(window.location.search).get("type") === "video" ? "video" : "photo";
+      document.body.setAttribute("data-crumb", `Library / Media viewer / ${type === "video" ? "Video" : "Photo"}`);
+      document.querySelectorAll("[data-media-state]").forEach((state) => {
+        state.hidden = state.getAttribute("data-media-state") !== type;
+      });
+
+      document.querySelectorAll("[data-zoom]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-zoom]").forEach((b) => b.classList.remove("is-active"));
+          button.classList.add("is-active");
+          document.getElementById("photo-canvas").classList.toggle("is-actual", button.getAttribute("data-zoom") === "actual");
+        });
+      });
+
+      document.getElementById("photo-set-date").addEventListener("click", () => {
+        ML.openDateModal({
+          count: 1,
+          defaultYear: 2024,
+          defaultMonth: 8,
+          onApply: ({ label, month }) => {
+            document.getElementById("photo-date-value").textContent = label;
+            document.getElementById("photo-date-meta").textContent = month ? "Manual date · Year & month precision" : "Manual date · Year precision";
+          },
+        });
+      });
+
+      document.getElementById("video-set-date").addEventListener("click", () => {
+        ML.openDateModal({
+          count: 1,
+          defaultYear: 2024,
+          defaultMonth: 8,
+          onApply: ({ label, month }) => {
+            document.getElementById("video-date-value").textContent = label;
+            document.getElementById("video-date-meta").textContent = month ? "Manual date · Year & month precision" : "Manual date · Year precision";
+          },
+        });
+      });
+
+      if (new URLSearchParams(window.location.search).get("modal") === "date") {
+        window.setTimeout(() => document.getElementById("photo-set-date").click(), 300);
+      }
+
+      let playing = false;
+      document.getElementById("video-play").addEventListener("click", () => {
+        playing = !playing;
+        document.getElementById("video-play").innerHTML = `<span class="icon">${playing ? "pause" : "play_arrow"}</span>`;
+        document.getElementById("video-play-icon").textContent = playing ? "pause" : "play_arrow";
+        ML.toast(playing ? "Playing preview (prototype)." : "Playback paused (prototype).", "info");
+      });
+    })();
+  </script>
+</body>
+</html>
