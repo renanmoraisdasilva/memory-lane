@@ -14,7 +14,7 @@
 
 - [ ] Files are at or below 400 lines; functions are at or below 100 lines
 - [ ] Cyclomatic complexity is at most 10; cognitive complexity is at most 15
-- [ ] No blanket ESLint disables; exceptions follow `docs/quality-exceptions.md`
+- [ ] No blanket ESLint disables; exceptions follow `docs/product/scope-and-implementation.md`, section 6.1
 - [ ] New IPC channels have Zod schemas and contract tests
 - [ ] Coverage floors still pass
 - [ ] No new `any`, floating promise, or unchecked external data

@@ -4,7 +4,7 @@
 **Platform:** Windows desktop\
 **Version:** 0.6\
 **Date:** 2026-10-31\
-**Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
+**Scope companion:** `scope-and-implementation.md`
 
 ## 1. Product vision
 

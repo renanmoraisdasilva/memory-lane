@@ -3,9 +3,9 @@
 **Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending.
 **Platform:** Windows desktop
 **Last updated:** 2026-10-31
-**Companions:** `Memory_Lane_Product_Specification.md`, `roadmap.md`,
-`scan-contract.md`, `library-contract.md`, `security-review.md`,
-`release-checklist.md`
+**Companions:** `product-specification.md`, `roadmap.md`,
+`../contracts/scan.md`, `../contracts/library.md`,
+`../release/security-review.md`, `../release/release-checklist.md`
 
 ---
 
@@ -306,7 +306,7 @@ catalog migration.
 
 Browsing becomes available after the catalog stage. Interactive thumbnail
 requests use the same scheduler as bulk scan work and take priority. See
-`scan-contract.md` for the full contract.
+`../contracts/scan.md` for the full contract.
 
 ### 5.6 Library and media
 
@@ -318,7 +318,7 @@ requests use the same scheduler as bulk scan work and take priority. See
 - Failed thumbnails and missing originals return explicit 404 or null states.
 - The renderer uses TanStack Virtual for the grouped grid.
 
-See `library-contract.md` for channels, ordering, and presentation rules.
+See `../contracts/library.md` for channels, ordering, and presentation rules.
 
 ### 5.7 Other files and PC backups
 
@@ -338,7 +338,7 @@ See `library-contract.md` for channels, ordering, and presentation rules.
 - Backup success/failure is recorded in `backup_history`; recovery is manual in
   v0.1 and there is no restore UI.
 
-See `other-files-contract.md` and `settings-contract.md` for the full contracts.
+See `../contracts/other-files.md` and `../contracts/settings.md` for the full contracts.
 
 ### 5.8 Technology
 
@@ -399,8 +399,21 @@ certificate, release channel, or auto-updater.
 | Maximum parameters | 4 |
 | Nested callbacks | 3 |
 
-Exceptions must be narrow, justified, reviewed, and recorded in
-`quality-exceptions.md`.
+Exceptions must be narrow, justified, reviewed, and recorded below.
+
+An exception is allowed only when:
+
+1. The rule cannot be satisfied without harming clarity or correctness.
+2. The disable is narrow (`eslint-disable-next-line`, not a file-level disable).
+3. The reason is written next to the disable and in the pull request.
+4. A reviewer approves the exception.
+5. The exception is recorded with an owner and an expiry date.
+
+Active exceptions: none.
+
+| Date | File | Rule | Reason | Owner | Expires |
+|---|---|---|---|---|---|
+| YYYY-MM-DD | `path/to/file.ts` | `max-lines` | Why the limit cannot be met | Name | YYYY-MM-DD |
 
 ### 6.2 Coverage floors
 
@@ -475,21 +488,17 @@ Open:
 
 ## 8. Related documents
 
-- `Memory_Lane_Product_Specification.md` - product requirements.
+- `product-specification.md` - product requirements.
 - `roadmap.md` - delivered phases and remaining work.
-- `phase-3-scope.md` - implemented date extraction, overrides, and Date unavailable.
-- `phase-4-scope.md` - implemented duplicates, missing/moved files, and validation.
-- `phase-5-scope.md` - implemented Other files, Settings, cache, and backups.
-- `phase-6-scope.md` - hardening, performance, recovery, and release gates.
-- `other-files-contract.md` - Other files IPC and categories.
-- `settings-contract.md` - Settings, cache, and backup contract.
-- `security-review.md` - trust boundaries, controls, and residual risks.
-- `codec-matrix.md` - cataloging, playback expectations, and fallbacks.
-- `release-checklist.md` - clean-VM, recovery, disconnect, and codec pass.
-- `acceptance.md` - v0.1 acceptance criteria and sign-off status.
-- `scan-contract.md` - scan IPC and state contract.
-- `library-contract.md` - library IPC and media contract.
-- `health-contract.md` - Library health IPC and validation contract.
-- `agent-workstreams.md` - parallel agent rules.
-- `quality-exceptions.md` - approved exceptions.
-- `adr/` - architecture decision records.
+- `../archive/phase-history.md` - preserved Phase 3-6 scope, decisions, tests, and limits.
+- `../contracts/scan.md` - scan IPC and state contract.
+- `../contracts/library.md` - library IPC and media contract.
+- `../contracts/health.md` - Library health IPC and validation contract.
+- `../contracts/other-files.md` - Other files IPC and categories.
+- `../contracts/settings.md` - Settings, cache, and backup contract.
+- `../release/security-review.md` - trust boundaries, controls, and residual risks.
+- `../release/codec-matrix.md` - cataloging, playback expectations, and fallbacks.
+- `../release/release-checklist.md` - clean-VM, recovery, disconnect, and codec pass.
+- `../release/acceptance.md` - v0.1 acceptance criteria and sign-off status.
+- `../archive/agent-workstreams.md` - archived parallel-agent operating agreement.
+- `../adr/` - architecture decision records.

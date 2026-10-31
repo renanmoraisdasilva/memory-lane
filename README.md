@@ -152,13 +152,13 @@ A few decisions shape the rest:
   and a resumable scan session make interruption boring.
 
 The full architecture and data model are in
-[`docs/Memory_Lane_Scope_and_Implementation.md`](docs/Memory_Lane_Scope_and_Implementation.md).
+[`docs/product/scope-and-implementation.md`](docs/product/scope-and-implementation.md).
 The IPC and media contracts are in
-[`docs/scan-contract.md`](docs/scan-contract.md),
-[`docs/library-contract.md`](docs/library-contract.md),
-[`docs/health-contract.md`](docs/health-contract.md),
-[`docs/other-files-contract.md`](docs/other-files-contract.md), and
-[`docs/settings-contract.md`](docs/settings-contract.md).
+[`docs/contracts/scan.md`](docs/contracts/scan.md),
+[`docs/contracts/library.md`](docs/contracts/library.md),
+[`docs/contracts/health.md`](docs/contracts/health.md),
+[`docs/contracts/other-files.md`](docs/contracts/other-files.md), and
+[`docs/contracts/settings.md`](docs/contracts/settings.md).
 
 ## What is built today
 
@@ -184,7 +184,7 @@ The IPC and media contracts are in
 Phase 6 automated hardening is complete. The manual release pass — clean Windows
 VM install/uninstall, physical USB disconnect, codec playback, 200k memory
 measurement, and a real 2 TB archive — remains in
-[`docs/release-checklist.md`](docs/release-checklist.md).
+[`docs/release/release-checklist.md`](docs/release/release-checklist.md).
 
 ## Quality gates
 
@@ -266,24 +266,20 @@ Start at [`docs/README.md`](docs/README.md).
 
 | Document | Purpose |
 | --- | --- |
-| [`Memory_Lane_Product_Specification.md`](docs/Memory_Lane_Product_Specification.md) | Product vision and requirements |
-| [`Memory_Lane_Scope_and_Implementation.md`](docs/Memory_Lane_Scope_and_Implementation.md) | Scope, architecture, data model, quality gates |
-| [`roadmap.md`](docs/roadmap.md) | Delivered phases and next work |
-| [`phase-3-scope.md`](docs/phase-3-scope.md) | Dates, ExifTool, overrides, Date unavailable |
-| [`phase-4-scope.md`](docs/phase-4-scope.md) | Duplicates, missing/moved files, validation |
-| [`phase-5-scope.md`](docs/phase-5-scope.md) | Other files, Settings, cache, backups |
-| [`phase-6-scope.md`](docs/phase-6-scope.md) | Hardening, performance, recovery, release gates |
-| [`security-review.md`](docs/security-review.md) | Trust boundaries, controls, residual risks |
-| [`codec-matrix.md`](docs/codec-matrix.md) | Codec expectations and external fallbacks |
-| [`release-checklist.md`](docs/release-checklist.md) | Clean-VM and physical-drive release pass |
-| [`acceptance.md`](docs/acceptance.md) | v0.1 acceptance criteria and sign-off |
-| [`scan-contract.md`](docs/scan-contract.md) | Scan IPC, state, stages, and reports |
-| [`library-contract.md`](docs/library-contract.md) | Library IPC, media protocol, viewer |
-| [`health-contract.md`](docs/health-contract.md) | Health IPC, duplicates, validation |
-| [`other-files-contract.md`](docs/other-files-contract.md) | Other files IPC and categories |
-| [`settings-contract.md`](docs/settings-contract.md) | Settings, cache, backup, recovery |
-| [`agent-workstreams.md`](docs/agent-workstreams.md) | Parallel agent rules |
-| [`quality-exceptions.md`](docs/quality-exceptions.md) | Approved quality-rule exceptions |
+| [`product/product-specification.md`](docs/product/product-specification.md) | Product vision and requirements |
+| [`product/scope-and-implementation.md`](docs/product/scope-and-implementation.md) | Scope, architecture, data model, quality gates |
+| [`product/roadmap.md`](docs/product/roadmap.md) | Delivered phases and next work |
+| [`archive/phase-history.md`](docs/archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, and limits |
+| [`contracts/scan.md`](docs/contracts/scan.md) | Scan IPC, state, stages, and reports |
+| [`contracts/library.md`](docs/contracts/library.md) | Library IPC, media protocol, viewer |
+| [`contracts/health.md`](docs/contracts/health.md) | Health IPC, duplicates, validation |
+| [`contracts/other-files.md`](docs/contracts/other-files.md) | Other files IPC and categories |
+| [`contracts/settings.md`](docs/contracts/settings.md) | Settings, cache, backup, recovery |
+| [`release/acceptance.md`](docs/release/acceptance.md) | v0.1 acceptance criteria and sign-off |
+| [`release/release-checklist.md`](docs/release/release-checklist.md) | Clean-VM and physical-drive release pass |
+| [`release/security-review.md`](docs/release/security-review.md) | Trust boundaries, controls, residual risks |
+| [`release/codec-matrix.md`](docs/release/codec-matrix.md) | Codec expectations and external fallbacks |
+| [`adr/`](docs/adr/README.md) | Architecture decision records |
 
 The static files in `ui-mockups/` are a design reference only; the screenshots
 above are captured from the packaged application.
@@ -300,7 +296,7 @@ above are captured from the packaged application.
 | 5 | Other files and Settings | Complete |
 | 6 | Hardening | Automated complete; manual release pass pending |
 
-The status table in [`docs/roadmap.md`](docs/roadmap.md) is the source of truth.
+The status table in [`docs/product/roadmap.md`](docs/product/roadmap.md) is the source of truth.
 
 ## Future features
 

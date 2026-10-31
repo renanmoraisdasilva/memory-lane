@@ -113,5 +113,5 @@ The renderer CSP allows `ml-media:` in `img-src` and `media-src`.
 Covered by contract, repository, media protocol, renderer component, integration,
 Electron E2E, and packaged-smoke tests. Date extraction also has a real ExifTool
 integration test and a packaged-app EXIF smoke test. Library health is covered
-by `health-contract.md`. See `docs/roadmap.md` for the outstanding manual
+by `health.md`. See `../product/roadmap.md` for the outstanding manual
 100,000-item performance and ExifTool corpus benchmarks.

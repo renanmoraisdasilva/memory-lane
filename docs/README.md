@@ -1,28 +1,52 @@
 # Memory Lane documentation
 
-Start here:
+Start with the product scope, then use the contracts and release material as
+needed.
+
+## Product and delivery
 
 | Document | Purpose |
 |---|---|
-| `Memory_Lane_Product_Specification.md` | Product vision, requirements, and long-term direction |
-| `Memory_Lane_Scope_and_Implementation.md` | Current v0.1 scope, architecture, data model, and quality gates |
-| `roadmap.md` | Delivered phases and the next implementation steps |
-| `phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
-| `phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
-| `phase-5-scope.md` | Implemented Other files, Settings, cache clearing, and backups |
-| `phase-6-scope.md` | Hardening, performance, recovery, and release gates |
-| `health-contract.md` | Library health IPC, duplicate, missing/moved, and validation contract |
-| `other-files-contract.md` | Other files IPC, categories, pagination, and actions |
-| `settings-contract.md` | Settings IPC, cache clearing, and backup/recovery contract |
-| `security-review.md` | Trust boundaries, controls, and residual risks |
-| `codec-matrix.md` | Image/video cataloging, playback expectations, and fallbacks |
-| `release-checklist.md` | Clean-VM, recovery, disconnect, and codec release pass |
-| `acceptance.md` | v0.1 acceptance criteria and automated/manual status |
-| `scan-contract.md` | Current scan IPC, state, stage, and report contract |
-| `library-contract.md` | Current library IPC, timeline, media protocol, and viewer contract |
-| `agent-workstreams.md` | Rules for running parallel coding agents |
-| `quality-exceptions.md` | Approved quality-rule exceptions |
-| `adr/` | Architecture decision records |
+| [`product/product-specification.md`](product/product-specification.md) | Product vision, requirements, and long-term direction |
+| [`product/scope-and-implementation.md`](product/scope-and-implementation.md) | Current v0.1 scope, architecture, data model, quality gates, and exception policy |
+| [`product/roadmap.md`](product/roadmap.md) | Delivered phases, current status, and remaining work |
+| [`archive/phase-history.md`](archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, tests, and known limits |
 
-The static files in `ui-mockups/` are a design reference only. They are not part
-of the shipped application.
+## Contracts
+
+| Document | Purpose |
+|---|---|
+| [`contracts/scan.md`](contracts/scan.md) | Scan IPC, state, stages, and reports |
+| [`contracts/library.md`](contracts/library.md) | Library IPC, timeline, media protocol, viewer |
+| [`contracts/health.md`](contracts/health.md) | Library health IPC, duplicates, missing/moved files, validation |
+| [`contracts/other-files.md`](contracts/other-files.md) | Other files IPC, categories, pagination, actions |
+| [`contracts/settings.md`](contracts/settings.md) | Settings, cache clearing, backups, manual recovery |
+
+## Release and quality
+
+| Document | Purpose |
+|---|---|
+| [`release/acceptance.md`](release/acceptance.md) | v0.1 acceptance criteria and sign-off status |
+| [`release/release-checklist.md`](release/release-checklist.md) | Clean-VM, recovery, disconnect, codec, and real-archive pass |
+| [`release/security-review.md`](release/security-review.md) | Trust boundaries, controls, and residual risks |
+| [`release/codec-matrix.md`](release/codec-matrix.md) | Image/video cataloging, playback expectations, fallbacks |
+
+## Decisions and history
+
+| Document | Purpose |
+|---|---|
+| [`adr/`](adr/README.md) | Architecture decision records and template |
+| [`archive/agent-workstreams.md`](archive/agent-workstreams.md) | Archived parallel-agent operating agreement |
+
+The static files in `ui-mockups/` are a design reference only. Screenshots in
+`images/` are captured from the packaged application.
+
+## Maintenance rules
+
+- Keep current behavior in `product/` and `contracts/`.
+- Keep decisions in `adr/`.
+- Keep completed phase detail in `archive/phase-history.md`, not in new top-level
+  phase files.
+- Update the owning contract when IPC, schema, or user-visible behavior changes.
+- Do not add a new document when an existing product, contract, release, or ADR
+  document has the right home.

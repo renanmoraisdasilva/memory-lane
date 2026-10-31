@@ -21,7 +21,7 @@ and status.
   minutes and on close, plus all-or-nothing generated-cache clearing.
 
 Other implemented decisions are summarized in
-`docs/Memory_Lane_Scope_and_Implementation.md`.
+`../product/scope-and-implementation.md`.
 
 Create an ADR when a decision is significant, cross-cutting, and likely to be
 questioned later. Do not create one for routine implementation detail.

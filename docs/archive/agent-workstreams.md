@@ -1,8 +1,12 @@
 # Agent workstreams
 
+Status: archived. This operating agreement applied to the parallel Phase 1-2
+agent workstreams. The project now uses a single-agent/maintainer flow; the
+document is kept for historical context.
+
 Operating agreement for running coding agents on Memory Lane in parallel. It
-complements `docs/Memory_Lane_Scope_and_Implementation.md` and the parent
-workspace `AGENTS.md`.
+complements `docs/product/scope-and-implementation.md` and the parent workspace
+`AGENTS.md`.
 
 ## Principles
 
@@ -34,7 +38,7 @@ Shared ownership:
   changes.
 - `electron.vite.config.ts`, ESLint, TypeScript, and test configuration are owned
   by Quality/Release. Platform and Renderer request changes.
-- `docs/Memory_Lane_Scope_and_Implementation.md`, `README.md`, and ADRs are
+- `docs/product/scope-and-implementation.md`, `README.md`, and ADRs are
   human/architect-owned. Agents propose updates.
 - `ui-mockups/` is a design reference. Do not modify it while implementing the
   app unless scope explicitly changes.
@@ -126,11 +130,11 @@ You are the Platform/Core agent for Memory Lane.
 
 Read:
 - the parent workspace AGENTS.md
-- docs/Memory_Lane_Scope_and_Implementation.md
-- docs/roadmap.md
-- docs/scan-contract.md and docs/library-contract.md as relevant
-- docs/agent-workstreams.md
-- docs/quality-exceptions.md
+- docs/product/scope-and-implementation.md
+- docs/product/roadmap.md
+- docs/contracts/scan.md and docs/contracts/library.md as relevant
+- docs/archive/agent-workstreams.md
+- docs/product/scope-and-implementation.md, section 6.1, for quality exceptions
 
 Workstream: Platform/Core
 Worktree: ../memory-lane-platform-phase-N
