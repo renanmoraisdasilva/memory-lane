@@ -9,7 +9,8 @@ import { catalogMigrations } from "./migrations/catalog-migrations";
 import { getSchemaVersion, runMigrations } from "./migrations/runner";
 import { ensureDriveIdentity, getCatalogSummary } from "./repositories/catalog-repository";
 import { listRegisteredDrives, registerDrive } from "./repositories/app-repository";
-import type { RegisteredDrive } from "../modules/drives/domain/drive";
+import { acquireCatalogLock } from "../platform/catalog-lock";
+import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
   CatalogCreateParamsSchema,
   CatalogOpenParamsSchema,
@@ -27,101 +28,113 @@ interface HealthResult {
   schemaVersion: number;
 }
 
-export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
-  const appDb = openDatabase(options.appDbPath);
-  runMigrations(appDb, appMigrations);
+interface CatalogSession {
+  open(
+    filePath: string,
+    identity: DriveIdentity,
+    schemaVersion: number,
+    create: boolean,
+  ): Database.Database;
+  close(): void;
+}
 
+function createCatalogSession(): CatalogSession {
   let catalogDb: Database.Database | null = null;
+  let releaseLock: (() => void) | null = null;
 
-  const closeCatalog = (): void => {
+  const close = (): void => {
     if (catalogDb !== null) {
       catalogDb.close();
       catalogDb = null;
     }
+    releaseLock?.();
+    releaseLock = null;
   };
 
-  const openCatalog = (filePath: string, identity: DriveIdentity): Database.Database => {
+  const open = (
+    filePath: string,
+    identity: DriveIdentity,
+    schemaVersion: number,
+    create: boolean,
+  ): Database.Database => {
     if (!path.isAbsolute(filePath)) {
       throw new AppError(APP_ERROR_CODES.INVALID_REQUEST, "Catalog path must be absolute");
     }
-    if (!fs.existsSync(filePath)) {
+
+    const exists = fs.existsSync(filePath);
+    if (create && exists) {
+      throw new AppError(APP_ERROR_CODES.CATALOG_ALREADY_EXISTS, "Catalog already exists");
+    }
+    if (!create && !exists) {
       throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Catalog file was not found", {
         catalogPath: filePath,
       });
     }
 
+    close();
+    const release = acquireCatalogLock(path.dirname(filePath));
     const db = openDatabase(filePath);
     try {
       runMigrations(db, catalogMigrations);
-      ensureDriveIdentity(db, identity, 1);
+      ensureDriveIdentity(db, identity, schemaVersion);
     } catch (error) {
       db.close();
+      release();
       throw error;
     }
 
-    closeCatalog();
     catalogDb = db;
+    releaseLock = release;
     return db;
   };
 
-  const handleHealth = (): HealthResult => ({
-    appDbPath: options.appDbPath,
-    schemaVersion: getSchemaVersion(appDb),
-  });
+  return { open, close };
+}
 
-  const handleListDrives = (): RegisteredDrive[] => listRegisteredDrives(appDb);
-
-  const handleRegisterDrive = (params: unknown): RegisteredDrive => {
-    const parsed = RegisterDriveParamsSchema.parse(params);
-    return registerDrive(appDb, parsed);
-  };
+export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
+  const appDb = openDatabase(options.appDbPath);
+  runMigrations(appDb, appMigrations);
+  const catalogs = createCatalogSession();
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);
-    if (!path.isAbsolute(parsed.catalogPath)) {
-      throw new AppError(APP_ERROR_CODES.INVALID_REQUEST, "Catalog path must be absolute");
-    }
-    if (fs.existsSync(parsed.catalogPath)) {
-      throw new AppError(APP_ERROR_CODES.CATALOG_ALREADY_EXISTS, "Catalog already exists");
+    if (!path.isAbsolute(parsed.catalogPath) || !path.isAbsolute(parsed.cachePath)) {
+      throw new AppError(
+        APP_ERROR_CODES.INVALID_REQUEST,
+        "Catalog and cache paths must be absolute",
+      );
     }
 
     fs.mkdirSync(path.dirname(parsed.catalogPath), { recursive: true });
     fs.mkdirSync(parsed.cachePath, { recursive: true });
 
-    const db = openDatabase(parsed.catalogPath);
-    try {
-      runMigrations(db, catalogMigrations);
-      ensureDriveIdentity(db, parsed.identity, parsed.catalogSchema);
-    } catch (error) {
-      db.close();
-      throw error;
-    }
-
-    closeCatalog();
-    catalogDb = db;
+    const db = catalogs.open(parsed.catalogPath, parsed.identity, parsed.catalogSchema, true);
     return getCatalogSummary(db, parsed.catalogPath);
   };
 
   const handleOpenCatalog = (params: unknown): unknown => {
     const parsed = CatalogOpenParamsSchema.parse(params);
-    const db = openCatalog(parsed.catalogPath, parsed.identity);
+    const db = catalogs.open(parsed.catalogPath, parsed.identity, CATALOG_SCHEMA_VERSION, false);
     return getCatalogSummary(db, parsed.catalogPath);
   };
 
   const handle = (method: DbMethod, params: unknown): unknown => {
     switch (method) {
       case "health":
-        return handleHealth();
+        return {
+          appDbPath: options.appDbPath,
+          schemaVersion: getSchemaVersion(appDb),
+        } satisfies HealthResult;
       case "app.listDrives":
-        return handleListDrives();
+        return listRegisteredDrives(appDb);
       case "app.registerDrive":
-        return handleRegisterDrive(params);
+        return registerDrive(appDb, RegisterDriveParamsSchema.parse(params));
       case "catalog.create":
         return handleCreateCatalog(params);
       case "catalog.open":
         return handleOpenCatalog(params);
       case "close":
-        closeCatalog();
+        catalogs.close();
         appDb.close();
         return { closed: true };
       default:
@@ -135,7 +148,7 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   return {
     handle,
     dispose: () => {
-      closeCatalog();
+      catalogs.close();
       if (appDb.open) {
         appDb.close();
       }

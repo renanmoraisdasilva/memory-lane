@@ -904,6 +904,7 @@ Rules:
    catalog.db
    catalog.db-wal
    catalog.db-shm
+   catalog.lock
    cache\
       thumbs\
       previews\
