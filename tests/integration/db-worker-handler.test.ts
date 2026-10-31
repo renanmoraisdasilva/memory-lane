@@ -92,7 +92,7 @@ describe("database worker handler", () => {
     ) as CatalogSummary;
 
     expect(created.fileCount).toBe(0);
-    expect(created.schemaVersion).toBe(3);
+    expect(created.schemaVersion).toBe(4);
     await expect(access(catalogPath)).resolves.toBeUndefined();
     await expect(access(cachePath)).resolves.toBeUndefined();
 

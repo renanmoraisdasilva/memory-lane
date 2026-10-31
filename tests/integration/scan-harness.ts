@@ -14,6 +14,7 @@ import { createDevelopmentDrive } from "../../src/main/modules/drives/infrastruc
 import { ScanService } from "../../src/main/modules/scanning/application/scan-service";
 import type {
   FileHasher,
+  FileMetadataExtractor,
   ThumbnailWorkScheduler,
 } from "../../src/main/modules/scanning/domain/scan-files";
 import { createFileHasher } from "../../src/main/modules/scanning/infrastructure/file-hasher";
@@ -47,6 +48,7 @@ export interface ScanHarness {
 
 export interface ScanHarnessOptions {
   hasher?: FileHasher;
+  metadata?: FileMetadataExtractor;
 }
 
 export async function createScanHarness(options: ScanHarnessOptions = {}): Promise<ScanHarness> {
@@ -70,7 +72,7 @@ export async function createScanHarness(options: ScanHarnessOptions = {}): Promi
     db,
     listDetected: async () => [drive],
     logger,
-    metadata: createFileMetadataExtractor(),
+    metadata: options.metadata ?? createFileMetadataExtractor({ exif: null, logger }),
     thumbnails: thumbnailGenerator(),
     hasher: options.hasher ?? createFileHasher(),
   });

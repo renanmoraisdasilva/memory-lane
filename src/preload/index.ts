@@ -10,14 +10,19 @@ import type {
   OpenCatalogParams,
 } from "@shared/contracts/ipc";
 import type {
+  LibraryClearDateParams,
+  LibraryDateMutationResult,
   LibraryItemDetails,
   LibraryItemParams,
   LibraryItemTargetParams,
+  LibrarySetDateParams,
   LibrarySummary,
   LibraryTimelineIndex,
   LibraryTimelineIndexParams,
   LibraryTimelinePage,
   LibraryTimelineParams,
+  LibraryUndatedPage,
+  LibraryUndatedParams,
 } from "@shared/contracts/library";
 import type {
   ScanIntensityParams,
@@ -60,6 +65,18 @@ const api: MemoryLaneApi = {
   getLibraryItem: (params: LibraryItemParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.getLibraryItem, params) as Promise<
       IpcResult<LibraryItemDetails>
+    >,
+  getLibraryUndated: (params: LibraryUndatedParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getLibraryUndated, params) as Promise<
+      IpcResult<LibraryUndatedPage>
+    >,
+  setLibraryDate: (params: LibrarySetDateParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.setLibraryDate, params) as Promise<
+      IpcResult<LibraryDateMutationResult>
+    >,
+  clearLibraryDate: (params: LibraryClearDateParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.clearLibraryDate, params) as Promise<
+      IpcResult<LibraryDateMutationResult>
     >,
   revealLibraryItem: (params: LibraryItemTargetParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,

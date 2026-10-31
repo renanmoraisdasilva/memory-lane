@@ -27,7 +27,7 @@ const summary: CatalogSummary = {
   catalogPath: "F:\\.memorylane\\catalog.db",
   driveLabel: "Archive",
   volumeId,
-  schemaVersion: 3,
+  schemaVersion: 4,
   fileCount: 3,
   openedAt: "2026-10-31T14:00:00.000Z",
 };
@@ -100,6 +100,9 @@ function createApi(): MemoryLaneApi {
     getLibraryTimeline: libraryFailure,
     getLibraryTimelineIndex: libraryFailure,
     getLibraryItem: libraryFailure,
+    getLibraryUndated: libraryFailure,
+    setLibraryDate: libraryFailure,
+    clearLibraryDate: libraryFailure,
     revealLibraryItem: libraryFailure,
     openLibraryItem: libraryFailure,
   };

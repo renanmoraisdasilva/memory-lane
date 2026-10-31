@@ -7,4 +7,5 @@ export const queryKeys = {
     ["library", "timeline", filter, year, month] as const,
   libraryTimelineIndex: (filter: string) => ["library", "timeline-index", filter] as const,
   libraryItem: (fileId: number, filter: string) => ["library", "item", fileId, filter] as const,
+  libraryUndated: ["library", "undated"] as const,
 };

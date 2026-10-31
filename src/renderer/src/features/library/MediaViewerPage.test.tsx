@@ -77,6 +77,31 @@ describe("MediaViewerPage", () => {
     expect(await screen.findByText("Revealed in Explorer.")).toBeInTheDocument();
   });
 
+  it("opens the date dialog and applies a year/month override", async () => {
+    const client = createLibraryFixtureClient();
+    const setDate = vi.spyOn(client, "setDate");
+    const details = await detailsFor(1, "photos", client);
+    renderViewer(details, client);
+
+    await userEvent.click(screen.getByRole("button", { name: "Set date" }));
+    const dialog = screen.getByRole("dialog", { name: "Set catalog date" });
+    expect(dialog).toBeVisible();
+
+    const year = within(dialog).getByLabelText("Year");
+    await userEvent.clear(year);
+    await userEvent.type(year, "2011");
+    await userEvent.selectOptions(within(dialog).getByLabelText("Month"), "7");
+    await userEvent.click(within(dialog).getByRole("button", { name: "Apply to catalog" }));
+
+    await waitFor(() => {
+      expect(setDate).toHaveBeenCalledWith({ fileIds: [1], year: 2011, month: 7 });
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: "Set catalog date" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByText(/Catalog date updated/)).toBeInTheDocument();
+  });
+
   it("renders the video state with native controls and a poster", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(2, "videos", client);

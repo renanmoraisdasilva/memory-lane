@@ -1,22 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { libraryPath, viewerPath } from "./library-url";
+import { useState } from "react";
+import { DateAssignmentDialog } from "./DateAssignmentDialog";
+import { localDateParts } from "./date-format";
 import { MediaViewerStage, type ZoomMode } from "./MediaViewerStage";
-import { useLibraryItemActions } from "./use-library";
+import { useClearLibraryDate, useLibraryItemActions, useSetLibraryDate } from "./use-library";
+import { useViewerNavigation } from "./use-viewer-navigation";
 import { ViewerDetails, type ViewerActionState } from "./ViewerDetails";
 import type { LibraryDensity, LibraryFilter, LibraryItemDetails } from "./types";
 import styles from "./MediaViewer.module.css";
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-  return (
-    target.closest(
-      "input, textarea, select, video, audio, [contenteditable='true'], [data-media-controls]",
-    ) !== null
-  );
-}
 
 export function MediaViewerPage({
   details,
@@ -27,34 +17,14 @@ export function MediaViewerPage({
   filter: LibraryFilter;
   density: LibraryDensity;
 }): React.JSX.Element {
-  const navigate = useNavigate();
   const actions = useLibraryItemActions(details.item.fileId);
+  const setDate = useSetLibraryDate();
+  const clearDate = useClearLibraryDate();
   const [zoom, setZoom] = useState<ZoomMode>("fit");
   const [mediaError, setMediaError] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        void navigate(libraryPath(filter, density));
-        return;
-      }
-      if (isEditableTarget(event.target)) {
-        return;
-      }
-      if (event.key === "ArrowLeft" && details.previousFileId !== null) {
-        event.preventDefault();
-        void navigate(viewerPath(details.previousFileId, filter, density));
-      }
-      if (event.key === "ArrowRight" && details.nextFileId !== null) {
-        event.preventDefault();
-        void navigate(viewerPath(details.nextFileId, filter, density));
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [density, details.nextFileId, details.previousFileId, filter, navigate]);
+  const [dateDialogOpen, setDateDialogOpen] = useState(false);
+  useViewerNavigation({ details, filter, density, dateDialogOpen });
 
   function openExternally(): void {
     actions.open.mutate(undefined, {
@@ -68,13 +38,41 @@ export function MediaViewerPage({
     });
   }
 
+  function applyDate(year: number, month: number | null): void {
+    setDate.mutate(
+      { fileIds: [details.item.fileId], year, month },
+      {
+        onSuccess: () => {
+          setDateDialogOpen(false);
+          setNotice("Catalog date updated. Originals were not changed.");
+        },
+      },
+    );
+  }
+
+  function clearManualDate(): void {
+    clearDate.mutate(
+      { fileIds: [details.item.fileId] },
+      {
+        onSuccess: () => setNotice("Manual date cleared. The extracted date was restored."),
+      },
+    );
+  }
+
+  const dateParts = localDateParts(details.item.date.value);
+  const initialMonth = details.item.date.precision === "month" ? (dateParts?.month ?? null) : null;
+
   const actionState: ViewerActionState = {
     revealPending: actions.reveal.isPending,
     openPending: actions.open.isPending,
+    datePending: setDate.isPending || clearDate.isPending,
     error: actions.reveal.error ?? actions.open.error,
+    dateError: setDate.error ?? clearDate.error,
     notice,
     onReveal: revealInExplorer,
     onOpen: openExternally,
+    onSetDate: () => setDateDialogOpen(true),
+    onClearDate: clearManualDate,
   };
 
   return (
@@ -91,6 +89,16 @@ export function MediaViewerPage({
         openPending={actions.open.isPending}
       />
       <ViewerDetails details={details} actions={actionState} />
+      {dateDialogOpen ? (
+        <DateAssignmentDialog
+          initialYear={dateParts?.year ?? null}
+          initialMonth={initialMonth}
+          pending={setDate.isPending}
+          error={setDate.error}
+          onClose={() => setDateDialogOpen(false)}
+          onApply={applyDate}
+        />
+      ) : null}
     </div>
   );
 }

@@ -13,6 +13,9 @@ export const IPC_CHANNELS = {
   getLibraryTimeline: "library:get-timeline",
   getLibraryTimelineIndex: "library:get-timeline-index",
   getLibraryItem: "library:get-item",
+  getLibraryUndated: "library:get-undated",
+  setLibraryDate: "library:set-date",
+  clearLibraryDate: "library:clear-date",
   revealLibraryItem: "shell:reveal-item",
   openLibraryItem: "shell:open-item",
 } as const;

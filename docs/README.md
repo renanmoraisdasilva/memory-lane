@@ -7,6 +7,7 @@ Start here:
 | `Memory_Lane_Product_Specification.md` | Product vision, requirements, and long-term direction |
 | `Memory_Lane_Scope_and_Implementation.md` | Current v0.1 scope, architecture, data model, and quality gates |
 | `roadmap.md` | Delivered phases and the next implementation steps |
+| `phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
 | `scan-contract.md` | Current scan IPC, state, stage, and report contract |
 | `library-contract.md` | Current library IPC, timeline, media protocol, and viewer contract |
 | `agent-workstreams.md` | Rules for running parallel coding agents |

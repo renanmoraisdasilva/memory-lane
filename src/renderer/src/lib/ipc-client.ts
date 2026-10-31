@@ -2,12 +2,17 @@ import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import type { IpcResult } from "@shared/contracts/ipc";
 import type { MemoryLaneApi } from "@shared/contracts/api";
 import type {
+  LibraryClearDateParams,
+  LibraryDateMutationResult,
   LibraryFilter,
   LibraryItemDetails,
+  LibrarySetDateParams,
   LibrarySummary,
   LibraryTimelineIndex,
   LibraryTimelinePage,
   LibraryTimelineParams,
+  LibraryUndatedPage,
+  LibraryUndatedParams,
 } from "@shared/contracts/library";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { AppError, APP_ERROR_CODES } from "@shared/domain/errors";
@@ -58,6 +63,12 @@ export const api = {
     unwrap(getApi().getLibraryTimelineIndex({ filter })),
   getLibraryItem: (fileId: number, filter?: LibraryFilter): Promise<LibraryItemDetails> =>
     unwrap(getApi().getLibraryItem(filter === undefined ? { fileId } : { fileId, filter })),
+  getLibraryUndated: (params: LibraryUndatedParams): Promise<LibraryUndatedPage> =>
+    unwrap(getApi().getLibraryUndated(params)),
+  setLibraryDate: (params: LibrarySetDateParams): Promise<LibraryDateMutationResult> =>
+    unwrap(getApi().setLibraryDate(params)),
+  clearLibraryDate: (params: LibraryClearDateParams): Promise<LibraryDateMutationResult> =>
+    unwrap(getApi().clearLibraryDate(params)),
   revealLibraryItem: (fileId: number): Promise<void> =>
     unwrap(getApi().revealLibraryItem({ fileId })),
   openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),

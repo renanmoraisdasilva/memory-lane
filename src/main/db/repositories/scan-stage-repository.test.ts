@@ -111,8 +111,14 @@ describe("scan stage repository", () => {
     );
 
     expect(countPendingMetadata(db, volumeId)).toBe(1);
-    const dates = db.prepare("SELECT COUNT(*) AS count FROM file_dates").get() as { count: number };
+    const dates = db
+      .prepare("SELECT COUNT(*) AS count FROM file_dates WHERE resolved_date IS NOT NULL")
+      .get() as { count: number };
     expect(dates.count).toBe(1);
+    const extracted = db
+      .prepare("SELECT extracted_date, extracted_source FROM file_dates WHERE file_id = ?")
+      .get(first);
+    expect(extracted).toEqual({ extracted_date: now, extracted_source: "filesystem.created" });
 
     resetFailedStage(db, "metadata");
     expect(countPendingMetadata(db, volumeId)).toBe(2);

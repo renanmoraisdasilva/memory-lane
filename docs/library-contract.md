@@ -9,6 +9,7 @@ live in `src/shared/contracts/library.ts`.
 |---|---|
 | `/library` | Chronological Memory Lane grid |
 | `/library/item/:fileId` | Combined photo/video viewer |
+| `/undated` | Date unavailable and bulk date assignment |
 
 `filter=photos`, `filter=videos`, and `density=dense` are optional query
 parameters. The viewer carries the active filter and density through
@@ -22,6 +23,9 @@ previous/next navigation and returns to the same filtered grid on Escape.
 | `library:get-timeline` | `getLibraryTimeline` | `{ filter, cursor?, year?, month?, limit? }` | `LibraryTimelinePage` |
 | `library:get-timeline-index` | `getLibraryTimelineIndex` | `{ filter }` | `{ months: LibraryMonth[] }` |
 | `library:get-item` | `getLibraryItem` | `{ fileId, filter? }` | `LibraryItemDetails` |
+| `library:get-undated` | `getLibraryUndated` | `{ cursor?, limit? }` | `LibraryUndatedPage` |
+| `library:set-date` | `setLibraryDate` | `{ fileIds, year, month? }` | `{ updated }` |
+| `library:clear-date` | `clearLibraryDate` | `{ fileIds }` | `{ updated }` |
 | `shell:reveal-item` | `revealLibraryItem` | `{ fileId }` | `void` |
 | `shell:open-item` | `openLibraryItem` | `{ fileId }` | `void` |
 
@@ -35,6 +39,20 @@ previous/next navigation and returns to the same filtered grid on Escape.
 - `cursor` is opaque, keyset-based, and cannot be combined with a year or month.
 - `total` is the count for the active filter, not just the current page.
 - Page size defaults to 200 and is capped at 500.
+
+## Dates
+
+- `LibraryDate` includes `isOverride`.
+- Manual assignment accepts a year and an optional month. It stores year or
+  month precision and never invents a day.
+- An override updates `file_dates` only. The last extracted date remains in the
+  `extracted_*` columns so **Clear manual date** can restore it.
+- Rescans update the extracted date but do not overwrite an active manual
+  override.
+- Suspicious extracted dates are not used; the item appears in Date unavailable
+  with a `date.suspicious` metadata entry.
+- EXIF wall-clock dates are preserved without inventing a timezone. Filesystem
+  dates remain UTC ISO values.
 
 ## Item details
 
@@ -83,13 +101,14 @@ The renderer CSP allows `ml-media:` in `img-src` and `media-src`.
 
 - Date grouping uses stored precision: day for `exact`, month for `month`, year
   for `year`, and a trailing Date unavailable section for null dates.
-- Phase 2 displays filesystem-derived dates. Phase 3 adds EXIF/XMP/video date
-  priority and manual overrides; it must not invent missing precision.
+- Dates come from ExifTool EXIF/XMP/video metadata, then filesystem fallbacks.
+  Manual overrides take priority and preserve the extracted value.
 - Unsupported video playback falls back to external open.
 - No library screen moves, renames, edits, or deletes an original file.
 
 ## Verification
 
 Covered by contract, repository, media protocol, renderer component, integration,
-Electron E2E, and packaged-smoke tests. See `docs/roadmap.md` for the outstanding
-manual 100,000-item performance check.
+Electron E2E, and packaged-smoke tests. Date extraction also has a real ExifTool
+integration test and a packaged-app EXIF smoke test. See `docs/roadmap.md` for
+the outstanding manual 100,000-item performance and ExifTool corpus benchmarks.

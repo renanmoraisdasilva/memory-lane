@@ -100,6 +100,21 @@ export function formatLibraryDateValue(date: LibraryDate): string {
   return String(parsed.getFullYear());
 }
 
+const DATE_SOURCE_LABELS: Record<string, string> = {
+  manual: "Manual date",
+  "exif.datetimeOriginal": "EXIF original date",
+  "exif.createDate": "EXIF create date",
+  "exif.dateTimeDigitized": "EXIF digitized date",
+  "video.creationDate": "Video creation date",
+  "video.createDate": "Video create date",
+  "xmp.createDate": "XMP create date",
+  "filesystem.created": "Filesystem created",
+  "filesystem.modified": "Filesystem modified",
+};
+
 export function formatDateSource(source: string | null): string {
-  return source === null || source.trim().length === 0 ? "Source not recorded" : source;
+  if (source === null || source.trim().length === 0) {
+    return "Source not recorded";
+  }
+  return DATE_SOURCE_LABELS[source] ?? source;
 }

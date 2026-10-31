@@ -13,6 +13,7 @@ export const LibraryDateSchema = z.object({
   value: z.string().min(1).nullable(),
   precision: TimelinePrecisionSchema.nullable(),
   source: z.string().min(1).nullable(),
+  isOverride: z.boolean().optional(),
 });
 export type LibraryDate = z.infer<typeof LibraryDateSchema>;
 
@@ -124,3 +125,38 @@ export const LibraryItemTargetParamsSchema = z.object({
   fileId: z.number().int().positive(),
 });
 export type LibraryItemTargetParams = z.infer<typeof LibraryItemTargetParamsSchema>;
+
+export const LibraryUndatedItemSchema = LibraryItemSchema.extend({
+  folder: z.string(),
+});
+export type LibraryUndatedItem = z.infer<typeof LibraryUndatedItemSchema>;
+
+export const LibraryUndatedPageSchema = z.object({
+  items: z.array(LibraryUndatedItemSchema),
+  nextCursor: z.string().min(1).nullable(),
+  total: z.number().int().nonnegative(),
+});
+export type LibraryUndatedPage = z.infer<typeof LibraryUndatedPageSchema>;
+
+export const LibraryUndatedParamsSchema = z.object({
+  cursor: z.string().min(1).optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+});
+export type LibraryUndatedParams = z.infer<typeof LibraryUndatedParamsSchema>;
+
+export const LibrarySetDateParamsSchema = z.object({
+  fileIds: z.array(z.number().int().positive()).min(1).max(500),
+  year: z.number().int().min(1800).max(2200),
+  month: z.number().int().min(1).max(12).nullable().optional(),
+});
+export type LibrarySetDateParams = z.infer<typeof LibrarySetDateParamsSchema>;
+
+export const LibraryClearDateParamsSchema = z.object({
+  fileIds: z.array(z.number().int().positive()).min(1).max(500),
+});
+export type LibraryClearDateParams = z.infer<typeof LibraryClearDateParamsSchema>;
+
+export const LibraryDateMutationResultSchema = z.object({
+  updated: z.number().int().nonnegative(),
+});
+export type LibraryDateMutationResult = z.infer<typeof LibraryDateMutationResultSchema>;

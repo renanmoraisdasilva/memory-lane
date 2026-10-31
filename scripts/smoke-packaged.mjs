@@ -1,10 +1,11 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { exiftool } from "exiftool-vendored";
 import { _electron as electron } from "playwright";
 
-const ONE_PIXEL_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+const ONE_PIXEL_JPEG = Buffer.from(
+  "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q==",
   "base64",
 );
 
@@ -15,7 +16,15 @@ const developmentDrivePath = path.join(root, "development-drive");
 await mkdir(userDataPath, { recursive: true });
 await mkdir(developmentDrivePath, { recursive: true });
 await writeFile(path.join(developmentDrivePath, "scan.txt"), "packaged scan fixture");
-await writeFile(path.join(developmentDrivePath, "photo.png"), ONE_PIXEL_PNG);
+const photoPath = path.join(developmentDrivePath, "photo.jpg");
+await writeFile(photoPath, ONE_PIXEL_JPEG);
+try {
+  await exiftool.write(photoPath, { DateTimeOriginal: "2011:07:04 15:30:00", Make: "MemoryLane" }, [
+    "-overwrite_original",
+  ]);
+} finally {
+  await exiftool.end();
+}
 
 const environment = {};
 for (const [key, value] of Object.entries(process.env)) {
@@ -97,11 +106,29 @@ try {
     if (!timeline.ok) {
       throw new Error(timeline.error.message);
     }
-    return { summary: summary.data, timeline: timeline.data };
+    const item = timeline.data.items[0];
+    if (item === undefined) {
+      throw new Error("Packaged library returned no items");
+    }
+    const details = await bridge.getLibraryItem({ fileId: item.fileId, filter: "all" });
+    if (!details.ok) {
+      throw new Error(details.error.message);
+    }
+    return { summary: summary.data, timeline: timeline.data, details: details.data };
   });
 
-  if (library.summary.totalItems !== 1 || library.timeline.items[0]?.name !== "photo.png") {
+  if (library.summary.totalItems !== 1 || library.timeline.items[0]?.name !== "photo.jpg") {
     throw new Error(`Unexpected packaged library: ${JSON.stringify(library)}`);
+  }
+  if (library.timeline.items[0]?.date.source !== "exif.datetimeOriginal") {
+    throw new Error(`Packaged ExifTool date was not used: ${JSON.stringify(library.timeline)}`);
+  }
+  if (
+    !library.details.metadata.some(
+      (entry) => entry.key === "metadata.exiftool" && entry.value === "ok",
+    )
+  ) {
+    throw new Error(`Packaged ExifTool metadata missing: ${JSON.stringify(library.details)}`);
   }
 
   console.log(

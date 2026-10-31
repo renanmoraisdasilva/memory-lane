@@ -1,7 +1,8 @@
-import { HardDrive, Image, Images, Radar } from "lucide-react";
+import { CalendarClock, HardDrive, Image, Images, Radar } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { formatBytes } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
+import { useLibrarySummary } from "../library/use-library";
 import { isScanRunning } from "../scan/types";
 import { useScanState } from "../scan/use-scan";
 import styles from "./AppShell.module.css";
@@ -28,6 +29,8 @@ export function Sidebar({
   onOpenDrawer: () => void;
 }): React.JSX.Element {
   const scan = useScanState(drive.volumeId);
+  const library = useLibrarySummary();
+  const undatedCount = library.data?.undatedCount ?? 0;
   const percent = usedPercent(drive);
 
   return (
@@ -47,6 +50,11 @@ export function Sidebar({
         <NavLink to="/library" className={navClass}>
           <Images size={18} aria-hidden="true" />
           <span>Memory Lane</span>
+        </NavLink>
+        <NavLink to="/undated" className={navClass}>
+          <CalendarClock size={18} aria-hidden="true" />
+          <span>Date unavailable</span>
+          {undatedCount > 0 ? <span className={styles.navBadge}>{undatedCount}</span> : null}
         </NavLink>
 
         <div className={styles.navDivider} />
@@ -92,7 +100,7 @@ export function Sidebar({
             <span style={percent === null ? undefined : { width: `${percent}%` }} />
           </span>
         </button>
-        <div className={styles.sidebarFootnote}>Phase 2 · local only · no telemetry</div>
+        <div className={styles.sidebarFootnote}>Phase 3 · local only · no telemetry</div>
       </div>
     </aside>
   );

@@ -80,9 +80,10 @@ The coordinator runs stages in this order:
 
 1. **Catalog files** - enumerates the drive root, writes `files`, detects
    new/changed/reappearing files, and marks missing files after enumeration.
-2. **Extract metadata** - records filesystem facts, media classification, image
-   dimensions where supported, video duration for MP4/MOV, and a
-   filesystem-derived date.
+2. **Extract metadata** - records filesystem facts, media classification, and
+   selected ExifTool tags for dates, dimensions, duration, camera, codec, and
+   GPS. The dependency-free readers fill missing dimensions or MP4/MOV duration;
+   the date priority chain falls back to filesystem timestamps.
 3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
@@ -135,17 +136,21 @@ current drive letter differs from the last registered letter.
   message, last-saved time, ETA, and moved-candidate count.
 - Catalog migration 3 adds media dimensions, video duration, and the timeline
   index.
+- Catalog migration 4 adds reversible extracted-date fields and undated lookup
+  indexes.
 
-The current catalog schema version is 3. Opening an older catalog applies
+The current catalog schema version is 4. Opening an older catalog applies
 pending migrations checksum-safely.
 
 ## Current limits
 
-- ExifTool, ffprobe, ffmpeg, and Sharp are not wired yet. The current build uses
-  dependency-free filesystem metadata, a small image-dimension reader, an
-  ISO-BMFF duration reader for MP4/MOV, Electron native thumbnails, and Node
-  SHA-256.
-- Date resolution beyond filesystem timestamps is Phase 3.
+- ExifTool 13.60 runs through `exiftool-vendored` with at most two child
+  processes. ffprobe/ffmpeg and Sharp are not wired yet.
+- The dependency-free image-dimension and MP4/MOV duration readers remain as
+  fallbacks. Electron native thumbnails and Node SHA-256 are unchanged.
+- Date resolution uses EXIF/XMP/video tags, then filesystem timestamps. Suspicious
+  metadata dates leave the item undated instead of falling back to a misleading
+  filesystem date.
 - Hashing resumes at file granularity. A file interrupted mid-hash starts that
   file again; byte-offset resume is a later hardening step.
 - Moved candidates have no confirmation UI or IPC yet.

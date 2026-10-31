@@ -1,7 +1,12 @@
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLibraryClient } from "./library-client-context";
 import { queryKeys } from "../../lib/query-keys";
-import type { LibraryFilter, LibraryTimelineParams } from "./types";
+import type {
+  LibraryClearDateParams,
+  LibraryFilter,
+  LibrarySetDateParams,
+  LibraryTimelineParams,
+} from "./types";
 
 function buildTimelineParams(
   filter: LibraryFilter,
@@ -88,4 +93,33 @@ export function useLibraryItemActions(fileId: number) {
     mutationFn: () => client.openItem({ fileId }),
   });
   return { reveal, open };
+}
+
+export function useLibraryUndated() {
+  const client = useLibraryClient();
+  return useInfiniteQuery({
+    queryKey: queryKeys.libraryUndated,
+    queryFn: ({ pageParam }) => client.getUndated(pageParam === null ? {} : { cursor: pageParam }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    staleTime: 10_000,
+  });
+}
+
+export function useSetLibraryDate() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: LibrarySetDateParams) => client.setDate(params),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["library"] }),
+  });
+}
+
+export function useClearLibraryDate() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: LibraryClearDateParams) => client.clearDate(params),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["library"] }),
+  });
 }

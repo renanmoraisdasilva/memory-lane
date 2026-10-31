@@ -122,6 +122,23 @@
   background: var(--amber);
 }
 
+.navBadge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--faint);
+  font-size: 9.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.navItemActive .navBadge {
+  background: rgba(242, 179, 92, 0.14);
+  color: var(--amber-2);
+}
+
 .navPulse {
   width: 6px;
   height: 6px;

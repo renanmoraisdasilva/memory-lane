@@ -1,4 +1,4 @@
-import { ExternalLink, FolderOpen, Info, ShieldCheck } from "lucide-react";
+import { CalendarPlus, ExternalLink, FolderOpen, Info, ShieldCheck, Undo2 } from "lucide-react";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { Callout } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
@@ -10,10 +10,14 @@ import styles from "./MediaViewer.module.css";
 export interface ViewerActionState {
   revealPending: boolean;
   openPending: boolean;
+  datePending: boolean;
   error: unknown;
+  dateError: unknown;
   notice: string | null;
   onReveal: () => void;
   onOpen: () => void;
+  onSetDate: () => void;
+  onClearDate: () => void;
 }
 
 function errorMessage(error: unknown): string {
@@ -36,7 +40,13 @@ function DetailRow({ label, value }: { label: string; value: string }): React.JS
   );
 }
 
-function DateDetails({ details }: { details: LibraryItemDetails }): React.JSX.Element {
+function DateDetails({
+  details,
+  actions,
+}: {
+  details: LibraryItemDetails;
+  actions: ViewerActionState;
+}): React.JSX.Element {
   const { date } = details.item;
   return (
     <section className={styles.detailBlock} aria-labelledby="viewer-date-title">
@@ -49,9 +59,36 @@ function DateDetails({ details }: { details: LibraryItemDetails }): React.JSX.El
       </div>
       {date.value === null ? (
         <p className={styles.dateHint}>
-          Date assignment arrives in Phase 3. No date is invented for this item.
+          No reliable date was found. Assign a year or year/month without inventing a day.
         </p>
       ) : null}
+      <div className={styles.actionRow}>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          disabled={actions.datePending}
+          onClick={actions.onSetDate}
+        >
+          <CalendarPlus size={14} aria-hidden="true" />
+          Set date
+        </button>
+        {date.isOverride === true ? (
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            disabled={actions.datePending}
+            onClick={actions.onClearDate}
+          >
+            <Undo2 size={14} aria-hidden="true" />
+            Clear manual date
+          </button>
+        ) : null}
+      </div>
+      {actions.dateError === null || actions.dateError === undefined ? null : (
+        <p className={styles.actionError} role="alert">
+          {errorMessage(actions.dateError)}
+        </p>
+      )}
     </section>
   );
 }
@@ -205,7 +242,7 @@ export function ViewerDetails({
           Read-only
         </Pill>
       </div>
-      <DateDetails details={details} />
+      <DateDetails details={details} actions={actions} />
       <FileDetails details={details} />
       <LocationDetails details={details} actions={actions} />
       <TechnicalMetadata details={details} />

@@ -25,7 +25,7 @@ function createHarness() {
       rootPath: "C:\\",
       letter: "C:",
     },
-    3,
+    4,
   );
   const row = db
     .prepare(
@@ -96,6 +96,51 @@ describe("library DB handlers", () => {
     expect(handler.handle("library.resolveThumbnail", { fileId })).toMatchObject({
       status: "ready",
       cachePath: "C:\\cache\\a.jpg",
+    });
+    db.close();
+  });
+
+  it("lists undated items, applies a manual date, and clears it", () => {
+    const { db, handler, fileId } = createHarness();
+    const undated = db
+      .prepare(
+        `INSERT INTO files (
+          path, name, size, modified_at_fs, media_class, width, height, state, last_seen_at
+        ) VALUES ('C:\\archive\\b.jpg', 'b.jpg', 100, ?, 'image', 10, 20, 'present', ?)
+        RETURNING id`,
+      )
+      .get(now, now) as { id: number };
+
+    expect(handler.handle("library.getUndated", {})).toMatchObject({
+      total: 1,
+      items: [{ fileId: undated.id }],
+    });
+    expect(
+      handler.handle("library.setDate", {
+        fileIds: [undated.id],
+        year: 2014,
+        month: 8,
+      }),
+    ).toEqual({ updated: 1 });
+    expect(handler.handle("library.getItem", { fileId: undated.id })).toMatchObject({
+      item: {
+        date: {
+          value: "2014-08-01T00:00:00",
+          precision: "month",
+          source: "manual",
+          isOverride: true,
+        },
+      },
+    });
+    expect(handler.handle("library.getUndated", {})).toMatchObject({ total: 0 });
+    expect(handler.handle("library.clearDate", { fileIds: [undated.id] })).toEqual({
+      updated: 1,
+    });
+    expect(handler.handle("library.getItem", { fileId: undated.id })).toMatchObject({
+      item: { date: { value: null, source: null, isOverride: false } },
+    });
+    expect(handler.handle("library.getItem", { fileId })).toMatchObject({
+      item: { date: { isOverride: false } },
     });
     db.close();
   });

@@ -97,6 +97,21 @@ export function listPendingMetadata(
   });
 }
 
+function dateParams(
+  item: MetadataSaveItem,
+): [string | null, "year" | "month" | "exact" | null, string | null, number | null, string | null] {
+  if (item.date === null) {
+    return [null, null, null, null, null];
+  }
+  return [
+    item.date.resolvedDate,
+    item.date.precision,
+    item.date.source,
+    item.date.confidence,
+    item.date.originalValue,
+  ];
+}
+
 export function saveMetadataBatch(
   db: Database.Database,
   volumeId: string,
@@ -111,15 +126,36 @@ export function saveMetadataBatch(
   );
   const saveDate = db.prepare(
     `INSERT INTO file_dates (
-       file_id, resolved_date, precision, source, confidence, original_value, is_override
-     ) VALUES (?, ?, ?, ?, ?, ?, 0)
+       file_id, resolved_date, precision, source, confidence, original_value, is_override,
+       extracted_date, extracted_precision, extracted_source, extracted_confidence,
+       extracted_original_value
+     ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
      ON CONFLICT(file_id) DO UPDATE SET
-       resolved_date = excluded.resolved_date,
-       precision = excluded.precision,
-       source = excluded.source,
-       confidence = excluded.confidence,
-       original_value = excluded.original_value
-     WHERE file_dates.is_override = 0`,
+       resolved_date = CASE
+         WHEN file_dates.is_override = 1 THEN file_dates.resolved_date
+         ELSE excluded.resolved_date
+       END,
+       precision = CASE
+         WHEN file_dates.is_override = 1 THEN file_dates.precision
+         ELSE excluded.precision
+       END,
+       source = CASE
+         WHEN file_dates.is_override = 1 THEN file_dates.source
+         ELSE excluded.source
+       END,
+       confidence = CASE
+         WHEN file_dates.is_override = 1 THEN file_dates.confidence
+         ELSE excluded.confidence
+       END,
+       original_value = CASE
+         WHEN file_dates.is_override = 1 THEN file_dates.original_value
+         ELSE excluded.original_value
+       END,
+       extracted_date = excluded.extracted_date,
+       extracted_precision = excluded.extracted_precision,
+       extracted_source = excluded.extracted_source,
+       extracted_confidence = excluded.extracted_confidence,
+       extracted_original_value = excluded.extracted_original_value`,
   );
   const saveMediaFacts = db.prepare(
     "UPDATE files SET width = ?, height = ?, duration_seconds = ? WHERE id = ?",
@@ -133,16 +169,8 @@ export function saveMetadataBatch(
       }
       insert.run(item.fileId, "scan.metadata", item.status, "scan", now);
       saveMediaFacts.run(item.width, item.height, item.durationSeconds, item.fileId);
-      if (item.date !== null) {
-        saveDate.run(
-          item.fileId,
-          item.date.resolvedDate,
-          item.date.precision,
-          item.date.source,
-          item.date.confidence,
-          item.date.originalValue,
-        );
-      }
+      const date = dateParams(item);
+      saveDate.run(item.fileId, ...date, ...date);
     }
   });
 

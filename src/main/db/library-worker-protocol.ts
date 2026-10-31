@@ -1,8 +1,11 @@
 import { z } from "zod";
 import {
+  LibraryClearDateParamsSchema,
   LibraryItemParamsSchema,
+  LibrarySetDateParamsSchema,
   LibraryTimelineIndexParamsSchema,
   LibraryTimelineParamsSchema,
+  LibraryUndatedParamsSchema,
 } from "@shared/contracts/library";
 
 export const LIBRARY_DB_METHODS = [
@@ -10,6 +13,9 @@ export const LIBRARY_DB_METHODS = [
   "library.getTimeline",
   "library.getTimelineIndex",
   "library.getItem",
+  "library.getUndated",
+  "library.setDate",
+  "library.clearDate",
   "library.getContext",
   "library.resolveMedia",
   "library.resolveThumbnail",
@@ -33,3 +39,6 @@ export const LibrarySaveThumbnailParamsSchema = z.object({
 export const LibraryTimelineDbParamsSchema = LibraryTimelineParamsSchema;
 export const LibraryTimelineIndexDbParamsSchema = LibraryTimelineIndexParamsSchema;
 export const LibraryItemDbParamsSchema = LibraryItemParamsSchema;
+export const LibraryUndatedDbParamsSchema = LibraryUndatedParamsSchema;
+export const LibrarySetDateDbParamsSchema = LibrarySetDateParamsSchema;
+export const LibraryClearDateDbParamsSchema = LibraryClearDateParamsSchema;

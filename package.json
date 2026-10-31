@@ -41,6 +41,7 @@
     "@tanstack/react-virtual": "3.14.24",
     "better-sqlite3": "12.11.1",
     "electron-log": "5.4.4",
+    "exiftool-vendored": "39.1.0",
     "lucide-react": "1.66.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",

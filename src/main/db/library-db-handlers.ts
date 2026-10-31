@@ -2,12 +2,20 @@ import type Database from "better-sqlite3";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { LibraryDbMethod } from "./library-worker-protocol";
 import {
+  LibraryClearDateDbParamsSchema,
   LibraryFileParamsSchema,
   LibraryItemDbParamsSchema,
   LibrarySaveThumbnailParamsSchema,
+  LibrarySetDateDbParamsSchema,
   LibraryTimelineDbParamsSchema,
   LibraryTimelineIndexDbParamsSchema,
+  LibraryUndatedDbParamsSchema,
 } from "./library-worker-protocol";
+import {
+  clearDateOverride,
+  getUndatedItems,
+  setDateOverride,
+} from "./repositories/library-date-repository";
 import {
   getLibrarySummary,
   getLibraryTimeline,
@@ -55,6 +63,23 @@ export function createLibraryDbHandlers(options: LibraryDbHandlerOptions): Libra
     "library.getItem": (params) => {
       const parsed = LibraryItemDbParamsSchema.parse(params);
       return getLibraryItem(catalog(), parsed.fileId, parsed.filter ?? "all");
+    },
+    "library.getUndated": (params) => {
+      const parsed = LibraryUndatedDbParamsSchema.parse(params);
+      return getUndatedItems(catalog(), parsed.cursor ?? null, parsed.limit ?? 100);
+    },
+    "library.setDate": (params) => {
+      const parsed = LibrarySetDateDbParamsSchema.parse(params);
+      return setDateOverride(catalog(), {
+        fileIds: parsed.fileIds,
+        year: parsed.year,
+        month: parsed.month ?? null,
+        now: new Date().toISOString(),
+      });
+    },
+    "library.clearDate": (params) => {
+      const parsed = LibraryClearDateDbParamsSchema.parse(params);
+      return clearDateOverride(catalog(), parsed.fileIds, new Date().toISOString());
     },
     "library.getContext": () => getLibraryContext(catalog(), options.getCatalogPath()),
     "library.resolveMedia": (params) =>

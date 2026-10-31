@@ -1,9 +1,10 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PendingMetadataFile } from "../domain/scan-files";
 import { classifyFile, createFileMetadataExtractor } from "./file-metadata";
+import type { ExifMetadataReader } from "./exif-metadata";
 
 const temporaryDirectories: string[] = [];
 
@@ -76,7 +77,9 @@ describe("file metadata extractor", () => {
     png.writeUInt32BE(768, 20);
     await writeFile(filePath, png);
 
-    const extracted = await createFileMetadataExtractor().extract(pendingFile({ path: filePath }));
+    const extracted = await createFileMetadataExtractor({ exif: null }).extract(
+      pendingFile({ path: filePath }),
+    );
 
     expect(extracted.entries).toEqual(
       expect.arrayContaining([
@@ -96,7 +99,7 @@ describe("file metadata extractor", () => {
   });
 
   it("falls back to the modified date when the created date is unusable", async () => {
-    const extracted = await createFileMetadataExtractor().extract(
+    const extracted = await createFileMetadataExtractor({ exif: null }).extract(
       pendingFile({
         path: "C:\\missing\\photo.jpg",
         createdAtFs: "1800-01-01T00:00:00.000Z",
@@ -112,12 +115,77 @@ describe("file metadata extractor", () => {
   });
 
   it("does not read dimensions for videos", async () => {
-    const extracted = await createFileMetadataExtractor().extract(
+    const extracted = await createFileMetadataExtractor({ exif: null }).extract(
       pendingFile({ path: "C:\\missing\\clip.mp4", mediaClass: "video", format: "MP4" }),
     );
 
     expect(extracted.entries.some((entry) => entry.key.startsWith("media."))).toBe(false);
     expect(extracted.width).toBeNull();
     expect(extracted.durationSeconds).toBeNull();
+  });
+
+  it("uses ExifTool facts and date candidates when available", async () => {
+    const shutdown = vi.fn(async () => undefined);
+    const exif: ExifMetadataReader = {
+      read: vi.fn(async () => ({
+        entries: [
+          { key: "metadata.exiftool", value: "ok", source: "exiftool" },
+          { key: "media.width", value: "1920", source: "exiftool" },
+          { key: "media.height", value: "1080", source: "exiftool" },
+        ],
+        dateCandidates: [
+          {
+            resolvedDate: "2011-07-04T15:30:00",
+            precision: "exact" as const,
+            source: "exif.datetimeOriginal",
+            confidence: 0.95,
+            originalValue: "2011:07:04 15:30:00",
+            suspicious: false,
+            suspiciousReason: null,
+          },
+        ],
+        width: 1920,
+        height: 1080,
+        durationSeconds: null,
+      })),
+      shutdown,
+    };
+
+    const extractor = createFileMetadataExtractor({ exif });
+    const extracted = await extractor.extract(pendingFile({ path: "C:\\missing\\photo.jpg" }));
+
+    expect(extracted.date).toMatchObject({
+      resolvedDate: "2011-07-04T15:30:00",
+      source: "exif.datetimeOriginal",
+    });
+    expect(extracted.width).toBe(1920);
+    expect(extracted.entries).toEqual(
+      expect.arrayContaining([
+        { key: "metadata.exiftool", value: "ok", source: "exiftool" },
+        { key: "media.width", value: "1920", source: "exiftool" },
+      ]),
+    );
+    await extractor.shutdown?.();
+    expect(shutdown).toHaveBeenCalled();
+  });
+
+  it("falls back when ExifTool fails", async () => {
+    const exif: ExifMetadataReader = {
+      read: vi.fn(async () => {
+        throw new Error("ExifTool unavailable");
+      }),
+      shutdown: vi.fn(async () => undefined),
+    };
+
+    const extracted = await createFileMetadataExtractor({ exif }).extract(
+      pendingFile({ path: "C:\\missing\\photo.jpg" }),
+    );
+
+    expect(extracted.date?.source).toBe("filesystem.created");
+    expect(extracted.entries).toContainEqual({
+      key: "metadata.exiftool",
+      value: "failed",
+      source: "exiftool",
+    });
   });
 });

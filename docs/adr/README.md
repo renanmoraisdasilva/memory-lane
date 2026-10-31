@@ -13,7 +13,10 @@ and status.
 
 ## Current records
 
-No ADRs are recorded yet. The implemented decisions are summarized in
+- `0001-exiftool-metadata-extraction.md` - ExifTool as the primary Phase 3
+  metadata extractor, with in-process readers as fallbacks.
+
+Other implemented decisions are summarized in
 `docs/Memory_Lane_Scope_and_Implementation.md`.
 
 Create an ADR when a decision is significant, cross-cutting, and likely to be

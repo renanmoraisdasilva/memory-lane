@@ -1,8 +1,8 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-2 implemented\
+**Status:** Product baseline; Phases 0-3 implemented\
 **Platform:** Windows desktop\
-**Version:** 0.2\
+**Version:** 0.3\
 **Date:** 2026-10-31\
 **Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
 
@@ -54,10 +54,10 @@ Initial technology choice:
 -   Node.js for filesystem and application services.
 -   SQLite for the per-drive catalog.
 
-The current build uses Electron native thumbnails, dependency-free image and
-MP4/MOV readers, Node SHA-256, and `better-sqlite3` in a dedicated worker.
-ExifTool, ffmpeg/ffprobe, Sharp, and SQLite FTS5 remain candidates for later
-phases; they are not dependencies yet.
+The current build uses ExifTool 13.60 for image/video metadata, Electron native
+thumbnails, dependency-free image and MP4/MOV readers as fallbacks, Node
+SHA-256, and `better-sqlite3` in a dedicated worker. ffmpeg/ffprobe, Sharp, and
+SQLite FTS5 remain candidates for later phases.
 
 The app must work offline. No cloud service, account, telemetry, or external
 API is required.
@@ -572,9 +572,11 @@ The initial release should not be considered complete unless:
 These items remain open and should be resolved before or during the owning
 phase:
 
--   Exact date-source priority and suspicious-date heuristics (Phase 3).
--   Supported image/video formats, codec strategy, and whether ExifTool,
-    ffprobe, or Sharp are adopted (Phase 3-4).
+-   Timezone conversion policy when EXIF wall-clock dates are displayed outside
+    the capture timezone.
+-   ExifTool concurrency and performance on a 100,000-item mixed corpus.
+-   Supported image/video formats, codec strategy, and whether ffmpeg/ffprobe or
+    Sharp are needed for unsupported playback or thumbnails.
 -   Whether filesystem access-time updates must be prevented.
 -   Behavior for unreadable, encrypted, corrupt, or permission-restricted files.
 -   Cache cleanup policy: all generated assets or selective cleanup (Phase 5).

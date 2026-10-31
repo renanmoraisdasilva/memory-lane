@@ -1,11 +1,14 @@
 import type { LibraryClient } from "../features/library/library-client";
 import type {
+  LibraryClearDateParams,
   LibraryFilter,
   LibraryItem,
   LibraryItemDetails,
   LibraryMonth,
+  LibrarySetDateParams,
   LibrarySummary,
   LibraryTimelineParams,
+  LibraryUndatedItem,
 } from "../features/library/types";
 
 const MB = 1024 ** 2;
@@ -272,6 +275,7 @@ function detailsForItem(item: LibraryItem, items: LibraryItem[]): LibraryItemDet
 
 export interface LibraryFixtureOptions {
   items?: LibraryItem[];
+  undatedItems?: LibraryUndatedItem[];
   summary?: LibrarySummary;
   months?: LibraryMonth[];
   details?: Record<number, LibraryItemDetails>;
@@ -284,11 +288,18 @@ function throwIf(error: Error | undefined): void {
   }
 }
 
+function undatedFromItems(items: LibraryItem[]): LibraryUndatedItem[] {
+  return items
+    .filter((item) => item.date.value === null)
+    .map((item) => ({ ...item, folder: "C:\\archive\\undated" }));
+}
+
 export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}): LibraryClient {
   const items = options.items ?? libraryFixtureItems;
   const summary = options.summary ?? summaryFromItems(items);
   const months = options.months ?? monthsFromItems(items);
   const details = options.details ?? {};
+  let undated = options.undatedItems ?? undatedFromItems(items);
 
   return {
     getSummary: () =>
@@ -321,6 +332,23 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
         }
         return details[item.fileId] ?? detailsForItem(item, filtered);
       }),
+    getUndated: (params) =>
+      Promise.resolve().then(() => {
+        const start = params.cursor === undefined ? 0 : Number(params.cursor);
+        const limit = params.limit ?? 100;
+        const page = undated.slice(start, start + limit);
+        const next = start + page.length < undated.length ? String(start + page.length) : null;
+        return { items: page, nextCursor: next, total: undated.length };
+      }),
+    setDate: (params: LibrarySetDateParams) =>
+      Promise.resolve().then(() => {
+        const selected = new Set(params.fileIds);
+        const updated = undated.filter((item) => selected.has(item.fileId)).length;
+        undated = undated.filter((item) => !selected.has(item.fileId));
+        return { updated };
+      }),
+    clearDate: (params: LibraryClearDateParams) =>
+      Promise.resolve().then(() => ({ updated: params.fileIds.length })),
     revealItem: () =>
       Promise.resolve().then(() => {
         throwIf(options.failures?.reveal);

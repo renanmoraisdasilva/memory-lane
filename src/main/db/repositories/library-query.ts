@@ -16,7 +16,9 @@ export const LibraryRowSchema = z.object({
   resolved_date: z.string().nullable(),
   precision: z.enum(["year", "month", "exact"]).nullable(),
   source: z.string().nullable(),
+  is_override: z.number().int().min(0).max(1).nullable(),
   thumbnail_status: z.enum(["pending", "ready", "failed"]).nullable(),
+  file_path: z.string().min(1),
 });
 
 export type LibraryRow = z.infer<typeof LibraryRowSchema>;
@@ -119,8 +121,13 @@ export function toLibraryItem(row: LibraryRow): LibraryItem {
     durationSeconds: row.duration_seconds,
     date:
       row.resolved_date === null
-        ? { value: null, precision: null, source: null }
-        : { value: row.resolved_date, precision: row.precision, source: row.source },
+        ? { value: null, precision: null, source: null, isOverride: false }
+        : {
+            value: row.resolved_date,
+            precision: row.precision,
+            source: row.source,
+            isOverride: row.is_override === 1,
+          },
     thumbnailStatus,
     thumbnailUrl: thumbnailUrlFor(row.id, thumbnailStatus),
     isMissing: row.state === "missing",
@@ -141,7 +148,9 @@ export const LIBRARY_SELECT = `
     fd.resolved_date,
     fd.precision,
     fd.source,
-    c.status AS thumbnail_status
+    fd.is_override,
+    c.status AS thumbnail_status,
+    f.path AS file_path
   FROM files f
   LEFT JOIN file_dates fd ON fd.file_id = f.id
   LEFT JOIN cache_entries c ON c.file_id = f.id AND c.kind = 'thumbnail'

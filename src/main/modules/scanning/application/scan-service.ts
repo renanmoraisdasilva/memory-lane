@@ -212,6 +212,7 @@ export class ScanService {
 
   async shutdown(): Promise<void> {
     await this.stopActive();
+    await this.metadata.shutdown?.();
   }
 
   private requireActive(volumeId: VolumeId): ActiveScan {

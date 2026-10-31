@@ -7,14 +7,19 @@ import type {
   OpenCatalogParams,
 } from "./ipc";
 import type {
+  LibraryClearDateParams,
+  LibraryDateMutationResult,
   LibraryItemDetails,
   LibraryItemParams,
   LibraryItemTargetParams,
+  LibrarySetDateParams,
   LibrarySummary,
   LibraryTimelineIndex,
   LibraryTimelineIndexParams,
   LibraryTimelinePage,
   LibraryTimelineParams,
+  LibraryUndatedPage,
+  LibraryUndatedParams,
 } from "./library";
 import type { ScanIntensityParams, ScanStartParams, ScanState, ScanVolumeParams } from "./scan";
 
@@ -35,6 +40,9 @@ export interface MemoryLaneApi {
     params: LibraryTimelineIndexParams,
   ): Promise<IpcResult<LibraryTimelineIndex>>;
   getLibraryItem(params: LibraryItemParams): Promise<IpcResult<LibraryItemDetails>>;
+  getLibraryUndated(params: LibraryUndatedParams): Promise<IpcResult<LibraryUndatedPage>>;
+  setLibraryDate(params: LibrarySetDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
+  clearLibraryDate(params: LibraryClearDateParams): Promise<IpcResult<LibraryDateMutationResult>>;
   revealLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
   openLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
 }

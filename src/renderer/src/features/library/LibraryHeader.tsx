@@ -1,5 +1,6 @@
 import { Film, Grid3X3, Image, Images, LayoutGrid, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Pill } from "../../components/ui/Pill";
 import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
 import type { LibraryDensity, LibraryFilter, LibrarySummary } from "./types";
@@ -56,6 +57,11 @@ export function LibraryHeader({
           </Pill>
         </div>
         <p className={styles.summary}>{summaryText(summary, summaryLoading)}</p>
+        {summary !== undefined && summary.undatedCount > 0 ? (
+          <Link className={styles.summaryLink} to="/undated">
+            {formatCount(summary.undatedCount)} items need a date
+          </Link>
+        ) : null}
       </div>
 
       <div className={styles.headerControls}>

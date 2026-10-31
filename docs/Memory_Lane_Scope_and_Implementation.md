@@ -1,6 +1,6 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-2 implemented. Phase 3 (dates) is next.
+**Status:** Phases 0-3 implemented. Phase 4 (integrity) is next.
 **Platform:** Windows desktop
 **Last updated:** 2026-10-31
 **Companions:** `Memory_Lane_Product_Specification.md`, `roadmap.md`,
@@ -28,30 +28,30 @@ The guiding rule remains:
 | 0 - Foundation | Complete | Electron shell, secure preload/IPC, DB worker, SQLite migrations, drive identity, logging, quality gates, packaging |
 | 1 - Drive and scan | Complete | Drive gate, catalog setup, four-stage scan, pause/resume/intensity, interruption recovery, incremental changes, completion report, drive drawer |
 | 2 - Memory Lane | Complete | Timeline, virtualized grid, filters, density, year/month navigation, viewport-priority thumbnails, photo/video viewer, details, reveal/open, scan handoff |
-| 3 - Dates | Next | EXIF/XMP/video date resolution, Date unavailable, manual overrides, suspicious-date review |
-| 4 - Integrity | Planned | Duplicates, missing/moved management, validation, Library health |
+| 3 - Dates | Complete | ExifTool extraction, EXIF/XMP/video date resolution, Date unavailable, manual overrides, suspicious-date review |
+| 4 - Integrity | Next | Duplicates, missing/moved management, validation, Library health |
 | 5 - Other files and settings | Planned | Category browser, cache controls, PC backup status, Settings |
 | 6 - Hardening | Planned | Large-archive performance, disconnect recovery, codec matrix, clean-VM release pass |
 
-Verified at the Phase 2 integration point:
+Verified at the Phase 3 integration point:
 
-- 252 unit/component/integration tests across 50 files.
-- 4 Electron E2E flows, including setup -> scan -> Memory Lane -> filter ->
-  viewer -> previous/next navigation.
+- 272 unit/component/integration tests across 55 files.
+- 5 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer and
+  Date unavailable -> assign -> clear.
 - Coverage above the configured floors.
 - Windows NSIS installer and portable build produced, verified, and smoke-tested.
+- The packaged smoke resolves an EXIF date through the packaged ExifTool binary.
 
 Known gaps:
 
-- Dates still come from filesystem timestamps only.
 - Duplicate, missing/moved, and validation data is partly persisted or counted,
   but the Library health workflows do not exist yet.
 - Other files, Settings, cache clearing, and scheduled PC backups do not exist
   yet.
 - The automated performance suite covers 10,000 items; the manual 100,000-item
-  check is still outstanding.
-- ExifTool, ffmpeg/ffprobe, Sharp, and Piscina are not dependencies of the
-  current build.
+  check and an ExifTool mixed-corpus benchmark are still outstanding.
+- ffmpeg/ffprobe and Sharp are not dependencies of the current build. ExifTool
+  does not add playback or thumbnails for unsupported video.
 
 ---
 
@@ -269,8 +269,8 @@ Both databases are owned by the DB worker.
 | `scan_stages` | Per-stage progress |
 | `files` | Paths, size, timestamps, media class, format, MIME, dimensions, duration, state |
 | `file_metadata` | Extracted metadata with provenance |
-| `file_dates` | Resolved date, precision, source, confidence, original value, override flag |
-| `date_overrides` | Manual year/year-month assignments |
+| `file_dates` | Resolved and extracted date, precision, source, confidence, original value, override flag |
+| `date_overrides` | Manual year/year-month assignments with revert history |
 | `hashes` | SHA-256 records |
 | `duplicate_groups`, `duplicate_members` | Hash-based duplicate structure |
 | `missing_files` | Current missing state |
@@ -281,14 +281,16 @@ Both databases are owned by the DB worker.
 
 Tables for integrity features exist at schema level. Phase 4 adds the services,
 queries, IPC, and UI that use them. Catalog migration 3 added media dimensions,
-video duration, and the timeline index.
+video duration, and the timeline index. Migration 4 added extracted-date fields
+for reversible overrides and undated lookup indexes.
 
 ### 5.5 Scan pipeline
 
 1. **Catalog files** - enumerate paths and basic filesystem metadata, compare
    with the previous scan, and mark missing files.
-2. **Extract metadata** - classify media, read image dimensions, read MP4/MOV
-   duration, and resolve a filesystem date.
+2. **Extract metadata** - classify media, read selected ExifTool tags for dates,
+   dimensions, duration, camera, codec, and GPS; fill gaps with the
+   dependency-free readers; resolve the final date through the priority chain.
 3. **Generate thumbnails** - Electron `nativeImage` thumbnails into
    `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streamed SHA-256 with file-level resume.
@@ -324,14 +326,15 @@ Current runtime and build stack:
 | Styling | CSS Modules + design tokens + Lucide icons |
 | Contracts | Zod |
 | Database | better-sqlite3 in a dedicated worker |
+| Metadata | ExifTool 13.60 through `exiftool-vendored` |
 | Logging | electron-log |
 | Tests | Vitest, Testing Library, Playwright Electron |
 | Quality | ESLint, Prettier, dependency-cruiser, knip, file-size check |
 | CI | GitHub Actions on Windows |
 
-Planned additions are adopted only when the owning phase needs them. Candidate
-tools include ExifTool, ffmpeg/ffprobe, and Sharp for Phase 3-4 metadata and
-media handling.
+Planned additions are adopted only when the owning phase needs them. ffmpeg
+and/or ffprobe may still be needed for thumbnails or playback of formats
+Chromium cannot handle; that is a separate decision from metadata extraction.
 
 ### 5.8 Packaging and distribution
 
@@ -424,9 +427,11 @@ Resolved:
 
 Open:
 
-- Date-source priority edge cases and suspicious-date thresholds.
-- Supported image/video formats and codec matrix.
-- Whether ExifTool/ffprobe/Sharp are adopted or replaced with narrower readers.
+- ExifTool concurrency and performance on a 100k mixed corpus.
+- Timezone conversion policy when EXIF wall-clock dates are displayed outside
+  the capture timezone.
+- Supported image/video formats and codec matrix; whether ffmpeg is needed for
+  playback/thumbnails.
 - Access-time preservation policy.
 - Behavior for encrypted, corrupt, permission-restricted, or unreadable files.
 - Backup retention and manual recovery procedure.
@@ -440,6 +445,7 @@ Open:
 
 - `Memory_Lane_Product_Specification.md` - product requirements.
 - `roadmap.md` - delivered phases and remaining work.
+- `phase-3-scope.md` - implemented date extraction, overrides, and Date unavailable.
 - `scan-contract.md` - scan IPC and state contract.
 - `library-contract.md` - library IPC and media contract.
 - `agent-workstreams.md` - parallel agent rules.

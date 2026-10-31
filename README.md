@@ -6,7 +6,7 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-Phases 0-2 are implemented:
+Phases 0-3 are implemented:
 
 - Electron application shell with a narrow preload IPC boundary.
 - Dedicated SQLite database worker for PC and per-drive catalogs.
@@ -19,10 +19,12 @@ Phases 0-2 are implemented:
 - Combined photo/video viewer with details, previous/next, reveal, and
   open-external actions.
 - Viewport-priority thumbnails through the `ml-media` protocol.
-- Windows installer, portable build, E2E flows, and a packaged scan/library
-  smoke test.
+- ExifTool-based EXIF/XMP/video date extraction with filesystem fallbacks.
+- Date unavailable, bulk year/year-month assignment, and reversible catalog-only
+  overrides in the viewer.
+- Windows installer, portable build, E2E flows, and a packaged EXIF smoke test.
 
-Phase 3 (dates) is next. See `docs/roadmap.md` for the remaining work.
+Phase 4 (integrity) is next. See `docs/roadmap.md` for the remaining work.
 
 ## Documentation
 
@@ -33,6 +35,7 @@ Start at `docs/README.md`.
 | `docs/Memory_Lane_Product_Specification.md` | Product vision and requirements |
 | `docs/Memory_Lane_Scope_and_Implementation.md` | Current scope, architecture, data model, and quality gates |
 | `docs/roadmap.md` | Delivered phases and next steps |
+| `docs/phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
 | `docs/scan-contract.md` | Scan IPC and state contract |
 | `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
 | `docs/agent-workstreams.md` | Parallel agent rules |
@@ -76,13 +79,15 @@ PC backups live in app-managed locations outside the original archive folders.
 | Virtualization | TanStack Virtual |
 | Styling | CSS Modules + design tokens + Lucide icons |
 | Database | `better-sqlite3` in a dedicated worker; PC `app.db` + per-drive `catalog.db` |
+| Metadata | ExifTool 13.60 through `exiftool-vendored` |
 | Contracts | Zod |
 | Logging | `electron-log` |
 | Tests | Vitest + Testing Library + Playwright Electron |
 | Distribution | Unsigned Windows build; no auto-update |
 
-ExifTool, ffmpeg/ffprobe, Sharp, and similar tools are candidates for later
-phases. They are not dependencies of the current build.
+ExifTool is a runtime dependency and ships with the app. ffmpeg/ffprobe and
+Sharp are candidates for later video thumbnail/playback work. Third-party
+license notices are in `THIRD_PARTY_NOTICES.md`.
 
 ## Development
 

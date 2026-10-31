@@ -1,12 +1,18 @@
 import path from "node:path";
+import type { Logger } from "../../../logging/types";
 import type {
   ExtractedMetadata,
   FileMetadataExtractor,
   MetadataEntry,
   MediaClass,
   PendingMetadataFile,
-  ResolvedFileDate,
 } from "../domain/scan-files";
+import { resolveDateForFile } from "../domain/date-resolution";
+import {
+  createExifMetadataReader,
+  type ExifMetadata,
+  type ExifMetadataReader,
+} from "./exif-metadata";
 import { readImageDimensions } from "./image-dimensions";
 import { readVideoDurationSeconds } from "./video-duration";
 
@@ -106,38 +112,6 @@ export function classifyFile(filePath: string): FileClassification {
   };
 }
 
-function parseUsableDate(value: string | null): Date | null {
-  if (value === null) {
-    return null;
-  }
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-  const year = date.getUTCFullYear();
-  if (year < 1900 || year > new Date().getUTCFullYear() + 1) {
-    return null;
-  }
-  return date;
-}
-
-function resolveDate(file: PendingMetadataFile): ResolvedFileDate | null {
-  const created = parseUsableDate(file.createdAtFs);
-  const modified = parseUsableDate(file.modifiedAtFs);
-  const selected = created ?? modified;
-  if (selected === null) {
-    return null;
-  }
-
-  return {
-    resolvedDate: selected.toISOString(),
-    precision: "exact",
-    source: created === null ? "filesystem.modified" : "filesystem.created",
-    confidence: created === null ? 0.4 : 0.6,
-    originalValue: selected.toISOString(),
-  };
-}
-
 function baseEntries(file: PendingMetadataFile): MetadataEntry[] {
   const entries: MetadataEntry[] = [
     { key: "filesystem.size", value: String(file.size), source: "filesystem" },
@@ -159,14 +133,18 @@ interface MediaFacts {
   durationSeconds: number | null;
 }
 
+function emptyFacts(): MediaFacts {
+  return { entries: [], width: null, height: null, durationSeconds: null };
+}
+
 async function imageFacts(file: PendingMetadataFile): Promise<MediaFacts> {
   if (file.mediaClass !== "image") {
-    return { entries: [], width: null, height: null, durationSeconds: null };
+    return emptyFacts();
   }
   try {
     const dimensions = await readImageDimensions(file.path);
     if (dimensions === null) {
-      return { entries: [], width: null, height: null, durationSeconds: null };
+      return emptyFacts();
     }
     return {
       entries: [
@@ -178,13 +156,13 @@ async function imageFacts(file: PendingMetadataFile): Promise<MediaFacts> {
       durationSeconds: null,
     };
   } catch {
-    return { entries: [], width: null, height: null, durationSeconds: null };
+    return emptyFacts();
   }
 }
 
 async function videoFacts(file: PendingMetadataFile): Promise<MediaFacts> {
   if (file.mediaClass !== "video") {
-    return { entries: [], width: null, height: null, durationSeconds: null };
+    return emptyFacts();
   }
   try {
     const duration = await readVideoDurationSeconds(file.path);
@@ -198,21 +176,126 @@ async function videoFacts(file: PendingMetadataFile): Promise<MediaFacts> {
       durationSeconds: duration,
     };
   } catch {
-    return { entries: [], width: null, height: null, durationSeconds: null };
+    return emptyFacts();
   }
 }
 
-export function createFileMetadataExtractor(): FileMetadataExtractor {
+function needsFallback(file: PendingMetadataFile, exif: ExifMetadata | null): boolean {
+  if (exif === null) {
+    return true;
+  }
+  if (file.mediaClass === "image") {
+    return exif.width === null || exif.height === null;
+  }
+  if (file.mediaClass === "video") {
+    return exif.durationSeconds === null;
+  }
+  return false;
+}
+
+async function fallbackFacts(
+  file: PendingMetadataFile,
+  exif: ExifMetadata | null,
+): Promise<MediaFacts> {
+  if (!needsFallback(file, exif)) {
+    return emptyFacts();
+  }
+  return file.mediaClass === "video" ? videoFacts(file) : imageFacts(file);
+}
+
+function mergeEntries(groups: MetadataEntry[][]): MetadataEntry[] {
+  const merged = new Map<string, MetadataEntry>();
+  for (const entries of groups) {
+    for (const entry of entries) {
+      if (!merged.has(entry.key)) {
+        merged.set(entry.key, entry);
+      }
+    }
+  }
+  return [...merged.values()];
+}
+
+function suspiciousEntries(
+  suspicious: Array<{ source: string; originalValue: string; reason: string }>,
+): MetadataEntry[] {
+  if (suspicious.length === 0) {
+    return [];
+  }
+  const value = suspicious
+    .map((item) => `${item.source}: ${item.originalValue} (${item.reason})`)
+    .join("; ");
+  return [{ key: "date.suspicious", value, source: "date" }];
+}
+
+export interface FileMetadataExtractorOptions {
+  exif?: ExifMetadataReader | null;
+  logger?: Logger;
+}
+
+interface ExifReadResult {
+  exif: ExifMetadata | null;
+  failed: boolean;
+}
+
+async function readExifMetadata(
+  reader: ExifMetadataReader | null,
+  file: PendingMetadataFile,
+  logger: Logger | undefined,
+): Promise<ExifReadResult> {
+  if (reader === null) {
+    return { exif: null, failed: false };
+  }
+  try {
+    return { exif: await reader.read(file.path), failed: false };
+  } catch (error) {
+    logger?.warn("ExifTool metadata extraction failed", {
+      path: file.path,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return { exif: null, failed: true };
+  }
+}
+
+function exifEntries(result: ExifReadResult): MetadataEntry[] {
+  if (result.exif !== null) {
+    return result.exif.entries;
+  }
+  return result.failed ? [{ key: "metadata.exiftool", value: "failed", source: "exiftool" }] : [];
+}
+
+function mergedFact(primary: number | null | undefined, fallback: number | null): number | null {
+  return primary ?? fallback;
+}
+
+export function createFileMetadataExtractor(
+  options: FileMetadataExtractorOptions = {},
+): FileMetadataExtractor {
+  const reader = options.exif === undefined ? createExifMetadataReader() : options.exif;
+  const logger = options.logger;
+
   return {
     async extract(file: PendingMetadataFile): Promise<ExtractedMetadata> {
-      const facts = await (file.mediaClass === "video" ? videoFacts(file) : imageFacts(file));
+      const exifResult = await readExifMetadata(reader, file, logger);
+      const facts = await fallbackFacts(file, exifResult.exif);
+      const resolution = resolveDateForFile(file, exifResult.exif?.dateCandidates ?? []);
+
       return {
-        entries: [...baseEntries(file), ...facts.entries],
-        date: resolveDate(file),
-        width: facts.width,
-        height: facts.height,
-        durationSeconds: facts.durationSeconds,
+        entries: mergeEntries([
+          baseEntries(file),
+          exifEntries(exifResult),
+          suspiciousEntries(resolution.suspicious),
+          facts.entries,
+        ]),
+        date: resolution.date,
+        width: mergedFact(exifResult.exif?.width, facts.width),
+        height: mergedFact(exifResult.exif?.height, facts.height),
+        durationSeconds: mergedFact(exifResult.exif?.durationSeconds, facts.durationSeconds),
       };
+    },
+    async shutdown(): Promise<void> {
+      if (reader !== null) {
+        await reader.shutdown();
+      }
     },
   };
 }

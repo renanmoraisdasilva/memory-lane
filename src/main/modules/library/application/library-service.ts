@@ -1,11 +1,16 @@
 import type {
+  LibraryClearDateParams,
+  LibraryDateMutationResult,
   LibraryItemDetails,
   LibraryItemParams,
+  LibrarySetDateParams,
   LibrarySummary,
   LibraryTimelineIndex,
   LibraryTimelineIndexParams,
   LibraryTimelinePage,
   LibraryTimelineParams,
+  LibraryUndatedPage,
+  LibraryUndatedParams,
 } from "@shared/contracts/library";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
@@ -48,6 +53,18 @@ export class LibraryService {
 
   async getItem(params: LibraryItemParams): Promise<LibraryItemDetails> {
     return this.dependencies.db.request<LibraryItemDetails>("library.getItem", params);
+  }
+
+  async getUndated(params: LibraryUndatedParams): Promise<LibraryUndatedPage> {
+    return this.dependencies.db.request<LibraryUndatedPage>("library.getUndated", params);
+  }
+
+  async setDate(params: LibrarySetDateParams): Promise<LibraryDateMutationResult> {
+    return this.dependencies.db.request<LibraryDateMutationResult>("library.setDate", params);
+  }
+
+  async clearDate(params: LibraryClearDateParams): Promise<LibraryDateMutationResult> {
+    return this.dependencies.db.request<LibraryDateMutationResult>("library.clearDate", params);
   }
 
   async reveal(fileId: number): Promise<void> {

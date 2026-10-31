@@ -68,6 +68,7 @@ export interface ExtractedMetadata {
 
 export interface FileMetadataExtractor {
   extract(file: PendingMetadataFile): Promise<ExtractedMetadata>;
+  shutdown?(): Promise<void>;
 }
 
 export interface ThumbnailGenerator {

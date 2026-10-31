@@ -59,6 +59,9 @@ describe("createLibraryClient", () => {
     const getLibraryTimeline = vi.fn(async () => ok(timeline));
     const getLibraryTimelineIndex = vi.fn(async () => ok(index));
     const getLibraryItem = vi.fn(async () => ok(details));
+    const getLibraryUndated = vi.fn(async () => ok({ items: [], nextCursor: null, total: 0 }));
+    const setLibraryDate = vi.fn(async () => ok({ updated: 1 }));
+    const clearLibraryDate = vi.fn(async () => ok({ updated: 1 }));
     const revealLibraryItem = vi.fn(async () => ok(undefined));
     const openLibraryItem = vi.fn(async () => ok(undefined));
     installApi({
@@ -66,6 +69,9 @@ describe("createLibraryClient", () => {
       getLibraryTimeline,
       getLibraryTimelineIndex,
       getLibraryItem,
+      getLibraryUndated,
+      setLibraryDate,
+      clearLibraryDate,
       revealLibraryItem,
       openLibraryItem,
     });
@@ -75,12 +81,20 @@ describe("createLibraryClient", () => {
     await expect(client.getTimeline({ filter: "photos", limit: 200 })).resolves.toEqual(timeline);
     await expect(client.getTimelineIndex({ filter: "videos" })).resolves.toEqual(index);
     await expect(client.getItem({ fileId: 1, filter: "all" })).resolves.toEqual(details);
+    await expect(client.getUndated({ limit: 25 })).resolves.toMatchObject({ total: 0 });
+    await expect(client.setDate({ fileIds: [1], year: 2011, month: 7 })).resolves.toEqual({
+      updated: 1,
+    });
+    await expect(client.clearDate({ fileIds: [1] })).resolves.toEqual({ updated: 1 });
     await expect(client.revealItem({ fileId: 1 })).resolves.toBeUndefined();
     await expect(client.openItem({ fileId: 1 })).resolves.toBeUndefined();
 
     expect(getLibraryTimeline).toHaveBeenCalledWith({ filter: "photos", limit: 200 });
     expect(getLibraryTimelineIndex).toHaveBeenCalledWith({ filter: "videos" });
     expect(getLibraryItem).toHaveBeenCalledWith({ fileId: 1, filter: "all" });
+    expect(getLibraryUndated).toHaveBeenCalledWith({ limit: 25 });
+    expect(setLibraryDate).toHaveBeenCalledWith({ fileIds: [1], year: 2011, month: 7 });
+    expect(clearLibraryDate).toHaveBeenCalledWith({ fileIds: [1] });
     expect(revealLibraryItem).toHaveBeenCalledWith({ fileId: 1 });
     expect(openLibraryItem).toHaveBeenCalledWith({ fileId: 1 });
   });

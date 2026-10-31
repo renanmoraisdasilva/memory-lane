@@ -4,7 +4,7 @@ Last updated: 2026-10-31
 
 ## Current state
 
-Phases 0-2 are implemented and integrated on `main`:
+Phases 0-3 are implemented:
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -14,44 +14,45 @@ Phases 0-2 are implemented and integrated on `main`:
 - Memory Lane timeline, virtualized grid, filters, density, year/month
   navigation, thumbnail prioritization, combined photo/video viewer, details,
   reveal/open-external, and scan handoff.
+- ExifTool-based date and video metadata extraction, a deterministic date
+  priority chain, suspicious-date handling, Date unavailable, and catalog-only
+  manual overrides.
 
-Verification at the Phase 2 integration point: 252 unit/integration tests,
-4 Electron E2E flows, coverage above the configured floors, and a packaged scan
-plus library query smoke test.
+Verification at the Phase 3 integration point: 272 unit/component/integration
+tests, 5 Electron E2E flows, coverage above the configured floors, and a
+packaged smoke test that resolves an EXIF date through the packaged ExifTool
+binary.
 
 ## Immediate follow-ups
 
 1. Run the manual 100,000-item performance check on a real drive profile. The
    automated suite covers 10,000 items.
-2. Record actual video codec support from Chromium and confirm the
+2. Benchmark ExifTool on a mixed corpus of JPEG, HEIC, MP4/MOV, and legacy
+   camcorder files; adjust `maxProcs` if needed.
+3. Record actual video codec support from Chromium and confirm the
    open-externally fallback for unsupported files.
-3. Validate scan and browsing behavior against a real 2 TB USB 3 archive,
+4. Validate scan and browsing behavior against a real 2 TB USB 3 archive,
    including disconnect and reconnect.
 
-## Phase 3 - Dates
+## Phase 3 - Dates (delivered)
 
-Goal: resolve dates honestly and let the user assign dates without touching
-original files.
+- ExifTool 13.60 via `exiftool-vendored` is the primary extractor, with the
+  existing image-dimension and MP4/MOV readers as fallbacks.
+- EXIF, XMP, QuickTime, RIFF/AVI, Matroska, and generic ExifTool date tags feed a
+  documented priority chain.
+- Resolved date, precision, source, confidence, and original value are stored.
+- Suspicious dates are skipped and surfaced in Date unavailable.
+- Manual overrides are year/year-month, catalog-only, reversible, and preserved
+  across rescans.
+- `/undated` supports selection, bulk assignment, and pagination.
+- The viewer supports Set date and Clear manual date.
+- ExifTool is unpacked from ASAR and verified by the packaged smoke test.
 
-- Add metadata extraction beyond the current filesystem fallback:
-  - EXIF `DateTimeOriginal`;
-  - EXIF `CreateDate` / `DateTimeDigitized`;
-  - video creation/recording timestamps;
-  - XMP dates;
-  - filesystem creation and modification dates as fallbacks.
-- Store resolved date, precision (`year`, `month`, `exact`), source, confidence,
-  and original value.
-- Flag suspicious dates instead of confidently placing them in the timeline.
-- Add the Date unavailable screen and undated count navigation.
-- Implement individual and bulk year/year-month assignment.
-- Make overrides catalog-only, reversible, and auditable.
-- Add the viewer Set date action.
-- Add contract, repository, component, integration, and E2E coverage.
+Known limits: EXIF timezone offsets are preserved but not applied to the
+wall-clock date; legacy camcorder metadata depends on the container; ExifTool
+does not add playback or thumbnails for unsupported video.
 
-Exit criteria: undated items can be resolved without inventing a day, manual
-overrides preserve the extracted value, and originals remain unchanged.
-
-## Phase 4 - Integrity
+## Phase 4 - Integrity (next)
 
 Goal: one Library health hub with no destructive actions.
 

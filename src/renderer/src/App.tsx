@@ -5,6 +5,7 @@ import { DriveSelectionPage } from "./features/drives/DriveSelectionPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { createLibraryClient, type LibraryClient } from "./features/library/library-client";
 import { LibraryClientProvider } from "./features/library/library-client-context";
+import { UndatedPage } from "./features/library/UndatedPage";
 import { ViewerShell } from "./features/library/ViewerShell";
 import { ScanPage } from "./features/scan/ScanPage";
 import { AppShell } from "./features/shell/AppShell";
@@ -40,6 +41,18 @@ function LibraryRoute(): React.JSX.Element {
   );
 }
 
+function UndatedRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return (
+    <AppShell crumbs={["Library", "Date unavailable"]}>
+      <UndatedPage />
+    </AppShell>
+  );
+}
+
 function ViewerRoute(): React.JSX.Element {
   const { catalog, drive } = useWorkspace();
   if (catalog === null || drive === null) {
@@ -66,6 +79,7 @@ export function App({
             <Route path="/" element={<DriveGateRoute />} />
             <Route path="/scan" element={<ScanRoute />} />
             <Route path="/library" element={<LibraryRoute />} />
+            <Route path="/undated" element={<UndatedRoute />} />
             <Route path="/library/item/:fileId" element={<ViewerRoute />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
