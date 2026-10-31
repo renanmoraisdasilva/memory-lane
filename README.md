@@ -18,6 +18,10 @@ Memory_Lane_Scope_and_Implementation.md   v0.1 scope, architecture, and build pl
 ui-mockups/                               Clickable static prototype
   index.html                              Prototype screen map and entry point
   assets/                                 Shared CSS, JS, fonts, and local images
+docs/
+  adr/                                    Architecture decision records
+  quality-exceptions.md                   Approved quality-rule exceptions
+.github/pull_request_template.md          Review and quality checklist
 ```
 
 ## View the prototype
@@ -47,14 +51,31 @@ PC backups live in app-managed locations outside the original archive folders.
 
 ## Planned technology
 
-- Electron desktop shell with a strict preload/IPC boundary
-- React + TypeScript renderer
-- Node.js services in the Electron main process
-- SQLite catalog per archive drive
-- ExifTool and ffmpeg/ffprobe for metadata and media previews
-- Vitest, Testing Library, and Playwright for unit, integration, and end-to-end
-  tests
-- electron-builder for the Windows installer
+| Layer | Choice |
+|---|---|
+| Desktop shell | Electron with a strict preload/IPC boundary |
+| Build | `electron-vite` |
+| Packaging | `electron-builder` (NSIS per-user installer + portable ZIP) |
+| Renderer | React + TypeScript + HashRouter |
+| Data and UI state | TanStack Query + Zustand |
+| Styling and primitives | CSS Modules + design tokens + Radix + Lucide |
+| Database | `better-sqlite3` with SQL migrations and repositories |
+| Workers | Piscina worker pools |
+| Media tooling | ExifTool, ffmpeg/ffprobe, Sharp |
+| Validation | Zod IPC contracts |
+| Tests | Vitest + Testing Library + Playwright Electron |
 
-The exact architecture, libraries, quality gates, and packaging approach are
-defined in `Memory_Lane_Scope_and_Implementation.md`.
+## Engineering standards
+
+The project treats structural quality as a CI gate, not a review preference:
+
+- 400-line hard file limit, 300-line soft target
+- Cyclomatic complexity 10, cognitive complexity 15
+- TypeScript strict mode; no explicit `any`
+- Enforced renderer/main/preload/shared architecture boundaries
+- 80% overall coverage, 90% for critical modules
+- Unit, component, integration, contract, E2E, and packaged-smoke tests
+- GitHub Actions quality, test, E2E, and packaging jobs on Windows
+
+The exact libraries, architecture, quality rules, CI pipeline, bundling, and
+release checklist are defined in `Memory_Lane_Scope_and_Implementation.md`.

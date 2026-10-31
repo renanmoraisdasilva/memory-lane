@@ -7,8 +7,10 @@ node_modules/
 dist/
 out/
 release/
-build/
 *.tsbuildinfo
+
+# Fetched native binaries (ExifTool, ffmpeg, ffprobe)
+resources/bin/
 
 # Electron
 .electron/
@@ -48,5 +50,3 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 
-# Local agent/runtime files
-agent_ops/.env

@@ -42,6 +42,11 @@ explicitly deferred to a later phase.
 | Visual direction | Keep the dark, warm amber archival identity, but unify the shell, spacing, typography, and density. |
 | Prototype fidelity | Clickable static prototype with working navigation, tabs, dialogs, and realistic sample data. No real filesystem access. |
 | File handling | Replace the original mockups in `ui-mockups/`; obsolete screens are removed. |
+| Codebase | Single npm package with layered `src/main`, `src/preload`, `src/renderer`, and `src/shared` modules. Architecture boundaries are enforced by tooling, not convention. |
+| Build and packaging | `electron-vite` for development/build and `electron-builder` for Windows packaging. Ship an NSIS per-user installer plus a portable ZIP. Unsigned first; Authenticode signing before public release. |
+| Frontend stack | React + TypeScript, HashRouter, TanStack Query, Zustand, CSS Modules with design tokens, Radix primitives, Lucide icons, TanStack Virtual. |
+| Main-process stack | Node.js + TypeScript, `better-sqlite3` with SQL migrations and repositories, Piscina worker pools, ExifTool, ffmpeg/ffprobe, Sharp, Zod IPC contracts, `electron-log`. |
+| Quality gates | 400-line hard file limit, 300-line soft target, cyclomatic complexity 10, cognitive complexity 15, 80% overall coverage and 90% for critical modules. Enforced in CI. |
 
 ---
 
@@ -680,26 +685,185 @@ Electron main process (trusted Node.js)
 Rules:
 - The renderer has no Node.js filesystem access.
 - All source-drive access happens in the main process or trusted workers.
+- The main process is the single SQLite writer. Workers do CPU/IO work and
+  return results; they do not open write connections.
+- Worker pools are bounded with Piscina and split by task class (metadata,
+  thumbnails, hashing) so one workload cannot starve the others.
 - The preload API exposes catalog IDs and validated operations, not raw
   filesystem mutation primitives.
 - There is no IPC channel for delete, move, rename, or write to a source file.
 - Reveal/open-external actions take a catalog file ID, resolve the path in the
   main process, and validate that it belongs to the active archive.
 
-### 7.2 Technology choices
+### 7.2 Selected stack
 
-- **Shell:** Electron.
-- **UI:** React + TypeScript.
-- **Main/services:** Node.js + TypeScript.
-- **Database:** SQLite. Recommended: `better-sqlite3` in a dedicated database
-  worker with WAL mode, `busy_timeout`, and controlled checkpoints.
-- **Metadata:** ExifTool for broad photo/video metadata and embedded RAW
-  previews.
-- **Video:** ffprobe for metadata; ffmpeg for poster frames.
-- **Images:** Sharp for standard formats and thumbnail encoding; ExifTool
-  embedded previews for RAW where possible.
-- **Hashing:** Node crypto SHA-256 with chunked reads and a resumable queue.
-- **Packaging:** Electron builder; bundle ExifTool/ffmpeg binaries.
+| Layer | Choice | Rationale |
+|---|---|---|
+| Desktop shell | Electron, current stable, pinned exact version | Windows desktop requirement; mature native filesystem access. |
+| Build | `electron-vite` | Separate Vite builds for main, preload, and renderer; HMR and fast iteration. |
+| Packaging | `electron-builder` | Mature Windows NSIS/portable targets, native-module rebuilds, code-signing support. |
+| Renderer | React + TypeScript | Component model, ecosystem, strong typing. |
+| Routing | React Router with `HashRouter` | Works from `file://` in packaged Electron without a custom protocol. |
+| Server state | TanStack Query | Caching, loading/error states, invalidation for IPC-backed catalog data. |
+| UI state | Zustand | Small stores for selection, viewport, and viewer preferences; no duplication of catalog data. |
+| Virtualization | TanStack Virtual | Virtualized photo/video grid and large file tables. |
+| Forms | React Hook Form + Zod | Typed date assignment, settings, and validation inputs. |
+| Styling | CSS Modules + CSS custom-property tokens | Scoped styles, explicit design system, readable component files. |
+| Primitives | Radix UI | Accessible dialog, tabs, tooltip, dropdown, and popover behavior. |
+| Icons | Lucide React | Tree-shakeable SVG icons; no multi-megabyte icon font in production. |
+| Database | `better-sqlite3` | Fast synchronous SQLite access in the main process; explicit SQL for catalog queries. |
+| Migrations | Handwritten SQL migrations | Full control over indexes and SQLite behavior; easy to test. |
+| Worker pool | Piscina | Bounded worker pools for metadata, thumbnails, and hashing. |
+| Metadata | `exiftool-vendored` client + pinned ExifTool binary | Persistent ExifTool process, broad metadata coverage, and embedded RAW previews without spawning per file. |
+| Video | ffmpeg + ffprobe, pinned binaries | Metadata, poster frames, and codec inspection. |
+| Images | Sharp | Fast thumbnail and preview encoding for standard formats. |
+| Hashing | Node `crypto` SHA-256 | No extra dependency; chunked, resumable reads. |
+| IPC validation | Zod | One schema source for channel payloads and result envelopes. |
+| Logging | `electron-log` | Local, bounded logs in the main process; no telemetry. |
+| App preferences | `electron-store` + Zod | Window bounds, density, and other installation-level UI preferences. |
+| Unit/component tests | Vitest + Testing Library | Fast TypeScript-native tests and behavior-focused React tests. |
+| E2E tests | Playwright Electron | Real Electron launch, window, IPC, and filesystem fixture flows. |
+| Architecture checks | dependency-cruiser | Enforce renderer/main/preload/shared boundaries and no cycles. |
+| Dead-code checks | knip | Detect unused files, exports, and dependencies. |
+| Lint/format | ESLint flat config + Prettier | Type-aware rules, complexity limits, and consistent formatting. |
+
+Versions are pinned exactly at scaffold time and committed in `package-lock.json`.
+Major-version upgrades are deliberate, reviewed changes, not automatic.
+
+#### 7.2.1 Renderer architecture
+
+The renderer is feature-based, not type-based:
+
+```text
+src/renderer/
+  app/
+    bootstrap.tsx
+    router.tsx
+    providers.tsx
+    error-boundaries/
+  features/
+    drives/
+    library/
+    viewer/
+    undated/
+    other-files/
+    health/
+    scan/
+    settings/
+  components/
+    ui/
+  styles/
+    tokens.css
+    global.css
+  lib/
+    ipc-client.ts
+    query-keys.ts
+    formatting.ts
+```
+
+Rules:
+- Each feature owns its components, hooks, query functions, and local types.
+- Catalog data lives in TanStack Query. Zustand stores only ephemeral UI state.
+- IPC query keys are centralized in `lib/query-keys.ts`.
+- Mutations invalidate the affected query keys explicitly.
+- Route-level error boundaries and loading/empty states are mandatory.
+- Reusable visual primitives live in `components/ui`, not inside features.
+- No feature imports another feature's internals; cross-feature dependencies go
+  through shared components or public feature entry points.
+- No global `utils.ts` dumping ground. Utilities are named for their domain.
+- Components target behavior and accessibility, not implementation details.
+
+#### 7.2.2 Main-process architecture
+
+The main process is a modular monolith:
+
+```text
+src/main/
+  bootstrap/
+    app-lifecycle.ts
+    security.ts
+    single-instance.ts
+  ipc/
+    register-handlers.ts
+    error-mapping.ts
+  modules/
+    drives/
+      domain/
+      application/
+      infrastructure/
+    catalog/
+    scanning/
+    media/
+    health/
+    settings/
+  workers/
+    metadata-worker.ts
+    thumbnail-worker.ts
+    hash-worker.ts
+  platform/
+    windows-paths.ts
+    volume-identity.ts
+    shell-actions.ts
+  db/
+    connection.ts
+    migrations/
+    repositories/
+```
+
+Rules:
+- `domain` contains pure types and rules; it imports no Electron, Node I/O, or
+  SQLite.
+- `application` contains use cases and repository interfaces.
+- `infrastructure` implements SQLite, filesystem, ExifTool, ffmpeg, and Sharp
+  adapters.
+- IPC handlers are thin: validate input with Zod, call a use case, map the result
+  to a typed envelope, and log failures without leaking internals.
+- The main process is the **single SQLite writer**. Workers return results to
+  the main process; they do not open write connections.
+- Repositories are interfaces with a `better-sqlite3` implementation and a fake
+  implementation for unit tests.
+- One catalog lock prevents two app instances from writing the same archive.
+- Native binaries are resolved from `resourcesPath` in packaged builds and from
+  `resources/` in development.
+
+#### 7.2.3 Shared contracts
+
+`src/shared` is platform-neutral and importable by main, preload, and renderer:
+
+```text
+src/shared/
+  contracts/
+    ipc.ts
+    drives.ts
+    catalog.ts
+    scanning.ts
+    health.ts
+    settings.ts
+  domain/
+    ids.ts
+    partial-date.ts
+    errors.ts
+  utils/
+```
+
+Rules:
+- No Electron, Node built-ins, React, or database imports in `shared`.
+- Zod schemas define IPC payloads and result envelopes.
+- Branded ID types (`FileId`, `VolumeId`, `ScanId`) prevent accidental mixing.
+- Errors use stable codes and user-safe messages; raw infrastructure errors never
+  cross IPC.
+- IPC results use one envelope shape:
+  `{ ok: true, data } | { ok: false, error: { code, message, details? } }`.
+
+#### 7.2.4 Test and tooling stack
+
+- **Vitest** for unit and integration tests.
+- **Testing Library + jsdom** for renderer component tests.
+- **Playwright Electron** for end-to-end tests against a real app launch.
+- **`@axe-core/playwright`** for automated accessibility checks in key flows.
+- **ESLint**, **Prettier**, **dependency-cruiser**, **knip**, and a file-size
+  check script for static quality gates.
+- **GitHub Actions on `windows-latest`** for CI.
 
 ### 7.3 On-drive layout
 
@@ -759,6 +923,11 @@ Suggested tables and key columns:
 
 Add indexes for date browsing, media class, path, hash, missing state, and
 duplicate membership.
+
+`app_settings` is for archive-scoped settings that must travel with the catalog.
+Installation-level preferences such as window bounds, last view, and grid
+density live in `electron-store` under `%APPDATA%`. A setting must have one owner;
+do not duplicate it in both stores.
 
 ### 7.6 Date resolution
 
@@ -900,20 +1069,486 @@ Behavior:
 - Keep database work off the renderer thread.
 - Target responsive scrolling and playback while scanning.
 
+### 7.15 Repository layout
+
+The application is a single npm package with enforced internal boundaries:
+
+```text
+.
+├─ src/
+│  ├─ main/                 Electron main process and trusted services
+│  ├─ preload/              Narrow contextBridge API
+│  ├─ renderer/             React application
+│  └─ shared/               Platform-neutral contracts and domain types
+├─ tests/
+│  ├─ integration/          Real SQLite/temp-filesystem service tests
+│  ├─ e2e/                  Playwright Electron flows
+│  └─ fixtures/             Synthetic media, catalog, and drive fixtures
+├─ resources/
+│  └─ bin/                  Fetched/pinned ExifTool, ffmpeg, ffprobe binaries
+├─ scripts/
+│  ├─ fetch-binaries.mjs
+│  ├─ check-file-size.mjs
+│  └─ verify-package.mjs
+├─ docs/
+│  └─ adr/                  Architecture decision records
+├─ build/
+│  └─ icon.ico
+├─ ui-mockups/              Static design reference (not shipped)
+├─ electron.vite.config.ts
+├─ electron-builder.yml
+├─ vitest.config.ts
+├─ playwright.config.ts
+├─ eslint.config.js
+├─ tsconfig.json
+└─ package.json
+```
+
+Naming conventions:
+- React components: `PascalCase.tsx`.
+- Other source modules: `kebab-case.ts`.
+- Unit/component tests: co-located `*.test.ts` / `*.test.tsx`.
+- Integration tests: `tests/integration/*.test.ts`.
+- E2E tests: `tests/e2e/*.spec.ts`.
+- Database migrations: `NNNN-description.sql`.
+- One named export per module where practical; avoid default exports except
+  route-level modules if required by the router.
+
+Unit and component tests are co-located for fast feedback. Integration and E2E
+tests are centralized because they require fixtures, temporary drives, or an
+Electron launch.
+
+### 7.16 Packaging and distribution
+
+#### Build pipeline
+
+```text
+npm run dev          electron-vite dev server + Electron
+npm run build        electron-vite production build
+npm run package      build + electron-builder
+npm run package:win  Windows NSIS installer + portable ZIP
+```
+
+`electron-vite` produces:
+
+```text
+out/
+  main/index.js
+  preload/index.js
+  renderer/index.html
+  renderer/assets/*
+```
+
+`electron-builder` packs `out/` into:
+
+```text
+release/
+  Memory-Lane-Setup-0.1.0-x64.exe
+  Memory-Lane-0.1.0-x64.zip
+  win-unpacked/
+```
+
+#### ASAR and native resources
+
+- Application JavaScript is packed into `app.asar`.
+- Native modules and sidecar binaries cannot run from inside ASAR. They are
+  unpacked or copied into resources:
+  - `better-sqlite3` `.node` addon: `asarUnpack`.
+  - `sharp` platform binaries: `asarUnpack`.
+  - ExifTool, ffmpeg, and ffprobe: `extraResources` to `resources/bin`.
+- If a dependency ships its own binary (for example a vendored ExifTool build),
+  it must also be listed in `asarUnpack` or configured to use the pinned binary
+  in `resources/bin`. The packaged smoke test verifies the resolved path.
+- Production path resolution uses `process.resourcesPath`; development uses the
+  repository `resources/` directory.
+- `npmRebuild: true` and `@electron/rebuild` ensure native modules match the
+  Electron ABI, not the system Node ABI.
+- Binary versions are pinned and verified by SHA-256 in
+  `scripts/fetch-binaries.mjs`. They are fetched during development/CI, not
+  committed to git.
+
+#### `electron-builder` targets
+
+- **NSIS per-user installer**:
+  - No administrator rights.
+  - Start Menu shortcut and optional desktop shortcut.
+  - User-selectable install directory.
+  - Installs under `%LOCALAPPDATA%\Programs\Memory Lane`.
+- **Portable ZIP**:
+  - For testing and users who do not want an installer.
+  - Application preferences still live in `%APPDATA%` by default.
+- **Architecture**: x64 first. ARM64 is deferred until tested.
+- **Icon**: `build/icon.ico`.
+- **Publish**: disabled in the first release; GitHub Releases can be added later.
+
+Example `electron-builder.yml` shape:
+
+```yaml
+appId: com.memorylane.app
+productName: Memory Lane
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: resources/bin
+    to: bin
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/**
+  - node_modules/sharp/**
+  - node_modules/@img/**
+npmRebuild: true
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Memory Lane
+  artifactName: Memory-Lane-Setup-${version}-${arch}.${ext}
+portable:
+  artifactName: Memory-Lane-${version}-${arch}.${ext}
+publish: null
+```
+
+The exact `asarUnpack` list is verified by a packaged-app smoke test. A build
+that works in development but fails after packaging is a release blocker.
+
+#### Code signing
+
+- v0.1 development builds are unsigned. Windows SmartScreen may warn on first
+  launch.
+- Before a public release, sign the installer and executables with an
+  Authenticode certificate from a trusted CA or cloud-signing service.
+- Certificates and passwords live only in CI secrets (`CSC_LINK`,
+  `CSC_KEY_PASSWORD`, or the chosen cloud-signing provider's credentials).
+- Never commit a `.pfx`, `.p12`, password, or signing token.
+- Timestamp the signature so it remains valid after the certificate expires.
+
+#### Release checklist
+
+1. Run typecheck, lint, architecture checks, unit, integration, and E2E tests.
+2. Build the NSIS installer and portable ZIP on a clean Windows runner.
+3. Install on a clean Windows VM and launch from the Start Menu.
+4. Verify first-run drive selection, scan, browse, viewer, date assignment,
+   health tabs, and settings.
+5. Verify the app opens no network connections.
+6. Verify originals are unchanged after scanning, viewing, validating, and
+   clearing cache.
+7. Verify the uninstaller removes application files but does not delete archive
+   catalogs, thumbnails on the drive, or PC backups.
+8. Compute SHA-256 checksums for release artifacts.
+9. Publish release notes, checksums, and the unsigned/SmartScreen note.
+
+Auto-update is deferred. v0.1 uses manual installer downloads.
+
 ---
 
-## 8. Build sequence
+## 8. Engineering standards and quality gates
 
-### Phase 0 — Foundation
+### 8.1 What guarantees what
 
-- Create Electron + React + TypeScript project.
-- Enforce preload/IPC boundary.
+There is an important distinction:
+
+- **Unit tests verify behavior.** They do not guarantee file length or function
+  complexity.
+- **Static analysis and CI enforce structural limits.** ESLint, a file-size
+  check, dependency-cruiser, knip, and TypeScript enforce the standards.
+- **CI is the source of truth.** A local pass is useful; a protected branch
+  requires the CI quality, test, E2E, and packaging jobs to pass.
+
+The standards below are therefore enforced by tooling, not by reviewer memory.
+
+### 8.2 File size and complexity limits
+
+| Rule | Limit | Enforcement |
+|---|---|---|
+| File length, physical lines (`.ts`, `.tsx`) | **400 lines hard** | `scripts/check-file-size.mjs` exits non-zero; CI fails |
+| File length, code lines | **400 lines hard** | ESLint `max-lines` error; CI fails |
+| File length soft target | **300 physical lines** | `scripts/check-file-size.mjs` reports each file over 300 in the CI summary |
+| Function length | **100 lines hard** | ESLint `max-lines-per-function` error |
+| Cyclomatic complexity | **10 hard** | ESLint `complexity` error |
+| Cognitive complexity | **15 hard** | `eslint-plugin-sonarjs` error |
+| Maximum nesting depth | **4** | ESLint `max-depth` error |
+| Maximum parameters | **4** | ESLint `max-params` error |
+| Nested callbacks | **3** | ESLint `max-nested-callbacks` error |
+
+The physical-line check is the actual 400-line guarantee. ESLint's `max-lines`
+is a second gate on code lines; it ignores blank lines and comments by design.
+Both must pass.
+
+Excluded from the line limits:
+- Generated files.
+- SQL migrations.
+- Worker entrypoint files that only wire a pool.
+- Test fixtures and synthetic media.
+- Vendored code, if any.
+
+No blanket file-level disables. An exception must use a narrow
+`eslint-disable-next-line` with a reason and must be approved in review. An
+exception that needs to persist is recorded in
+`docs/quality-exceptions.md` with an owner and an expiry date.
+
+React components follow the same function-length limit. If a component grows
+past 100 lines, split it into a container, subcomponents, and hooks rather than
+increasing the limit.
+
+### 8.3 ESLint and TypeScript standards
+
+TypeScript is strict by default:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true
+  }
+}
+```
+
+Required rules:
+- No explicit `any`. Use `unknown` plus Zod or a type guard.
+- No non-null assertions unless the invariant is obvious and commented.
+- No floating promises or async callbacks passed where a void return is
+  expected.
+- Exhaustive switches for discriminated unions.
+- Type-only imports where applicable.
+- No `console` in application code; use the logger or a typed IPC error.
+- React hooks rules and accessibility rules are errors.
+
+Representative ESLint configuration:
+
+```js
+{
+  files: ["src/**/*.{ts,tsx}"],
+  rules: {
+    "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }],
+    "max-lines-per-function": ["error", { max: 100, skipBlankLines: true, skipComments: true }],
+    "complexity": ["error", 10],
+    "max-depth": ["error", 4],
+    "max-params": ["error", 4],
+    "max-nested-callbacks": ["error", 3],
+    "sonarjs/cognitive-complexity": ["error", 15],
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-misused-promises": "error",
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "@typescript-eslint/consistent-type-imports": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error"
+  }
+}
+```
+
+### 8.4 Architecture boundaries
+
+`dependency-cruiser` enforces:
+
+- `src/renderer` cannot import `src/main`, `src/preload`, Electron, Node
+  built-ins, SQLite, Sharp, or Piscina.
+- `src/main` cannot import `src/renderer`.
+- `src/preload` can import `src/shared` and Electron preload APIs only.
+- `src/shared` cannot import Electron, Node built-ins, React, or database code.
+- `domain` cannot import `infrastructure`.
+- `application` cannot import Electron, SQLite, or concrete filesystem adapters.
+- No circular dependencies.
+- No orphan modules or unused exports (`knip`).
+
+Example rules:
+
+```js
+// dependency-cruiser
+{
+  name: "renderer-cannot-import-main",
+  severity: "error",
+  from: { path: "^src/renderer" },
+  to: { path: "^src/(main|preload)" }
+},
+{
+  name: "shared-is-platform-neutral",
+  severity: "error",
+  from: { path: "^src/shared" },
+  to: { path: "^(electron|node:)" }
+},
+{
+  name: "domain-cannot-import-infrastructure",
+  severity: "error",
+  from: { path: "^src/main/modules/.+/domain" },
+  to: { path: "^src/main/modules/.+/infrastructure" }
+}
+```
+
+### 8.5 Testing strategy
+
+The test pyramid is intentional:
+
+| Level | Tool | Scope | Target |
+|---|---|---|---|
+| Unit | Vitest | Pure domain rules, date resolution, scan diff, path normalization, hash grouping, IPC schemas | Fast; no Electron, no real disk |
+| Component | Vitest + Testing Library | React components, dialogs, tabs, selection, date assignment, error states | Behavior and accessibility |
+| Contract | Vitest + Zod | IPC payload/result schemas, error envelopes, channel names | Every channel |
+| Integration | Vitest + real SQLite + temp filesystem | Repositories, migrations, scan coordinator, backup, cache, validation, moved-file matching | Main-process services without the UI |
+| E2E | Playwright Electron | Drive selection → scan → browse → viewer → date → health → settings | A small number of critical user journeys |
+| Smoke | Packaged app launch | Installer/unpacked build starts, opens a fixture catalog, no crash | Every release |
+
+Coverage floor:
+- **80% lines, statements, and functions**.
+- **75% branches**.
+- **90% lines and branches** for critical modules:
+  - date resolution and overrides
+  - scan diff and resume
+  - hashing and duplicate grouping
+  - moved-file matching
+  - validation
+  - SQLite backup
+  - IPC validation and error mapping
+  - read-only path guards
+
+Coverage rules:
+- Coverage is a floor, not a target to game.
+- Critical modules have per-file thresholds, not just a global average.
+- Generated files, migrations, and pure wiring entrypoints may be excluded only
+  with a documented reason.
+- A change that lowers coverage below the floor fails CI.
+
+E2E scenarios (minimum):
+1. Select a fixture drive, open an existing catalog, browse the timeline.
+2. Start an incremental scan, see staged progress, pause, resume, complete.
+3. Open a photo and a video; verify metadata, duplicate copies, and reveal
+   actions are catalog-only.
+4. Assign a year and year/month date individually and in bulk; verify originals
+   are untouched.
+5. Review missing files, confirm a moved-file batch, and verify the catalog
+   pointer changes.
+6. Open Library health, inspect duplicates, run validation, and view the report.
+7. Clear the cache and verify catalog/original state is unchanged.
+8. Verify a packaged build launches and reads a pre-seeded catalog.
+
+E2E rules:
+- Launch with a temporary `userData` directory and a fixture drive.
+- Never point tests at a real archive.
+- No fixed sleeps; wait for UI state or IPC events.
+- Capture trace/screenshot on failure.
+- Retries: 0 locally, 1 in CI; flaky tests are fixed, not quarantined
+  indefinitely.
+
+### 8.6 CI pipeline
+
+GitHub Actions on `windows-latest`, triggered by pull requests and `main`:
+
+```text
+npm ci
+npm run typecheck
+npm run lint
+npm run format:check
+npm run check:file-size
+npm run depcruise
+npm run knip
+npm run test:unit -- --coverage
+npm run test:integration
+npm run build
+npm run test:e2e
+npm run package:win
+upload installer + portable ZIP + coverage + Playwright report
+```
+
+Notes:
+- The CI Node version matches the project's `.nvmrc` and the Electron native
+  rebuild target.
+- `npm ci` uses the committed lockfile.
+- Playwright browser/runtime caches are used where safe.
+- A separate nightly job runs the 100k–200k file benchmark suite.
+- Branch protection requires the quality, test, E2E, and package jobs.
+- Packaging is part of CI because a build that only works in development is not
+  a working Electron release.
+
+### 8.7 Local workflow
+
+Fast feedback:
+
+```text
+npm run fix          Prettier + ESLint autofix
+npm run check        typecheck + lint + format + architecture + file size
+npm run test:watch   unit/component watch mode
+```
+
+Full verification before opening a pull request:
+
+```text
+npm run check:full   all static checks + unit + integration + E2E
+```
+
+Pre-commit hooks are optional convenience. CI remains authoritative; a local
+hook can be bypassed, a protected branch check cannot.
+
+### 8.8 Definition of done for a change
+
+A change is done when:
+
+- The behavior has a test at the right level.
+- New IPC channels have Zod schemas and contract tests.
+- New domain rules have unit tests.
+- New screens or dialogs have component tests for their key states.
+- New user journeys are covered by E2E when they cross process boundaries.
+- Typecheck, lint, architecture, file-size, and coverage gates pass.
+- The read-only guarantee is preserved.
+- Logs and user-facing errors are appropriate.
+- Documentation or an ADR is updated for a significant decision.
+
+### 8.9 Architecture decision records
+
+Significant decisions are recorded in `docs/adr/`:
+
+- `0001-electron-process-and-security-model.md`
+- `0002-single-sqlite-writer-and-repositories.md`
+- `0003-ipc-contracts-and-error-envelope.md`
+- `0004-renderer-state-and-data-flow.md`
+- `0005-styling-and-component-primitives.md`
+- `0006-testing-and-quality-gates.md`
+- `0007-packaging-and-code-signing.md`
+
+An ADR is short: context, decision, alternatives considered, consequences, and
+status. It is not a design essay.
+
+---
+
+## 9. Build sequence
+
+### Phase 0 - Foundation
+
+- Scaffold the single-package `electron-vite` project with React and strict
+  TypeScript.
+- Configure `electron-builder` for the NSIS per-user installer and portable ZIP.
+- Add ESLint and Prettier with the file-size and complexity rules in section 8.
+- Add `scripts/check-file-size.mjs`, dependency-cruiser, and knip.
+- Add Vitest, Testing Library, and Playwright configuration plus the initial CI
+  workflow and coverage thresholds.
+- Add the `scripts/fetch-binaries.mjs` flow for pinned ExifTool/ffmpeg/ffprobe
+  binaries and checksum verification.
+- Enforce the preload/IPC boundary, CSP, `contextIsolation`, `sandbox`, and
+  single-instance/catalog locks.
 - Implement SQLite schema and migrations.
 - Implement drive identity and app-managed folder layout.
-- Add logging and crash-safe shutdown.
-- Sign off this scope and the revised screens.
+- Add logging, error taxonomy, and crash-safe shutdown.
+- Sign off this scope, the architecture decisions, and the revised screens.
 
-**Exit:** app opens, detects a drive, creates an empty catalog, and safely closes.
+**Exit:** app opens in development and packaged form, detects a drive, creates an
+empty catalog, safely closes, and all quality gates run in CI.
 
 ### Phase 1 — Drive selection and scanning
 
@@ -981,29 +1616,49 @@ an implemented feature.
 - SQLite backup/restore drill.
 - Codec/format matrix.
 - IPC/security review.
+- Full E2E suite against a packaged build on a clean Windows VM.
+- Installer, portable ZIP, uninstaller, and checksum verification.
+- Coverage and quality-gate pass.
 - Acceptance-criteria pass.
 
-**Exit:** specification §17 acceptance criteria are met.
+**Exit:** specification §17 acceptance criteria are met, the packaged build
+passes E2E and smoke tests, and all quality gates are green.
 
 ---
 
-## 9. Test strategy
+## 10. Test strategy
 
-**Unit**
-- Date priority, precision, provenance, overrides, suspicious dates.
-- Incremental diff and missing-file transitions.
-- Hash grouping and moved-candidate matching.
-- Path normalization and drive identity.
-- IPC input validation.
+Section 8.5 defines the test pyramid, tools, coverage floors, and CI gates. This
+section maps the strategy to product areas.
+
+| Product area | Unit | Component | Integration | E2E |
+|---|---|---|---|---|
+| Drive identity and selection | Path/ID rules, letter-change decisions | Gate cards, confirmation dialog | Volume fixture and catalog lookup | Select/open/reconnect flows |
+| Scanning | Stage transitions, resume rules, diff logic | Progress cards, pause/resume states | Scan coordinator with temp drive | Start, pause, resume, interrupt, complete |
+| Memory Lane | Date grouping, pagination keys | Filters, density, selection, empty states | Query/repository paging | Browse, filter, select |
+| Viewer | Date precision, duplicate labels | Photo/video details, date dialog | Metadata read and duplicate lookup | Open photo/video, assign date |
+| Date unavailable | Year/month validation, override rules | Grid selection, batch panel | Apply overrides to catalog | Bulk assign and verify |
+| Other files | Category mapping | Table filtering, empty category | Catalog queries and external-open guard | Filter and open action |
+| Library health | Hash grouping, moved matching, validation rules | Tabs, moved-file batch, duplicate detail, validation states | Missing/moved/duplicates/validation services | Review, confirm, validate |
+| Settings | Preference schema | Toggles, cache dialog | Cache clear and backup status | Change settings, clear cache |
+| Read-only boundary | Path guard rules | No destructive verbs | Open handles and writable-root allowlist | Attempted mutation has no path |
+
+Additional non-functional checks:
+
+**Contract**
+- Every IPC channel has a Zod request schema and result schema.
+- Envelope and error-code tests for all failure paths.
+- Channel names are centralized and checked for duplicates.
 
 **Integration**
 - Temporary directory simulating an external drive.
-- Scan stage independence and resume.
+- Real `better-sqlite3` database with migrations applied.
+- Scan stage independence, resume, and interruption.
 - Drive letter change confirmation.
 - SQLite backup consistency.
 - Cache clear without catalog damage.
 - Validation levels independently and together.
-- Unreadable/permission-denied files.
+- Unreadable, permission-denied, and corrupt file fixtures.
 
 **Performance**
 - 100k–200k synthetic files.
@@ -1011,6 +1666,7 @@ an implemented feature.
 - Scroll FPS and query latency during active scanning.
 - Thumbnail viewport prioritization.
 - Hashing throughput without UI stalls.
+- Run nightly, not as a blocking PR check.
 
 **Security and read-only**
 - Assert no mutation IPC exists.
@@ -1018,14 +1674,23 @@ an implemented feature.
 - Path traversal and crafted catalog-ID tests.
 - Reveal/open-external only for catalog-owned paths.
 - No arbitrary shell execution from the renderer.
+- CSP and navigation-blocking tests in the packaged renderer.
 
 **Manual acceptance**
 - Walk the specification §17 criteria screen by screen.
 - Verify every visible control maps to this document.
+- Verify the packaged installer, portable build, and uninstaller on a clean
+  Windows VM.
+
+**Test data rules**
+- Use synthetic media, fake metadata, and fixture catalogs.
+- Never commit personal photos or real archive paths.
+- E2E tests use a temporary `userData` directory and fixture drive.
+- A test must not depend on a developer's real drive letter or local catalog.
 
 ---
 
-## 10. Acceptance-criteria mapping
+## 11. Acceptance-criteria mapping
 
 | Specification criterion | Where satisfied |
 |---|---|
@@ -1048,10 +1713,11 @@ an implemented feature.
 | Cache size visible and clear without affecting originals | Settings storage section. |
 | Validation workflow produces a report | Library health → Validation. |
 | Architecture leaves room for future partial backups | Data-model placeholders; no combined catalog. |
+| Delivery quality (not a product criterion) | Section 8 static limits, coverage floors, E2E suite, and CI gates. |
 
 ---
 
-## 11. Risks and mitigations
+## 12. Risks and mitigations
 
 | Risk | Mitigation |
 |---|---|
@@ -1066,13 +1732,29 @@ an implemented feature.
 | SQLite on removable media behaves differently | Prototype WAL/checkpoint behavior on real USB drives; document safe-shutdown behavior. |
 | App-managed writes fail on exFAT/NTFS permissions | Detect and report a clear catalog-creation error; do not fall back to writing in archive folders. |
 | Validation deep hash duplicates work | Reuse hash queue and existing hashes; only hash what is missing or requested. |
+| Electron native modules fail only after packaging | Rebuild against the Electron ABI, `asarUnpack` native addons, and run a packaged-app smoke test in CI. |
+| Sidecar binaries are missing in the installer | Fetch pinned binaries with checksums, copy them via `extraResources`, and resolve them from `process.resourcesPath`. |
+| File-size and complexity limits cause over-fragmentation | Use the 300-line soft target for review, 400 hard limit, and allow documented exceptions for migrations/generated code. |
+| Coverage becomes a vanity metric | Per-file thresholds for critical modules, behavior-focused tests, and review of uncovered failure paths. |
+| E2E tests become flaky and ignored | No fixed sleeps, isolated temp userData/drive, trace on failure, retry once in CI, and fix flaky tests promptly. |
+| Unsigned installer triggers SmartScreen | Document the warning for v0.1 and plan Authenticode signing before public release. |
 
 ---
 
-## 12. Open implementation decisions
+## 13. Open implementation decisions
 
 These remain technical decisions, not product-scope changes:
 
+- Exact Electron, React, and library versions pinned at scaffold time.
+- Whether `better-sqlite3` runs on the main thread or in a dedicated database
+  worker, while keeping a single writer.
+- Piscina versus raw `worker_threads` for the first worker-pool implementation.
+- Code-signing provider and certificate acquisition timeline.
+- Auto-update mechanism and release channel after v0.1.
+- Exact source and checksum distribution process for ExifTool/ffmpeg binaries.
+- Whether installation-level settings use `electron-store`, a separate SQLite
+  app database, or both.
+- Exact coverage exclusions and per-file thresholds after the first prototype.
 - Exact drive-identity API and behavior across NTFS/exFAT.
 - Final SQLite WAL/checkpoint strategy on removable drives.
 - Exact backup retention count.
@@ -1087,7 +1769,7 @@ These remain technical decisions, not product-scope changes:
 
 ---
 
-## 13. Prototype notes
+## 14. Prototype notes
 
 The revised `ui-mockups/` files are a **clickable static prototype**:
 
