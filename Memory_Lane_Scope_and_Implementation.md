@@ -43,9 +43,13 @@ explicitly deferred to a later phase.
 | Prototype fidelity | Clickable static prototype with working navigation, tabs, dialogs, and realistic sample data. No real filesystem access. |
 | File handling | Replace the original mockups in `ui-mockups/`; obsolete screens are removed. |
 | Codebase | Single npm package with layered `src/main`, `src/preload`, `src/renderer`, and `src/shared` modules. Architecture boundaries are enforced by tooling, not convention. |
-| Build and packaging | `electron-vite` for development/build and `electron-builder` for Windows packaging. Ship an NSIS per-user installer plus a portable ZIP. Unsigned first; Authenticode signing before public release. |
+| Build and packaging | `electron-vite` for development/build and `electron-builder` for Windows packaging. Ship an NSIS per-user installer plus a portable ZIP. Stay unsigned; SmartScreen impact is documented. |
 | Frontend stack | React + TypeScript, HashRouter, TanStack Query, Zustand, CSS Modules with design tokens, Radix primitives, Lucide icons, TanStack Virtual. |
-| Main-process stack | Node.js + TypeScript, `better-sqlite3` with SQL migrations and repositories, Piscina worker pools, ExifTool, ffmpeg/ffprobe, Sharp, Zod IPC contracts, `electron-log`. |
+| Main-process stack | Node.js + TypeScript, Piscina worker pools, ExifTool, ffmpeg/ffprobe, Sharp, Zod IPC contracts, `electron-log`. |
+| Database execution | A dedicated database worker owns `better-sqlite3` and is the single writer for both the PC `app.db` and the active drive's `catalog.db`. The main process never opens SQLite directly. |
+| Installation state | A separate SQLite `app.db` on the PC stores window/UI preferences, registered drives, and backup history. `electron-store` is not used. |
+| Native binaries | ExifTool, ffmpeg, and ffprobe are fetched from pinned upstream releases, verified against a committed checksum manifest, cached in CI, and copied via `extraResources`. Binaries are not committed to git. |
+| Code signing | Remain unsigned indefinitely. SmartScreen warnings are documented; the decision is revisited only if public distribution or user acquisition requires signing. |
 | Quality gates | 400-line hard file limit, 300-line soft target, cyclomatic complexity 10, cognitive complexity 15, 80% overall coverage and 90% for critical modules. Enforced in CI. |
 
 ---
@@ -672,21 +676,29 @@ Renderer (React + TypeScript)
    ▼
 Electron main process (trusted Node.js)
    ├─ Drive identity service
-   ├─ Catalog database service (SQLite)
+   ├─ Catalog client (typed RPC to the database worker)
    ├─ Scan coordinator
-   ├─ Metadata workers (ExifTool / ffprobe)
-   ├─ Thumbnail workers (Sharp / ffmpeg / embedded previews)
-   ├─ Hash workers (SHA-256)
+   ├─ Metadata worker pool (Piscina / ExifTool / ffprobe)
+   ├─ Thumbnail worker pool (Piscina / Sharp / ffmpeg)
+   ├─ Hash worker pool (Piscina / SHA-256)
    ├─ Validation coordinator
    ├─ Cache service
    └─ Backup service
+
+Database worker (dedicated, trusted Node.js)
+   ├─ better-sqlite3 connection
+   ├─ app.db (PC installation state)
+   ├─ catalog.db (active archive drive)
+   └─ repositories and migrations
 ```
 
 Rules:
 - The renderer has no Node.js filesystem access.
 - All source-drive access happens in the main process or trusted workers.
-- The main process is the single SQLite writer. Workers do CPU/IO work and
-  return results; they do not open write connections.
+- The dedicated database worker is the **single SQLite writer** for both
+  `app.db` and the active `catalog.db`. The Electron main process never opens
+  SQLite directly. Workers do CPU/IO work and return results; they do not open
+  write connections.
 - Worker pools are bounded with Piscina and split by task class (metadata,
   thumbnails, hashing) so one workload cannot starve the others.
 - The preload API exposes catalog IDs and validated operations, not raw
@@ -701,7 +713,7 @@ Rules:
 |---|---|---|
 | Desktop shell | Electron, current stable, pinned exact version | Windows desktop requirement; mature native filesystem access. |
 | Build | `electron-vite` | Separate Vite builds for main, preload, and renderer; HMR and fast iteration. |
-| Packaging | `electron-builder` | Mature Windows NSIS/portable targets, native-module rebuilds, code-signing support. |
+| Packaging | `electron-builder` | Mature Windows NSIS/portable targets and native-module rebuilds. Signing hooks remain available but are unused in v0.1. |
 | Renderer | React + TypeScript | Component model, ecosystem, strong typing. |
 | Routing | React Router with `HashRouter` | Works from `file://` in packaged Electron without a custom protocol. |
 | Server state | TanStack Query | Caching, loading/error states, invalidation for IPC-backed catalog data. |
@@ -711,7 +723,7 @@ Rules:
 | Styling | CSS Modules + CSS custom-property tokens | Scoped styles, explicit design system, readable component files. |
 | Primitives | Radix UI | Accessible dialog, tabs, tooltip, dropdown, and popover behavior. |
 | Icons | Lucide React | Tree-shakeable SVG icons; no multi-megabyte icon font in production. |
-| Database | `better-sqlite3` | Fast synchronous SQLite access in the main process; explicit SQL for catalog queries. |
+| Database | `better-sqlite3` in a dedicated DB worker | Fast synchronous SQLite isolated from the Electron main thread; one writer for `app.db` and the active `catalog.db`. |
 | Migrations | Handwritten SQL migrations | Full control over indexes and SQLite behavior; easy to test. |
 | Worker pool | Piscina | Bounded worker pools for metadata, thumbnails, and hashing. |
 | Metadata | `exiftool-vendored` client + pinned ExifTool binary | Persistent ExifTool process, broad metadata coverage, and embedded RAW previews without spawning per file. |
@@ -720,7 +732,7 @@ Rules:
 | Hashing | Node `crypto` SHA-256 | No extra dependency; chunked, resumable reads. |
 | IPC validation | Zod | One schema source for channel payloads and result envelopes. |
 | Logging | `electron-log` | Local, bounded logs in the main process; no telemetry. |
-| App preferences | `electron-store` + Zod | Window bounds, density, and other installation-level UI preferences. |
+| Installation state | PC `app.db` SQLite | Window/UI preferences, registered drives, backup history, and schema migrations. `electron-store` is not used. |
 | Unit/component tests | Vitest + Testing Library | Fast TypeScript-native tests and behavior-focused React tests. |
 | E2E tests | Playwright Electron | Real Electron launch, window, IPC, and filesystem fixture flows. |
 | Architecture checks | dependency-cruiser | Enforce renderer/main/preload/shared boundaries and no cycles. |
@@ -797,6 +809,7 @@ src/main/
     health/
     settings/
   workers/
+    db-worker.ts
     metadata-worker.ts
     thumbnail-worker.ts
     hash-worker.ts
@@ -804,24 +817,34 @@ src/main/
     windows-paths.ts
     volume-identity.ts
     shell-actions.ts
-  db/
-    connection.ts
+  db/                    (imported only by db-worker.ts)
+    app-db.ts
+    catalog-db.ts
     migrations/
     repositories/
+  clients/
+    app-state-client.ts  (typed RPC to db-worker)
+    catalog-client.ts    (typed RPC to db-worker)
 ```
 
 Rules:
 - `domain` contains pure types and rules; it imports no Electron, Node I/O, or
   SQLite.
-- `application` contains use cases and repository interfaces.
-- `infrastructure` implements SQLite, filesystem, ExifTool, ffmpeg, and Sharp
-  adapters.
+- `application` contains use cases; it depends on client/repository interfaces,
+  not on a concrete SQLite connection.
+- `infrastructure` implements filesystem, ExifTool, ffmpeg, and Sharp adapters.
 - IPC handlers are thin: validate input with Zod, call a use case, map the result
   to a typed envelope, and log failures without leaking internals.
-- The main process is the **single SQLite writer**. Workers return results to
-  the main process; they do not open write connections.
-- Repositories are interfaces with a `better-sqlite3` implementation and a fake
-  implementation for unit tests.
+- The dedicated `db-worker.ts` is the **single SQLite writer**. It owns both
+  `app.db` on the PC and the active `catalog.db` on the drive. It is a dedicated
+  `worker_threads` worker, not a Piscina pool, because it must preserve a single
+  connection and write order.
+- The main process imports `better-sqlite3` nowhere. Modules use
+  `AppStateClient`/`CatalogClient` RPC interfaces; dependency-cruiser enforces
+  this.
+- Repositories are interfaces with a `better-sqlite3` implementation inside the
+  DB worker and a fake/in-process implementation for unit tests. Integration
+  tests can instantiate the real repositories directly against a temporary DB.
 - One catalog lock prevents two app instances from writing the same archive.
 - Native binaries are resolved from `resourcesPath` in packaged builds and from
   `resources/` in development.
@@ -898,14 +921,36 @@ Rules:
 
 ### 7.5 Data model
 
-Suggested tables and key columns:
+There are two SQLite databases. Both are owned by the dedicated database worker.
+
+**`app.db` — PC installation state**
+
+Stored under `%LOCALAPPDATA%\MemoryLane\app.db`. It never contains archive file
+records and is safe to recreate if lost; the archive catalogs remain authoritative
+for their drives. The app sets Electron's `userData` path to
+`%LOCALAPPDATA%\MemoryLane` before `app.whenReady()`.
 
 | Table | Purpose | Key columns |
 |---|---|---|
-| `drives` | Registered volumes | `id`, `volume_guid`, `volume_serial`, `label`, `filesystem`, `root_path`, `last_letter`, `last_seen_at`, `catalog_schema` |
-| `scan_sessions` | Scan runs | `id`, `drive_id`, `started_at`, `finished_at`, `state`, `mode`, `last_stage` |
+| `app_settings` | Installation preferences | `key`, `value`, `updated_at` |
+| `registered_drives` | Known archive volumes | `id`, `volume_guid`, `volume_serial`, `label`, `filesystem`, `last_root_path`, `last_letter`, `last_seen_at`, `catalog_schema`, `last_backup_at` |
+| `backup_history` | PC catalog backups | `id`, `drive_id`, `path`, `bytes`, `created_at`, `status` |
+| `backup_destinations` | Future partial-backup placeholder | `id`, `volume_guid`, `label`, `last_seen_at` |
+| `schema_migrations` | App schema version | `version`, `applied_at` |
+
+**`catalog.db` — per archive drive**
+
+Stored inside `<drive>\.memorylane\catalog.db`. It is independent and portable
+with its drive.
+
+| Table | Purpose | Key columns |
+|---|---|---|
+| `drive_identity` | Self-recorded volume identity | `id`, `volume_guid`, `volume_serial`, `label`, `filesystem`, `catalog_schema`, `created_at` |
+| `catalog_settings` | Archive-scoped settings | `key`, `value`, `updated_at` |
+| `scan_roots` | Explicit scan roots | `id`, `path`, `enabled`, `created_at` |
+| `scan_sessions` | Scan runs | `id`, `started_at`, `finished_at`, `state`, `mode`, `last_stage` |
 | `scan_stages` | Per-stage progress | `id`, `scan_id`, `stage`, `state`, `processed`, `total`, `started_at`, `finished_at` |
-| `files` | Cataloged files | `id`, `drive_id`, `path`, `name`, `extension`, `size`, `created_at_fs`, `modified_at_fs`, `media_class`, `format`, `mime`, `state`, `missing_since`, `last_seen_at` |
+| `files` | Cataloged files | `id`, `path`, `name`, `extension`, `size`, `created_at_fs`, `modified_at_fs`, `media_class`, `format`, `mime`, `state`, `missing_since`, `last_seen_at` |
 | `file_metadata` | Extracted metadata | `file_id`, `key`, `value`, `source`, `extracted_at` |
 | `file_dates` | Resolved dates | `file_id`, `resolved_date`, `precision`, `source`, `confidence`, `original_value`, `is_override`, `override_id` |
 | `date_overrides` | Manual dates | `id`, `file_id`, `year`, `month`, `created_at`, `reverted_at` |
@@ -914,20 +959,19 @@ Suggested tables and key columns:
 | `duplicate_members` | Group membership | `group_id`, `file_id` |
 | `missing_files` | Current missing state | `file_id`, `last_path`, `last_seen_at`, `reason` |
 | `moved_candidates` | Hash-based relocations | `id`, `file_id`, `old_path`, `new_path`, `sha256`, `state`, `confirmed_at` |
-| `validation_sessions` | Validation runs | `id`, `drive_id`, `levels`, `state`, `started_at`, `finished_at` |
+| `validation_sessions` | Validation runs | `id`, `levels`, `state`, `started_at`, `finished_at` |
 | `validation_results` | Per-file outcomes | `session_id`, `file_id`, `result`, `detail` |
 | `cache_entries` | Generated assets | `file_id`, `kind`, `path`, `bytes`, `generated_at`, `status` |
-| `backup_history` | PC backups | `id`, `drive_id`, `path`, `bytes`, `created_at`, `status` |
-| `app_settings` | Local settings | `key`, `value` |
-| `backup_destinations` | Future feature placeholder | `id`, `volume_guid`, `label`, `last_seen_at` |
+| `schema_migrations` | Catalog schema version | `version`, `applied_at` |
 
 Add indexes for date browsing, media class, path, hash, missing state, and
-duplicate membership.
+duplicate membership. Enable WAL, `busy_timeout`, and controlled checkpoints on
+both databases.
 
-`app_settings` is for archive-scoped settings that must travel with the catalog.
-Installation-level preferences such as window bounds, last view, and grid
-density live in `electron-store` under `%APPDATA%`. A setting must have one owner;
-do not duplicate it in both stores.
+`app_settings` owns installation preferences only. `catalog_settings` owns
+archive-specific settings that must travel with the drive. A setting must have
+one owner; do not duplicate it across the two databases. `electron-store` is not
+used.
 
 ### 7.6 Date resolution
 
@@ -1044,8 +1088,10 @@ Behavior:
 - Again on graceful close.
 - Destination: `%LOCALAPPDATA%\MemoryLane\backups\<volume-id>\`.
 - Exclude the thumbnail cache.
-- Record backup history and show status/location/last backup in Settings.
-- No restore UI in v1; document the manual recovery path.
+- Record backup history in `app.db`; show status/location/last backup in Settings.
+- On graceful close, also write a small `app.db.bak` copy. It is not an archive
+  catalog backup.
+- No restore UI in v1; document the manual recovery path for both databases.
 
 ### 7.13 Drive identity
 
@@ -1091,10 +1137,13 @@ The application is a single npm package with enforced internal boundaries:
 │  ├─ check-file-size.mjs
 │  └─ verify-package.mjs
 ├─ docs/
-│  └─ adr/                  Architecture decision records
+│  ├─ adr/                  Architecture decision records
+│  └─ quality-exceptions.md
 ├─ build/
 │  └─ icon.ico
 ├─ ui-mockups/              Static design reference (not shipped)
+├─ native-binaries.lock.json  Pinned versions and SHA-256 checksums
+├─ THIRD_PARTY_NOTICES.md     Binary licenses and attribution
 ├─ electron.vite.config.ts
 ├─ electron-builder.yml
 ├─ vitest.config.ts
@@ -1163,9 +1212,10 @@ release/
   repository `resources/` directory.
 - `npmRebuild: true` and `@electron/rebuild` ensure native modules match the
   Electron ABI, not the system Node ABI.
-- Binary versions are pinned and verified by SHA-256 in
-  `scripts/fetch-binaries.mjs`. They are fetched during development/CI, not
-  committed to git.
+- Binary versions and SHA-256 checksums live in `native-binaries.lock.json`.
+  `scripts/fetch-binaries.mjs` downloads and verifies them during development and
+  CI; binaries are not committed to git. Licenses and attribution are recorded
+  in `THIRD_PARTY_NOTICES.md`.
 
 #### `electron-builder` targets
 
@@ -1176,7 +1226,8 @@ release/
   - Installs under `%LOCALAPPDATA%\Programs\Memory Lane`.
 - **Portable ZIP**:
   - For testing and users who do not want an installer.
-  - Application preferences still live in `%APPDATA%` by default.
+  - Application preferences and `app.db` still live in
+    `%LOCALAPPDATA%\MemoryLane` for consistency with the installed build.
 - **Architecture**: x64 first. ARM64 is deferred until tested.
 - **Icon**: `build/icon.ico`.
 - **Publish**: disabled in the first release; GitHub Releases can be added later.
@@ -1225,16 +1276,24 @@ publish: null
 The exact `asarUnpack` list is verified by a packaged-app smoke test. A build
 that works in development but fails after packaging is a release blocker.
 
-#### Code signing
+#### Distribution signing
 
-- v0.1 development builds are unsigned. Windows SmartScreen may warn on first
-  launch.
-- Before a public release, sign the installer and executables with an
-  Authenticode certificate from a trusted CA or cloud-signing service.
-- Certificates and passwords live only in CI secrets (`CSC_LINK`,
-  `CSC_KEY_PASSWORD`, or the chosen cloud-signing provider's credentials).
-- Never commit a `.pfx`, `.p12`, password, or signing token.
-- Timestamp the signature so it remains valid after the certificate expires.
+**Decision: remain unsigned indefinitely.** This is an accepted v0.1 tradeoff,
+not an oversight.
+
+- No code-signing certificate is purchased or configured.
+- No signing secrets (`CSC_LINK`, `CSC_KEY_PASSWORD`) are added to CI.
+- Windows SmartScreen may warn on first launch and may require “More info” before
+  running the installer.
+- Release notes and the download page must state that the build is unsigned and
+  show the published SHA-256 checksum.
+- Revisit only if public distribution, user acquisition, or organizational
+  policy makes signing necessary. If revisited, use Authenticode or a
+  cloud-signing service, keep credentials in CI secrets, timestamp signatures,
+  and add a new ADR.
+
+Never commit a `.pfx`, `.p12`, password, or signing token even if signing is
+added later.
 
 #### Release checklist
 
@@ -1366,6 +1425,10 @@ Representative ESLint configuration:
 - `src/shared` cannot import Electron, Node built-ins, React, or database code.
 - `domain` cannot import `infrastructure`.
 - `application` cannot import Electron, SQLite, or concrete filesystem adapters.
+- Only `src/main/workers/db-worker.ts` and `src/main/db/**` may import
+  `better-sqlite3`.
+- Other main modules must use `AppStateClient`/`CatalogClient`; they cannot
+  import `src/main/db/**` or open SQLite.
 - No circular dependencies.
 - No orphan modules or unused exports (`knip`).
 
@@ -1390,6 +1453,12 @@ Example rules:
   severity: "error",
   from: { path: "^src/main/modules/.+/domain" },
   to: { path: "^src/main/modules/.+/infrastructure" }
+},
+{
+  name: "only-db-worker-imports-sqlite",
+  severity: "error",
+  from: { pathNot: "^src/main/(workers/db-worker|db/)" },
+  to: { path: "node_modules/better-sqlite3" }
 }
 ```
 
@@ -1402,7 +1471,7 @@ The test pyramid is intentional:
 | Unit | Vitest | Pure domain rules, date resolution, scan diff, path normalization, hash grouping, IPC schemas | Fast; no Electron, no real disk |
 | Component | Vitest + Testing Library | React components, dialogs, tabs, selection, date assignment, error states | Behavior and accessibility |
 | Contract | Vitest + Zod | IPC payload/result schemas, error envelopes, channel names | Every channel |
-| Integration | Vitest + real SQLite + temp filesystem | Repositories, migrations, scan coordinator, backup, cache, validation, moved-file matching | Main-process services without the UI |
+| Integration | Vitest + real SQLite + temp filesystem | Repositories, migrations, DB-worker RPC, scan coordinator, backup, cache, validation, moved-file matching | Main-process services without the UI |
 | E2E | Playwright Electron | Drive selection → scan → browse → viewer → date → health → settings | A small number of critical user journeys |
 | Smoke | Packaged app launch | Installer/unpacked build starts, opens a fixture catalog, no crash | Every release |
 
@@ -1461,10 +1530,11 @@ npm run depcruise
 npm run knip
 npm run test:unit -- --coverage
 npm run test:integration
+npm run fetch:binaries
 npm run build
 npm run test:e2e
 npm run package:win
-upload installer + portable ZIP + coverage + Playwright report
+upload installer + portable ZIP + coverage + Playwright report + checksums
 ```
 
 Notes:
@@ -1476,6 +1546,8 @@ Notes:
 - Branch protection requires the quality, test, E2E, and package jobs.
 - Packaging is part of CI because a build that only works in development is not
   a working Electron release.
+- The pipeline has no signing step. It publishes unsigned artifacts with a
+  SHA-256 checksum and a SmartScreen note.
 
 ### 8.7 Local workflow
 
@@ -1520,7 +1592,7 @@ Significant decisions are recorded in `docs/adr/`:
 - `0004-renderer-state-and-data-flow.md`
 - `0005-styling-and-component-primitives.md`
 - `0006-testing-and-quality-gates.md`
-- `0007-packaging-and-code-signing.md`
+- `0007-packaging-and-distribution.md`
 
 An ADR is short: context, decision, alternatives considered, consequences, and
 status. It is not a design essay.
@@ -1538,11 +1610,13 @@ status. It is not a design essay.
 - Add `scripts/check-file-size.mjs`, dependency-cruiser, and knip.
 - Add Vitest, Testing Library, and Playwright configuration plus the initial CI
   workflow and coverage thresholds.
-- Add the `scripts/fetch-binaries.mjs` flow for pinned ExifTool/ffmpeg/ffprobe
-  binaries and checksum verification.
+- Add the `scripts/fetch-binaries.mjs` flow, `native-binaries.lock.json`,
+  checksum verification, and `THIRD_PARTY_NOTICES.md`.
 - Enforce the preload/IPC boundary, CSP, `contextIsolation`, `sandbox`, and
   single-instance/catalog locks.
-- Implement SQLite schema and migrations.
+- Implement the dedicated DB worker as the single SQLite writer for `app.db` and
+  `catalog.db`.
+- Implement both schemas and migration runners.
 - Implement drive identity and app-managed folder layout.
 - Add logging, error taxonomy, and crash-safe shutdown.
 - Sign off this scope, the architecture decisions, and the revised screens.
@@ -1737,7 +1811,9 @@ Additional non-functional checks:
 | File-size and complexity limits cause over-fragmentation | Use the 300-line soft target for review, 400 hard limit, and allow documented exceptions for migrations/generated code. |
 | Coverage becomes a vanity metric | Per-file thresholds for critical modules, behavior-focused tests, and review of uncovered failure paths. |
 | E2E tests become flaky and ignored | No fixed sleeps, isolated temp userData/drive, trace on failure, retry once in CI, and fix flaky tests promptly. |
-| Unsigned installer triggers SmartScreen | Document the warning for v0.1 and plan Authenticode signing before public release. |
+| Unsigned installer triggers SmartScreen | Accepted for v0.1: document the warning, publish checksums, and revisit signing only if distribution needs it. |
+| DB worker becomes a serialization bottleneck | Keep queries indexed and paginated, batch writes, separate CPU pools, and measure queue latency under 100k–200k files. |
+| `app.db` is lost or corrupted | Back it up on graceful close, keep it small/recreatable, and never treat it as the archive catalog. |
 
 ---
 
@@ -1746,14 +1822,8 @@ Additional non-functional checks:
 These remain technical decisions, not product-scope changes:
 
 - Exact Electron, React, and library versions pinned at scaffold time.
-- Whether `better-sqlite3` runs on the main thread or in a dedicated database
-  worker, while keeping a single writer.
-- Piscina versus raw `worker_threads` for the first worker-pool implementation.
-- Code-signing provider and certificate acquisition timeline.
+- Exact upstream ExifTool/ffmpeg/ffprobe versions and license review.
 - Auto-update mechanism and release channel after v0.1.
-- Exact source and checksum distribution process for ExifTool/ffmpeg binaries.
-- Whether installation-level settings use `electron-store`, a separate SQLite
-  app database, or both.
 - Exact coverage exclusions and per-file thresholds after the first prototype.
 - Exact drive-identity API and behavior across NTFS/exFAT.
 - Final SQLite WAL/checkpoint strategy on removable drives.

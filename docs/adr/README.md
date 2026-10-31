@@ -19,7 +19,7 @@ and status.
 - `0004-renderer-state-and-data-flow.md`
 - `0005-styling-and-component-primitives.md`
 - `0006-testing-and-quality-gates.md`
-- `0007-packaging-and-code-signing.md`
+- `0007-packaging-and-distribution.md`
 
 Create each record during Phase 0 of the implementation plan, before the related
 code is written. A decision that changes later gets a new ADR rather than a

@@ -59,11 +59,12 @@ PC backups live in app-managed locations outside the original archive folders.
 | Renderer | React + TypeScript + HashRouter |
 | Data and UI state | TanStack Query + Zustand |
 | Styling and primitives | CSS Modules + design tokens + Radix + Lucide |
-| Database | `better-sqlite3` with SQL migrations and repositories |
+| Database | `better-sqlite3` in a dedicated DB worker; PC `app.db` + per-drive `catalog.db` |
 | Workers | Piscina worker pools |
-| Media tooling | ExifTool, ffmpeg/ffprobe, Sharp |
+| Media tooling | Pinned ExifTool, ffmpeg/ffprobe, Sharp |
 | Validation | Zod IPC contracts |
 | Tests | Vitest + Testing Library + Playwright Electron |
+| Distribution | Unsigned NSIS installer + portable ZIP; SmartScreen warning documented |
 
 ## Engineering standards
 
