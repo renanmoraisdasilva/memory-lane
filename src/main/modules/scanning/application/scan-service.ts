@@ -7,7 +7,11 @@ import type { DbClient } from "../../../clients/db-client";
 import type { Logger } from "../../../logging/types";
 import type { DetectedDrive } from "../../drives/domain/drive";
 import { getCatalogPaths } from "../../drives/application/drive-service";
-import type { FileHasher, FileMetadataExtractor, ThumbnailGenerator } from "../domain/scan-files";
+import type {
+  FileHasher,
+  FileMetadataExtractor,
+  ThumbnailWorkScheduler,
+} from "../domain/scan-files";
 import { ScanRunner } from "./scan-runner";
 import type { ScanRuntime } from "./scan-runtime";
 
@@ -39,7 +43,7 @@ export interface ScanServiceDependencies {
   listDetected: () => Promise<DetectedDrive[]>;
   logger: Logger;
   metadata: FileMetadataExtractor;
-  thumbnails: ThumbnailGenerator;
+  thumbnails: ThumbnailWorkScheduler;
   hasher: FileHasher;
   now?: () => Date;
   sleep?: (milliseconds: number) => Promise<void>;
@@ -68,7 +72,7 @@ export class ScanService {
   private readonly listDetected: () => Promise<DetectedDrive[]>;
   private readonly logger: Logger;
   private readonly metadata: FileMetadataExtractor;
-  private readonly thumbnails: ThumbnailGenerator;
+  private readonly thumbnails: ThumbnailWorkScheduler;
   private readonly hasher: FileHasher;
   private readonly nowDate: () => Date;
   private readonly sleep: (milliseconds: number) => Promise<void>;

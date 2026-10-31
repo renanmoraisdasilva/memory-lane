@@ -53,11 +53,17 @@ export interface MetadataSaveItem {
   status: "ok" | "failed";
   entries: MetadataEntry[];
   date: ResolvedFileDate | null;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
 }
 
 export interface ExtractedMetadata {
   entries: MetadataEntry[];
   date: ResolvedFileDate | null;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
 }
 
 export interface FileMetadataExtractor {
@@ -66,6 +72,16 @@ export interface FileMetadataExtractor {
 
 export interface ThumbnailGenerator {
   generate(filePath: string, outputPath: string): Promise<{ bytes: number } | null>;
+}
+
+export type ThumbnailPriority = "interactive" | "bulk";
+
+export interface ThumbnailWorkScheduler {
+  generate(
+    filePath: string,
+    outputPath: string,
+    priority: ThumbnailPriority,
+  ): Promise<{ bytes: number } | null>;
 }
 
 export interface FileHasher {

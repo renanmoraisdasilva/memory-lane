@@ -90,6 +90,9 @@ describe("file metadata extractor", () => {
       source: "filesystem.created",
       confidence: 0.6,
     });
+    expect(extracted.width).toBe(1024);
+    expect(extracted.height).toBe(768);
+    expect(extracted.durationSeconds).toBeNull();
   });
 
   it("falls back to the modified date when the created date is unusable", async () => {
@@ -114,5 +117,7 @@ describe("file metadata extractor", () => {
     );
 
     expect(extracted.entries.some((entry) => entry.key.startsWith("media."))).toBe(false);
+    expect(extracted.width).toBeNull();
+    expect(extracted.durationSeconds).toBeNull();
   });
 });

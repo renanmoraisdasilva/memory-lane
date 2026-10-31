@@ -27,7 +27,7 @@ const summary: CatalogSummary = {
   catalogPath: "F:\\.memorylane\\catalog.db",
   driveLabel: "Archive",
   volumeId,
-  schemaVersion: 2,
+  schemaVersion: 3,
   fileCount: 3,
   openedAt: "2026-10-31T14:00:00.000Z",
 };

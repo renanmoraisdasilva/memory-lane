@@ -52,7 +52,7 @@ describe("scan service integration", () => {
 
       const summary = await harness.driveService.openCatalog(harness.drive.volumeId);
       expect(summary.fileCount).toBe(3);
-      expect(summary.schemaVersion).toBe(2);
+      expect(summary.schemaVersion).toBe(3);
 
       const drives = await harness.driveService.listDrives();
       expect(drives[0]?.indexedFiles).toBe(3);

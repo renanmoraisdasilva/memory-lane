@@ -2,7 +2,11 @@ import type { ScanIntensity, ScanStageId, ScanState } from "@shared/contracts/sc
 import type { VolumeId } from "@shared/contracts/drives";
 import type { DbClient } from "../../../clients/db-client";
 import type { Logger } from "../../../logging/types";
-import type { FileHasher, FileMetadataExtractor, ThumbnailGenerator } from "../domain/scan-files";
+import type {
+  FileHasher,
+  FileMetadataExtractor,
+  ThumbnailWorkScheduler,
+} from "../domain/scan-files";
 
 export interface ScanRuntime {
   db: DbClient;
@@ -11,7 +15,7 @@ export interface ScanRuntime {
   cachePath: string;
   logger: Logger;
   metadata: FileMetadataExtractor;
-  thumbnails: ThumbnailGenerator;
+  thumbnails: ThumbnailWorkScheduler;
   hasher: FileHasher;
   now: () => Date;
   delay: (milliseconds: number) => Promise<void>;

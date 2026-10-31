@@ -187,13 +187,24 @@ export class ScanRunner {
         status: "ok",
         entries: extracted.entries,
         date: extracted.date,
+        width: extracted.width,
+        height: extracted.height,
+        durationSeconds: extracted.durationSeconds,
       };
     } catch (error) {
       this.runtime.logger.warn("Metadata extraction failed", {
         path: file.path,
         message: error instanceof Error ? error.message : String(error),
       });
-      return { fileId: file.id, status: "failed", entries: [], date: null };
+      return {
+        fileId: file.id,
+        status: "failed",
+        entries: [],
+        date: null,
+        width: null,
+        height: null,
+        durationSeconds: null,
+      };
     }
   }
 
@@ -245,7 +256,7 @@ export class ScanRunner {
   ): Promise<ThumbnailSaveItem> {
     const outputPath = path.join(directory, `${file.id}.jpg`);
     try {
-      const result = await this.runtime.thumbnails.generate(file.path, outputPath);
+      const result = await this.runtime.thumbnails.generate(file.path, outputPath, "bulk");
       if (result === null) {
         return { fileId: file.id, path: "", bytes: 0, status: "failed" };
       }

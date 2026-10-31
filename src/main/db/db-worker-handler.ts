@@ -12,6 +12,8 @@ import { listRegisteredDrives, registerDrive } from "./repositories/app-reposito
 import { recoverInterruptedScans } from "./repositories/scan-session-repository";
 import { createScanDbHandlers } from "./scan-db-handlers";
 import { SCAN_DB_METHODS, type ScanDbMethod } from "./scan-worker-protocol";
+import { createLibraryDbHandlers } from "./library-db-handlers";
+import { LIBRARY_DB_METHODS, type LibraryDbMethod } from "./library-worker-protocol";
 import { acquireCatalogLock } from "../platform/catalog-lock";
 import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
@@ -39,6 +41,7 @@ interface CatalogSession {
     create: boolean,
   ): Database.Database;
   get(): Database.Database;
+  getPath(): string;
   close(): void;
 }
 
@@ -46,8 +49,13 @@ function isScanDbMethod(method: DbMethod): method is ScanDbMethod {
   return (SCAN_DB_METHODS as readonly string[]).includes(method);
 }
 
+function isLibraryDbMethod(method: DbMethod): method is LibraryDbMethod {
+  return (LIBRARY_DB_METHODS as readonly string[]).includes(method);
+}
+
 function createCatalogSession(): CatalogSession {
   let catalogDb: Database.Database | null = null;
+  let catalogFilePath: string | null = null;
   let releaseLock: (() => void) | null = null;
 
   const close = (): void => {
@@ -55,6 +63,7 @@ function createCatalogSession(): CatalogSession {
       catalogDb.close();
       catalogDb = null;
     }
+    catalogFilePath = null;
     releaseLock?.();
     releaseLock = null;
   };
@@ -95,6 +104,7 @@ function createCatalogSession(): CatalogSession {
     }
 
     catalogDb = db;
+    catalogFilePath = filePath;
     releaseLock = release;
     return db;
   };
@@ -106,7 +116,14 @@ function createCatalogSession(): CatalogSession {
     return catalogDb;
   };
 
-  return { open, get, close };
+  const getPath = (): string => {
+    if (catalogFilePath === null) {
+      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Open a catalog before browsing");
+    }
+    return catalogFilePath;
+  };
+
+  return { open, get, getPath, close };
 }
 
 export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
@@ -116,6 +133,10 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   const scanHandlers = createScanDbHandlers({
     getCatalog: () => catalogs.get(),
     getAppDb: () => appDb,
+  });
+  const libraryHandlers = createLibraryDbHandlers({
+    getCatalog: () => catalogs.get(),
+    getCatalogPath: () => catalogs.getPath(),
   });
 
   const handleCreateCatalog = (params: unknown): unknown => {
@@ -143,6 +164,9 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   const handle = (method: DbMethod, params: unknown): unknown => {
     if (isScanDbMethod(method)) {
       return scanHandlers.handle(method, params);
+    }
+    if (isLibraryDbMethod(method)) {
+      return libraryHandlers.handle(method, params);
     }
 
     switch (method) {

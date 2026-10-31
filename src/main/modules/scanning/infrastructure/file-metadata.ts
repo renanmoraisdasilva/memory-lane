@@ -8,6 +8,7 @@ import type {
   ResolvedFileDate,
 } from "../domain/scan-files";
 import { readImageDimensions } from "./image-dimensions";
+import { readVideoDurationSeconds } from "./video-duration";
 
 const IMAGE_EXTENSIONS = new Set([
   "jpg",
@@ -151,29 +152,67 @@ function baseEntries(file: PendingMetadataFile): MetadataEntry[] {
   return entries;
 }
 
-async function imageEntries(file: PendingMetadataFile): Promise<MetadataEntry[]> {
+interface MediaFacts {
+  entries: MetadataEntry[];
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
+}
+
+async function imageFacts(file: PendingMetadataFile): Promise<MediaFacts> {
   if (file.mediaClass !== "image") {
-    return [];
+    return { entries: [], width: null, height: null, durationSeconds: null };
   }
   try {
     const dimensions = await readImageDimensions(file.path);
     if (dimensions === null) {
-      return [];
+      return { entries: [], width: null, height: null, durationSeconds: null };
     }
-    return [
-      { key: "media.width", value: String(dimensions.width), source: "image" },
-      { key: "media.height", value: String(dimensions.height), source: "image" },
-    ];
+    return {
+      entries: [
+        { key: "media.width", value: String(dimensions.width), source: "image" },
+        { key: "media.height", value: String(dimensions.height), source: "image" },
+      ],
+      width: dimensions.width,
+      height: dimensions.height,
+      durationSeconds: null,
+    };
   } catch {
-    return [];
+    return { entries: [], width: null, height: null, durationSeconds: null };
+  }
+}
+
+async function videoFacts(file: PendingMetadataFile): Promise<MediaFacts> {
+  if (file.mediaClass !== "video") {
+    return { entries: [], width: null, height: null, durationSeconds: null };
+  }
+  try {
+    const duration = await readVideoDurationSeconds(file.path);
+    return {
+      entries:
+        duration === null
+          ? []
+          : [{ key: "media.durationSeconds", value: String(duration), source: "container" }],
+      width: null,
+      height: null,
+      durationSeconds: duration,
+    };
+  } catch {
+    return { entries: [], width: null, height: null, durationSeconds: null };
   }
 }
 
 export function createFileMetadataExtractor(): FileMetadataExtractor {
   return {
     async extract(file: PendingMetadataFile): Promise<ExtractedMetadata> {
-      const entries = [...baseEntries(file), ...(await imageEntries(file))];
-      return { entries, date: resolveDate(file) };
+      const facts = await (file.mediaClass === "video" ? videoFacts(file) : imageFacts(file));
+      return {
+        entries: [...baseEntries(file), ...facts.entries],
+        date: resolveDate(file),
+        width: facts.width,
+        height: facts.height,
+        durationSeconds: facts.durationSeconds,
+      };
     },
   };
 }

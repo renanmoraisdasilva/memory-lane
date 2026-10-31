@@ -63,6 +63,9 @@ const MetadataSaveItemSchema = z.object({
   status: z.enum(["ok", "failed"]),
   entries: z.array(MetadataEntrySchema),
   date: ResolvedDateSchema.nullable(),
+  width: z.number().int().positive().nullable(),
+  height: z.number().int().positive().nullable(),
+  durationSeconds: z.number().nonnegative().nullable(),
 });
 
 const ThumbnailSaveItemSchema = z.object({

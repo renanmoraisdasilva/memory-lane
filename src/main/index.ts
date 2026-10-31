@@ -12,6 +12,12 @@ import { ScanService } from "./modules/scanning/application/scan-service";
 import { createElectronThumbnailGenerator } from "./modules/scanning/infrastructure/electron-thumbnail-generator";
 import { createFileHasher } from "./modules/scanning/infrastructure/file-hasher";
 import { createFileMetadataExtractor } from "./modules/scanning/infrastructure/file-metadata";
+import { createThumbnailScheduler } from "./modules/media/thumbnail-scheduler";
+import { registerMediaProtocol, registerMediaScheme } from "./modules/media/media-protocol";
+import { LibraryService } from "./modules/library/application/library-service";
+import { createShellActions } from "./modules/library/infrastructure/shell-actions";
+
+registerMediaScheme();
 
 app.setName("Memory Lane");
 app.setAppUserModelId("com.memorylane.app");
@@ -62,17 +68,18 @@ function createWindow(): void {
 
 async function startServices(): Promise<void> {
   const workerPath = path.join(__dirname, "db-worker.js");
-  dbClient = new DbWorkerClient(workerPath, paths.appDbPath);
+  const db = new DbWorkerClient(workerPath, paths.appDbPath);
+  dbClient = db;
 
   try {
-    await dbClient.start();
+    await db.start();
     logger.info("Database worker ready", { appDbPath: paths.appDbPath });
   } catch (error) {
     logger.error("Database worker failed to start", error);
   }
 
   const appService = new AppService({
-    db: dbClient,
+    db,
     appDbPath: paths.appDbPath,
     userDataPath: paths.userDataPath,
     logPath: paths.logPath,
@@ -82,24 +89,32 @@ async function startServices(): Promise<void> {
     isPackaged: app.isPackaged,
   });
 
+  const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());
+  const libraryService = new LibraryService({
+    db,
+    shellActions: createShellActions(),
+    logger,
+  });
+
   const scan = new ScanService({
-    db: dbClient,
+    db,
     listDetected: listDetectedDrives,
     logger,
     metadata: createFileMetadataExtractor(),
-    thumbnails: createElectronThumbnailGenerator(),
+    thumbnails,
     hasher: createFileHasher(),
   });
   scanService = scan;
 
   const driveService = new DriveService({
-    db: dbClient,
+    db,
     listDetected: listDetectedDrives,
     logger,
     onBeforeCatalogChange: () => scan.interruptActive(),
   });
 
-  registerIpcHandlers({ appService, driveService, scanService: scan, logger });
+  registerIpcHandlers({ appService, driveService, scanService: scan, libraryService, logger });
+  registerMediaProtocol({ db, thumbnails, logger });
   createWindow();
 }
 
