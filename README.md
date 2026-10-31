@@ -119,10 +119,68 @@ because the prebuilt Electron binary is already selected.
 Phase 0 stores its SQLite databases here:
 
 ```text
-%LOCALAPPDATA%\MemoryLane\app.db          Installation state
+%LOCALAPPDATA%\MemoryLane\app.db          Installed app state
+%LOCALAPPDATA%\MemoryLane-dev\app.db      Development app state
 <drive>\.memorylane\catalog.db            Per-drive catalog
 <drive>\.memorylane\cache\                Generated previews (Phase 1)
 ```
+
+### What dev mode does
+
+`npm run dev` starts a Vite dev server for the renderer and launches Electron
+against it.
+
+- React and CSS changes hot-reload in the desktop window. Component state usually
+  survives a React Fast Refresh.
+- Main-process and preload changes trigger a rebuild and Electron relaunch.
+- DevTools are enabled in development (`Ctrl+Shift+I`).
+- Main-process logs appear in the terminal and in
+  `%LOCALAPPDATA%\MemoryLane-dev\logs\main.log`.
+- SQL migration files are bundled at build time. After editing a migration,
+  restart dev and use a fresh development catalog if the old schema is
+  incompatible.
+
+### Install and update a local build
+
+```text
+npm run package:win
+```
+
+This produces:
+
+```text
+release\Memory-Lane-Setup-0.1.0-x64.exe   Per-user NSIS installer
+release\Memory-Lane-0.1.0-x64.exe         Portable single-file build
+release\win-unpacked\Memory Lane.exe      Unpacked app for quick testing
+```
+
+To install, run the setup EXE. It installs per-user under
+`%LOCALAPPDATA%\Programs\Memory Lane` without administrator rights and creates a
+Start Menu shortcut.
+
+To update an installed personal build:
+
+1. Change `version` in `package.json` (for example `0.1.1`).
+2. Run `npm run package:win` again.
+3. Run the new setup EXE. It installs over the existing app.
+4. The app data in `%LOCALAPPDATA%\MemoryLane` and the archive catalogs remain.
+
+There is no auto-updater and no published release channel. Installed builds do
+not update themselves. Running `npm run dev` does not update the installed app;
+it runs the source tree with the `MemoryLane-dev` data directory. The uninstaller
+removes the application, not the app data, archive catalogs, or backups.
+
+### Why not Docker
+
+Electron is a Windows desktop GUI application. It needs a native window, direct
+access to external drive letters, Windows Explorer integration, and eventually
+media playback. Docker Desktop on Windows does not give a normal desktop app
+that can see USB drive letters the way the product requires, and GUI/USB
+passthrough would be fragile.
+
+Docker is not used for runtime. The build toolchain is ordinary Node/npm, and
+packaging uses Windows-native `electron-builder`/NSIS. A Windows CI runner is the
+right place to build and smoke-test the installer.
 
 ## Engineering standards
 

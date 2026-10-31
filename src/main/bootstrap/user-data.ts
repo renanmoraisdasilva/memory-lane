@@ -8,8 +8,9 @@ export function configureUserData(): AppPaths {
   if (localAppData === undefined) {
     throw new Error("LOCALAPPDATA is not available");
   }
+  const defaultDirectoryName = app.isPackaged ? "MemoryLane" : "MemoryLane-dev";
   const baseDirectory =
-    process.env.MEMORY_LANE_USER_DATA?.trim() || path.join(localAppData, "MemoryLane");
+    process.env.MEMORY_LANE_USER_DATA?.trim() || path.join(localAppData, defaultDirectoryName);
   const paths = buildAppPaths(baseDirectory);
 
   fs.mkdirSync(paths.userDataPath, { recursive: true });
