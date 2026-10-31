@@ -3,10 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { WorkspaceProvider, useWorkspace } from "./app/workspace";
 import { DriveSelectionPage } from "./features/drives/DriveSelectionPage";
 import { LibraryPage } from "./features/library/LibraryPage";
-import {
-  createUnavailableLibraryClient,
-  type LibraryClient,
-} from "./features/library/library-client";
+import { createLibraryClient, type LibraryClient } from "./features/library/library-client";
 import { LibraryClientProvider } from "./features/library/library-client-context";
 import { ViewerShell } from "./features/library/ViewerShell";
 import { ScanPage } from "./features/scan/ScanPage";
@@ -16,7 +13,7 @@ import { createDefaultPhaseOneClient, type PhaseOneClient } from "./lib/phase-on
 
 function DriveGateRoute(): React.JSX.Element {
   const { catalog } = useWorkspace();
-  return catalog === null ? <DriveSelectionPage /> : <Navigate to="/scan" replace />;
+  return catalog === null ? <DriveSelectionPage /> : <Navigate to="/library" replace />;
 }
 
 function ScanRoute(): React.JSX.Element {
@@ -59,7 +56,7 @@ export function App({
   libraryClient?: LibraryClient;
 } = {}): React.JSX.Element {
   const [fallbackClient] = useState(createDefaultPhaseOneClient);
-  const [fallbackLibraryClient] = useState(createUnavailableLibraryClient);
+  const [fallbackLibraryClient] = useState(createLibraryClient);
 
   return (
     <PhaseOneClientProvider client={client ?? fallbackClient}>

@@ -18,14 +18,6 @@ function isDriveUnavailable(error: unknown): boolean {
   );
 }
 
-function isContractMissing(error: unknown): boolean {
-  return (
-    error instanceof AppError &&
-    error.code === APP_ERROR_CODES.INTERNAL &&
-    error.message.includes("library IPC contract")
-  );
-}
-
 export function LibraryErrorState({
   error,
   onRetry,
@@ -36,17 +28,10 @@ export function LibraryErrorState({
   onSwitchDrive?: () => void;
 }): React.JSX.Element {
   const driveUnavailable = isDriveUnavailable(error);
-  const contractMissing = isContractMissing(error);
-  const title = driveUnavailable
-    ? "Drive unavailable"
-    : contractMissing
-      ? "Library isn't connected yet"
-      : "Memory Lane couldn't load";
-  const body = contractMissing
-    ? "The renderer is ready, but the Phase 2 library IPC bridge is not available in this build. Connect the shared library contract to load the timeline."
-    : driveUnavailable
-      ? "Reconnect the drive that holds this catalog, then retry."
-      : errorMessage(error);
+  const title = driveUnavailable ? "Drive unavailable" : "Memory Lane couldn't load";
+  const body = driveUnavailable
+    ? "Reconnect the drive that holds this catalog, then retry."
+    : errorMessage(error);
 
   return (
     <EmptyState

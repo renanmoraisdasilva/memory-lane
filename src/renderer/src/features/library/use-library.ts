@@ -42,13 +42,15 @@ export function useLibraryTimeline({
   month: number | null;
 }) {
   const client = useLibraryClient();
+  // The Phase 2 cursor is forward-only, so pages cannot be evicted without
+  // leaving gaps when the user scrolls back up. Keep pages until the filter or
+  // anchor changes; add a previous-page cursor before reintroducing a cap.
   return useInfiniteQuery({
     queryKey: queryKeys.libraryTimeline(filter, year, month),
     queryFn: ({ pageParam }) =>
       client.getTimeline(buildTimelineParams(filter, year, month, pageParam)),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    maxPages: 8,
     staleTime: 30_000,
   });
 }

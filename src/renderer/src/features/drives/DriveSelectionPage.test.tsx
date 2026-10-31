@@ -35,7 +35,7 @@ afterEach(() => {
 });
 
 describe("DriveSelectionPage", () => {
-  it("opens an existing catalog and navigates to the scan page", async () => {
+  it("opens an existing catalog and navigates to the library", async () => {
     renderGate();
 
     const card = await screen.findByRole("article", { name: /WD My Passport 2TB/ });
@@ -44,7 +44,7 @@ describe("DriveSelectionPage", () => {
     await userEvent.click(within(card).getByRole("button", { name: /Open Memory Lane on/ }));
 
     await waitFor(() => {
-      expect(screen.getByTestId("location")).toHaveTextContent("/scan");
+      expect(screen.getByTestId("location")).toHaveTextContent("/library");
     });
   });
 

@@ -1,6 +1,14 @@
 import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import type { IpcResult } from "@shared/contracts/ipc";
 import type { MemoryLaneApi } from "@shared/contracts/api";
+import type {
+  LibraryFilter,
+  LibraryItemDetails,
+  LibrarySummary,
+  LibraryTimelineIndex,
+  LibraryTimelinePage,
+  LibraryTimelineParams,
+} from "@shared/contracts/library";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { AppError, APP_ERROR_CODES } from "@shared/domain/errors";
 
@@ -43,4 +51,14 @@ export const api = {
     volumeId: DriveInfo["volumeId"],
     intensity: ScanIntensity,
   ): Promise<ScanState> => unwrap(getApi().setScanIntensity({ volumeId, intensity })),
+  getLibrarySummary: (): Promise<LibrarySummary> => unwrap(getApi().getLibrarySummary()),
+  getLibraryTimeline: (params: LibraryTimelineParams): Promise<LibraryTimelinePage> =>
+    unwrap(getApi().getLibraryTimeline(params)),
+  getLibraryTimelineIndex: (filter: LibraryFilter): Promise<LibraryTimelineIndex> =>
+    unwrap(getApi().getLibraryTimelineIndex({ filter })),
+  getLibraryItem: (fileId: number, filter?: LibraryFilter): Promise<LibraryItemDetails> =>
+    unwrap(getApi().getLibraryItem(filter === undefined ? { fileId } : { fileId, filter })),
+  revealLibraryItem: (fileId: number): Promise<void> =>
+    unwrap(getApi().revealLibraryItem({ fileId })),
+  openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),
 };

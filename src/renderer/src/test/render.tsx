@@ -3,10 +3,7 @@ import { render, type RenderResult } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { WorkspaceProvider, type WorkspaceSnapshot } from "../app/workspace";
-import {
-  createUnavailableLibraryClient,
-  type LibraryClient,
-} from "../features/library/library-client";
+import { createLibraryClient, type LibraryClient } from "../features/library/library-client";
 import { LibraryClientProvider } from "../features/library/library-client-context";
 import { PhaseOneClientProvider } from "../lib/client-context";
 import type { PhaseOneClient } from "../lib/phase-one-client";
@@ -31,7 +28,7 @@ export function renderWithProviders(ui: ReactElement, options: RenderOptions): R
   return render(
     <QueryClientProvider client={createTestQueryClient()}>
       <PhaseOneClientProvider client={options.client}>
-        <LibraryClientProvider client={options.libraryClient ?? createUnavailableLibraryClient()}>
+        <LibraryClientProvider client={options.libraryClient ?? createLibraryClient()}>
           <WorkspaceProvider initialWorkspace={options.workspace ?? null}>
             <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>{ui}</MemoryRouter>
           </WorkspaceProvider>

@@ -1,6 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { flushSync } from "react-dom";
+import { useNavigate, type NavigateFunction } from "react-router-dom";
+import type { CatalogSummary } from "@shared/contracts/drives";
 import { useWorkspace } from "../../app/workspace";
 import { usePhaseOneClient } from "../../lib/client-context";
 import { queryKeys } from "../../lib/query-keys";
@@ -38,6 +40,40 @@ function driveWithCatalog(drive: DriveSelectionItem): DriveSelectionItem {
   };
 }
 
+interface CompletionContext {
+  queryClient: QueryClient;
+  navigate: NavigateFunction;
+  openWorkspace: (drive: DriveSelectionItem, catalog: CatalogSummary) => void;
+}
+
+function finishOpen(
+  context: CompletionContext,
+  drive: DriveSelectionItem,
+  catalog: CatalogSummary,
+): void {
+  context.queryClient.removeQueries({ queryKey: ["library"] });
+  // Flush the workspace before navigating so the route guard sees the catalog.
+  flushSync(() => {
+    context.openWorkspace(drive, catalog);
+  });
+  void context.navigate("/library");
+}
+
+function finishSetup(
+  context: CompletionContext,
+  drive: DriveSelectionItem,
+  catalog: CatalogSummary,
+  clearDialog: () => void,
+): void {
+  clearDialog();
+  context.queryClient.removeQueries({ queryKey: ["library"] });
+  flushSync(() => {
+    context.openWorkspace(driveWithCatalog(drive), catalog);
+  });
+  void context.queryClient.invalidateQueries({ queryKey: queryKeys.drives });
+  void context.navigate("/scan");
+}
+
 export function DriveSelectionPage(): React.JSX.Element {
   const client = usePhaseOneClient();
   const navigate = useNavigate();
@@ -48,13 +84,11 @@ export function DriveSelectionPage(): React.JSX.Element {
   const [notice, setNotice] = useState<string | null>(null);
 
   const drivesQuery = useQuery({ queryKey: queryKeys.drives, queryFn: () => client.listDrives() });
+  const completion: CompletionContext = { queryClient, navigate, openWorkspace };
 
   const openMutation = useMutation({
     mutationFn: (drive: DriveSelectionItem) => client.openCatalog(drive.volumeId),
-    onSuccess: (catalog, drive) => {
-      openWorkspace(drive, catalog);
-      void navigate("/scan");
-    },
+    onSuccess: (catalog, drive) => finishOpen(completion, drive, catalog),
   });
 
   const setupMutation = useMutation({
@@ -63,12 +97,8 @@ export function DriveSelectionPage(): React.JSX.Element {
       await client.startScan(drive.volumeId);
       return catalog;
     },
-    onSuccess: (catalog, drive) => {
-      setSetupDrive(null);
-      openWorkspace(driveWithCatalog(drive), catalog);
-      void queryClient.invalidateQueries({ queryKey: queryKeys.drives });
-      void navigate("/scan");
-    },
+    onSuccess: (catalog, drive) =>
+      finishSetup(completion, drive, catalog, () => setSetupDrive(null)),
   });
 
   const letterMutation = useMutation({

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useWorkspace } from "../../app/workspace";
 import { DriveDrawer } from "./DriveDrawer";
@@ -19,6 +20,7 @@ export function AppShell({
 }): React.JSX.Element | null {
   const { drive, catalog, closeWorkspace } = useWorkspace();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   if (drive === null || catalog === null) {
@@ -27,6 +29,7 @@ export function AppShell({
 
   function switchDrive(): void {
     setDrawerOpen(false);
+    queryClient.removeQueries({ queryKey: ["library"] });
     closeWorkspace();
     void navigate("/");
   }

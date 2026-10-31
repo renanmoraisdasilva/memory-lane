@@ -32,7 +32,7 @@ async function openReadyDrive(): Promise<void> {
     name: /Open Memory Lane on WD My Passport 2TB/,
   });
   await userEvent.click(button);
-  expect(await screen.findByRole("heading", { name: "Scan & processing" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Memory Lane" })).toBeInTheDocument();
 }
 
 afterEach(() => {
@@ -40,27 +40,29 @@ afterEach(() => {
 });
 
 describe("App shell", () => {
-  it("navigates from the gate to the scan shell with breadcrumb and read-only status", async () => {
+  it("navigates from the gate to the library shell with breadcrumb and read-only status", async () => {
     renderApp();
     await openReadyDrive();
 
-    expect(
-      within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Library"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Read-only", { exact: true })).toBeInTheDocument();
+    const breadcrumb = screen.getByRole("navigation", { name: "Breadcrumb" });
+    expect(within(breadcrumb).getByText("Library")).toBeInTheDocument();
+    expect(within(breadcrumb).getByText("Memory Lane")).toBeInTheDocument();
+    expect(screen.getAllByText("Read-only").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Memory Lane" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Scan & processing" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
   });
 
-  it("opens Memory Lane from the sidebar", async () => {
+  it("navigates between Memory Lane and Scan & processing from the sidebar", async () => {
     renderApp();
     await openReadyDrive();
 
-    await userEvent.click(screen.getByRole("link", { name: "Memory Lane" }));
+    await userEvent.click(screen.getByRole("link", { name: "Scan & processing" }));
+    expect(await screen.findByRole("heading", { name: "Scan & processing" })).toBeInTheDocument();
 
+    await userEvent.click(screen.getByRole("link", { name: "Memory Lane" }));
     expect(await screen.findByRole("heading", { name: "Memory Lane" })).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: "All" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Photos" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Videos" })).toBeInTheDocument();
   });
