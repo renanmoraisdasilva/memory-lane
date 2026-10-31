@@ -1,7 +1,8 @@
 # Quality exceptions
 
-The default limits are defined in `Memory_Lane_Scope_and_Implementation.md`,
-section 8. They are enforced in CI.
+The default limits are defined in
+`docs/Memory_Lane_Scope_and_Implementation.md`, section 6. They are enforced in
+CI.
 
 An exception is allowed only when:
 

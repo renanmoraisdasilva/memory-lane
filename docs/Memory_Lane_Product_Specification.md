@@ -1,9 +1,10 @@
 # Memory Lane --- Product Specification
 
-**Status:** Initial product specification\
+**Status:** Product baseline; Phases 0-2 implemented\
 **Platform:** Windows desktop\
-**Version:** 0.1\
-**Date:** 2026-10-31
+**Version:** 0.2\
+**Date:** 2026-10-31\
+**Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
 
 ## 1. Product vision
 
@@ -53,15 +54,13 @@ Initial technology choice:
 -   Node.js for filesystem and application services.
 -   SQLite for the per-drive catalog.
 
-Potential media/metadata tooling to evaluate during implementation:
+The current build uses Electron native thumbnails, dependency-free image and
+MP4/MOV readers, Node SHA-256, and `better-sqlite3` in a dedicated worker.
+ExifTool, ffmpeg/ffprobe, Sharp, and SQLite FTS5 remain candidates for later
+phases; they are not dependencies yet.
 
--   ExifTool for broad metadata extraction.
--   ffmpeg/ffprobe for video metadata, thumbnails, and playback
-    compatibility.
--   SQLite FTS5 if full-text search across suitable metadata is needed.
-
-The app should work offline. No cloud service, account, telemetry, or
-external API is required.
+The app must work offline. No cloud service, account, telemetry, or external
+API is required.
 
 ### 4.1 Electron security boundary
 
@@ -464,90 +463,33 @@ separate, resumable operation.
 Show a validation report in the UI. Do not modify original files.
 Missing files remain cataloged and marked as missing.
 
-## 15. Future capability: partial backups across multiple destination drives
+## 15. Future capability: partial backups across destination drives
 
-**Important: This is a planned future capability, not part of the
-initial single-drive archive workflow.**
+**Status:** post-v0.1, not part of the initial single-drive archive workflow.
 
-The user expects to connect smaller destination drives and create
-partial backups of original photos/videos, because no single destination
-drive may be large enough to hold the entire archive.
+The user expects to connect smaller destination drives and back up selected
+photos and videos because no single destination can hold the entire archive.
+The feature must record which exact source files were copied to which
+destination, verify copies, and report cumulative coverage.
 
-Example scenario:
+Requirements:
 
--   Source archive is approximately 2 TB.
--   User selects photos and videos from 2005--2010, estimated at 564 GB.
--   User backs that selection up to destination Drive X.
--   The app records that those specific source files have been backed up
-    to Drive X.
--   The app displays overall backup coverage, for example
-    `55% backed up`.
--   User connects another destination drive and backs up a different
-    selection.
--   The app combines the records to show cumulative coverage across
-    destination drives.
-
-### 15.1 Future requirements
-
-The future backup system should:
-
--   Allow selection by media type and date range, including photos and
-    videos together.
--   Calculate the total size of a selection before backup.
+-   Select photos and videos by media type and date range; show the selection
+    size before copying.
 -   Support partial backups that fit on smaller destination drives.
--   Record which exact source files were copied to which destination
-    drive.
--   Identify destination drives by stable identity, not drive letter
-    alone.
--   Track backup status and verification for each file.
--   Show coverage as a count and/or size percentage, with a clearly
-    defined denominator.
--   Support multiple backup sessions and multiple destination drives
-    over time.
--   Allow the user to connect another drive later and back up the
-    remaining files.
--   Detect when a previously backed-up source file changes and mark its
-    backup as potentially stale.
--   Verify copied files, preferably with SHA-256.
--   Never imply a file is backed up merely because a copy operation was
-    attempted; distinguish copied from verified.
+-   Record source-to-destination file relationships and verification status.
+-   Identify destinations by stable volume identity, not drive letter.
+-   Show coverage by verified bytes and, where useful, by file count, with a
+    clearly stated scope and no double-counting.
+-   Detect source files that changed after backup and mark the copy stale.
+-   Distinguish copied from verified; never imply a file is backed up because a
+    copy was attempted.
 -   Preserve the source archive unchanged.
 
-The backup feature must be designed so that backup destinations are
-distinct from the source archive and from the app's thumbnail cache.
-
-### 15.2 Coverage definition
-
-The product must define exactly what "55% backed up" means. Recommended
-initial definition:
-
--   Coverage by bytes: verified backed-up bytes divided by total bytes
-    in the selected backup scope.
--   Also show file-count coverage where useful.
--   Clearly state the scope, such as "Photos and videos in the source
-    archive."
--   Avoid double-counting a source file if it has verified copies on
-    more than one destination drive.
-
-The user should be able to inspect which files are backed up, which
-destination drive holds each copy, and which files remain unbacked.
-
-### 15.3 Architecture implications
-
-Although deferred, the initial data model should avoid decisions that
-make this feature difficult later.
-
-Consider future entities such as:
-
--   Backup destinations and their stable identities.
--   Backup jobs/sessions.
--   Source-file-to-destination-file relationships.
--   Verification status and hashes.
--   Backup scope definitions and coverage snapshots.
-
-Do not implement a combined multi-archive catalog in the initial release
-merely to support this future backup feature. Keep the current
-per-source-drive catalog model independent.
+Architecture implications: the initial data model already reserves
+`backup_destinations` and `backup_history`. Do not merge independent source
+catalogs to support this feature. Implement it after v0.1 with its own ADR,
+migration, verification workflow, and tests.
 
 ## 16. Initial UI areas
 
@@ -627,25 +569,19 @@ The initial release should not be considered complete unless:
 
 ## 18. Open implementation decisions
 
-These items were not finalized during the interview and should be
-resolved during technical design or prototyping:
+These items remain open and should be resolved before or during the owning
+phase:
 
--   Exact drive identity APIs and behavior across filesystems.
--   Exact application-managed folder layout on the external drive.
--   SQLite schema details, indexes, WAL/checkpoint strategy, and backup
-    implementation.
--   Exact date-source priority and suspicious-date heuristics.
--   Supported image/video formats and codec strategy.
--   Thumbnail dimensions, encoding quality, and preview sizes.
--   Cache cleanup behavior: whether clearing removes all generated
-    assets or allows selective cleanup.
--   Exact background concurrency and resource limits.
--   How to handle unreadable, encrypted, corrupt, or
-    permission-restricted files.
+-   Exact date-source priority and suspicious-date heuristics (Phase 3).
+-   Supported image/video formats, codec strategy, and whether ExifTool,
+    ffprobe, or Sharp are adopted (Phase 3-4).
 -   Whether filesystem access-time updates must be prevented.
--   Exact definition and UI presentation of validation outcomes.
--   Future backup conflict handling and destination-drive
-    formatting/capacity checks.
+-   Behavior for unreadable, encrypted, corrupt, or permission-restricted files.
+-   Cache cleanup policy: all generated assets or selective cleanup (Phase 5).
+-   Exact validation outcomes and UI wording (Phase 4).
+-   Backup retention and the manual recovery procedure (Phase 5).
+-   Future backup conflict handling and destination capacity checks.
+-   Search design and whether SQLite FTS5 is required (post-v0.1).
 
 ## 19. Product name
 

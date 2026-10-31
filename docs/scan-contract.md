@@ -1,7 +1,6 @@
-# Phase 1 scan contract (Agent A)
+# Scan contract
 
-This is the frozen platform contract for Phase 1. Agent B's renderer mock should
-match these shapes. The real IPC surface is implemented in
+Status: current. The TypeScript and Zod definitions live in
 `src/shared/contracts/scan.ts`, `src/shared/contracts/channels.ts`, and
 `src/preload/index.ts`.
 
@@ -17,14 +16,12 @@ match these shapes. The real IPC surface is implemented in
 | `drives:confirm-identity` | `confirmDriveIdentity` | `{ volumeId }` | `void` |
 
 `drives:confirm-identity` updates the app registry's last letter and root path
-after the user accepts a changed drive letter. It does not open the catalog;
-the normal `openCatalog` call still validates the catalog's volume identity.
+after the user accepts a changed drive letter. It does not open the catalog; the
+normal `openCatalog` call still validates the catalog's volume identity.
 
-`volumeId` is the branded drive identity already used by Phase 0. The catalog
-must be open before calling any scan method.
-
-There are no push events in Phase 1. The renderer polls `getScanState` roughly
-once per second while a scan is active or paused.
+A catalog must be open before any scan method is called. There are no push
+events; the renderer polls `getScanState` roughly once per second while a scan is
+active.
 
 ## State shape
 
@@ -66,7 +63,7 @@ interface ScanState {
 }
 ```
 
-Contract notes for the renderer:
+Contract notes:
 
 - `getScanState` returns `idle` with four queued stages before the first scan.
 - `report` is non-null only when `status === "complete"`.
@@ -81,21 +78,25 @@ Contract notes for the renderer:
 
 The coordinator runs stages in this order:
 
-1. **Catalog files** — enumerates the drive root, writes `files`, detects
+1. **Catalog files** - enumerates the drive root, writes `files`, detects
    new/changed/reappearing files, and marks missing files after enumeration.
-2. **Extract metadata** — records filesystem facts, media classification, image
-   dimensions where the format is supported, and a filesystem-derived date.
-3. **Generate thumbnails** — generates image/video thumbnails with Electron
+2. **Extract metadata** - records filesystem facts, media classification, image
+   dimensions where supported, video duration for MP4/MOV, and a
+   filesystem-derived date.
+3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
-4. **Calculate hashes** — streams SHA-256 in 1 MiB chunks and stores resumable
+4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
    hash records.
 
-Pause completes the current file/batch, persists progress, and stops scheduling
-new work. Resume continues from the saved per-stage progress. App close marks a
-running session interrupted before the database worker is closed.
+Pause completes the current file or batch, persists progress, and stops
+scheduling new work. Resume continues from the saved per-stage progress. App
+close marks a running session interrupted before the database worker is closed.
 
 Intensity maps to worker concurrency: Eco 2, Balanced 4, Max 8. It is persisted
-in the catalog settings and on the scan session.
+in catalog settings and on the scan session.
+
+Visible library thumbnails use the interactive queue and preempt bulk scan
+thumbnails. The shared scheduler deduplicates in-flight work per file.
 
 ## Report semantics
 
@@ -107,12 +108,12 @@ in the catalog settings and on the scan session.
 - `movedCandidates`: missing files whose SHA-256 matches a present file first
   seen in this session.
 
-Moved candidates are informational. Confirming a moved candidate is a later
-Phase 4 action; source files are never moved or modified.
+Moved candidates are counted and stored. Confirming them is a Phase 4 action;
+source files are never moved or modified.
 
 ## Additive drive fields
 
-`DriveInfo` now includes optional fields for the Phase 1 drive gate:
+`DriveInfo` includes optional fields for the drive gate:
 
 ```ts
 isConnected?: boolean;
@@ -129,22 +130,23 @@ current drive letter differs from the last registered letter.
 
 ## Persistence
 
-Catalog migration 2 adds scan progress counters, intensity, root path, error
-message, last-saved time, ETA, and moved-candidate count to `scan_sessions`.
-App migration 2 adds `last_scan_at` and `indexed_files` to `registered_drives`.
+- App migration 2 adds `last_scan_at` and `indexed_files` to `registered_drives`.
+- Catalog migration 2 adds scan progress counters, intensity, root path, error
+  message, last-saved time, ETA, and moved-candidate count.
+- Catalog migration 3 adds media dimensions, video duration, and the timeline
+  index.
 
-The catalog schema version is now 2. Opening a Phase 0 catalog upgrades its
-recorded schema version and applies the migration checksum-safely.
+The current catalog schema version is 3. Opening an older catalog applies
+pending migrations checksum-safely.
 
 ## Current limits
 
-- ExifTool, ffprobe, ffmpeg, and Sharp are not wired yet. Phase 1 uses
-  dependency-free filesystem metadata, a small image-dimension reader, Electron
-  native thumbnails, and Node SHA-256.
-- Thumbnail work is bulk-only; viewport-priority scheduling is Phase 2.
+- ExifTool, ffprobe, ffmpeg, and Sharp are not wired yet. The current build uses
+  dependency-free filesystem metadata, a small image-dimension reader, an
+  ISO-BMFF duration reader for MP4/MOV, Electron native thumbnails, and Node
+  SHA-256.
+- Date resolution beyond filesystem timestamps is Phase 3.
 - Hashing resumes at file granularity. A file interrupted mid-hash starts that
   file again; byte-offset resume is a later hardening step.
-- Moved candidates are counted and stored, but no confirmation UI/IPC exists
-  yet.
+- Moved candidates have no confirmation UI or IPC yet.
 - Duplicate groups, missing-file management, and validation are Phase 4.
-- Date resolution beyond the filesystem fallback is Phase 3.

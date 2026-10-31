@@ -1,8 +1,10 @@
 # Native binaries
 
 This directory is populated by `npm run fetch:binaries` from
-`native-binaries.lock.json`. The binaries are not committed to git.
+`native-binaries.lock.json`.
 
-Phase 0 has no binary entries yet. Phase 1 adds the pinned ExifTool, ffmpeg, and
-ffprobe releases, including their SHA-256 checksums and third-party license
-notices.
+The manifest is currently empty. The current build uses dependency-free
+readers and Electron `nativeImage`, so no external binaries are shipped.
+If ExifTool, ffmpeg/ffprobe, or another native tool is adopted in a later phase,
+add pinned versions and SHA-256 checksums to the manifest, verify them in the
+fetch script, and include license notices before shipping.

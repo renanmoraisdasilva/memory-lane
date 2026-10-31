@@ -6,61 +6,57 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-Phase 0 is implemented: the Electron application shell, secure preload/IPC
-boundary, dedicated SQLite database worker, `app.db` + per-drive `catalog.db`
-migrations, Windows drive identity, logging, quality gates, unit/integration/E2E
-tests, and Windows packaging all work.
+Phases 0-2 are implemented:
 
-Phase 1 is implemented end to end: drive selection, setup and first scan, the
-four-stage scan coordinator with pause/resume/intensity, interruption recovery,
-incremental change/missing/moved detection, the completion report, and the
-drive drawer. See `docs/phase-1-scan-contract.md` for the frozen scan contract.
+- Electron application shell with a narrow preload IPC boundary.
+- Dedicated SQLite database worker for PC and per-drive catalogs.
+- Drive selection, catalog setup, and changed-letter confirmation.
+- Four-stage scanning with pause/resume/intensity and interruption recovery.
+- Incremental changes, missing-file marking, moved-candidate detection, and a
+  completion report.
+- Memory Lane timeline with filters, density, year/month navigation, and a
+  virtualized grid.
+- Combined photo/video viewer with details, previous/next, reveal, and
+  open-external actions.
+- Viewport-priority thumbnails through the `ml-media` protocol.
+- Windows installer, portable build, E2E flows, and a packaged scan/library
+  smoke test.
 
-The media browsing screens and full product UI remain later phases. The static
-prototype in `ui-mockups/` remains the design reference.
+Phase 3 (dates) is next. See `docs/roadmap.md` for the remaining work.
+
+## Documentation
+
+Start at `docs/README.md`.
+
+| Document | Purpose |
+|---|---|
+| `docs/Memory_Lane_Product_Specification.md` | Product vision and requirements |
+| `docs/Memory_Lane_Scope_and_Implementation.md` | Current scope, architecture, data model, and quality gates |
+| `docs/roadmap.md` | Delivered phases and next steps |
+| `docs/scan-contract.md` | Scan IPC and state contract |
+| `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
+| `docs/agent-workstreams.md` | Parallel agent rules |
+| `docs/quality-exceptions.md` | Approved quality exceptions |
+
+The static files in `ui-mockups/` are a design reference only.
 
 ## Repository layout
 
 ```text
 src/
-  main/                                Electron main, DB worker, services
+  main/                                Electron main, services, and DB worker
   preload/                             Typed contextBridge API
-  renderer/                            React foundation screen
+  renderer/                            React application
   shared/                              IPC contracts and domain types
 tests/
   integration/                         Real SQLite and temp-filesystem tests
   e2e/                                 Playwright Electron flows
-scripts/                               Binaries, file-size gate, package checks
-resources/bin/                          Fetched native binaries (Phase 1)
-docs/
-  adr/                                 Architecture decision records
-  agent-workstreams.md                 Parallel agent ownership and integration rules
-  quality-exceptions.md                Approved quality-rule exceptions
-.github/workflows/ci.yml               Windows quality, E2E, and packaging pipeline
-.github/pull_request_template.md       Review and quality checklist
-ui-mockups/                            Clickable static prototype
-Memory_Lane_Product_Specification.md   Original product specification
-Memory_Lane_Scope_and_Implementation.md v0.1 scope, architecture, and build plan
+scripts/                               Gates, packaging checks, smoke tests
+resources/bin/                          Reserved for future native binaries
+docs/                                   Product, scope, contracts, and roadmap
+.github/workflows/ci.yml               Windows quality, E2E, and packaging
+ui-mockups/                            Static design reference
 ```
-
-## View the prototype
-
-Open `ui-mockups/index.html` directly in a browser. The prototype is fully
-static and local: no server, account, or network connection is required.
-
-The prototype covers the planned v0.1 screens:
-
-- Drive selection and changed-drive-letter confirmation
-- Memory Lane chronological photo/video timeline
-- Combined photo and video viewer
-- Date unavailable with manual year/year-month assignment
-- Other files category browser
-- Library health with Missing files, Duplicates, and Validation
-- Scan and processing states
-- Settings
-
-The prototype uses sample data. Actions that would touch the real filesystem
-show an explanatory toast instead.
 
 ## Read-only guarantee
 
@@ -70,29 +66,28 @@ PC backups live in app-managed locations outside the original archive folders.
 
 ## Technology
 
-Current Phase 0 foundation:
-
 | Layer | Choice |
 |---|---|
 | Desktop shell | Electron 42 with `contextIsolation`, `sandbox`, and a narrow preload API |
 | Build | `electron-vite` |
-| Packaging | `electron-builder` (NSIS per-user installer + portable ZIP) |
+| Packaging | `electron-builder`: NSIS per-user installer and portable executable |
 | Renderer | React 19 + TypeScript + HashRouter |
 | Data | TanStack Query over typed IPC |
+| Virtualization | TanStack Virtual |
 | Styling | CSS Modules + design tokens + Lucide icons |
 | Database | `better-sqlite3` in a dedicated worker; PC `app.db` + per-drive `catalog.db` |
 | Contracts | Zod |
 | Logging | `electron-log` |
 | Tests | Vitest + Testing Library + Playwright Electron |
-| Distribution | Unsigned NSIS installer + portable ZIP; SmartScreen warning documented |
+| Distribution | Unsigned Windows build; no auto-update |
 
-Planned additions for the next phases: Piscina worker pools, Zustand for local UI
-state, Radix primitives, TanStack Virtual, React Hook Form, ExifTool,
-ffmpeg/ffprobe, and Sharp.
+ExifTool, ffmpeg/ffprobe, Sharp, and similar tools are candidates for later
+phases. They are not dependencies of the current build.
 
 ## Development
 
-Node **22.12+** is required. The repo includes `.nvmrc` and `.node-version`.
+Node **22.12+** is required. The repository includes `.nvmrc` and
+`.node-version`.
 
 ```text
 npm ci
@@ -100,7 +95,7 @@ npm ci
 # Development (rebuilds better-sqlite3 for Electron first)
 npm run dev
 
-# Fast local quality checks
+# Fast static checks
 npm run check
 
 # Unit, component, and integration tests with coverage
@@ -109,49 +104,42 @@ npm run test:coverage
 # Build + Playwright Electron E2E
 npm run test:e2e
 
-# Full Windows package: NSIS installer + portable ZIP
+# Full local gate: static checks + coverage + E2E
+npm run check:full
+
+# Windows package: NSIS installer + portable executable
 npm run package:win
 npm run verify:package
 npm run smoke:packaged
 ```
 
-Native module note: `better-sqlite3` must match the running ABI. The test scripts
-rebuild it for Node before unit/integration tests, and fetch the pinned Electron
-prebuild before development, E2E, and packaging. `npm run dev` does the Electron
-rebuild automatically. `electron-builder` is configured with `npmRebuild: false`
-because the prebuilt Electron binary is already selected.
+Native module note: `better-sqlite3` must match the running ABI. Test scripts
+rebuild it for Node before unit/integration tests and fetch the pinned Electron
+prebuild before development, E2E, and packaging. `electron-builder` uses
+`npmRebuild: false` because the correct Electron binary is already selected.
 
-Phase 0 stores its SQLite databases here:
+SQLite locations:
 
 ```text
 %LOCALAPPDATA%\MemoryLane\app.db          Installed app state
 %LOCALAPPDATA%\MemoryLane-dev\app.db      Development app state
 <drive>\.memorylane\catalog.db            Per-drive catalog
-<drive>\.memorylane\cache\                Generated previews (Phase 1)
+<drive>\.memorylane\cache\                Generated thumbnails and previews
 ```
 
-### What dev mode does
+### Dev mode
 
-`npm run dev` starts a Vite dev server for the renderer and launches Electron
-against it.
+`npm run dev` starts the Vite renderer server and launches Electron against it.
+React and CSS changes hot-reload. Main-process and preload changes rebuild and
+relaunch Electron. DevTools are enabled in development. Main-process logs appear
+in the terminal and in `%LOCALAPPDATA%\MemoryLane-dev\logs\main.log`.
 
-- React and CSS changes hot-reload in the desktop window. Component state usually
-  survives a React Fast Refresh.
-- Main-process and preload changes trigger a rebuild and Electron relaunch.
-- DevTools are enabled in development (`Ctrl+Shift+I`).
-- Main-process logs appear in the terminal and in
-  `%LOCALAPPDATA%\MemoryLane-dev\logs\main.log`.
-- SQL migration files are bundled at build time. After editing a migration,
-  restart dev and use a fresh development catalog if the old schema is
-  incompatible.
+Migration files are bundled at build time. After editing a migration, restart
+dev with a fresh development catalog if the old schema is incompatible.
 
-### Install and update a local build
+### Install a local build
 
-```text
-npm run package:win
-```
-
-This produces:
+`npm run package:win` produces:
 
 ```text
 release\Memory-Lane-Setup-0.1.0-x64.exe   Per-user NSIS installer
@@ -159,71 +147,57 @@ release\Memory-Lane-0.1.0-x64.exe         Portable single-file build
 release\win-unpacked\Memory Lane.exe      Unpacked app for quick testing
 ```
 
-To install, run the setup EXE. It installs per-user under
-`%LOCALAPPDATA%\Programs\Memory Lane` without administrator rights and creates a
-Start Menu shortcut.
+The installer runs without administrator rights, installs under
+`%LOCALAPPDATA%\Programs\Memory Lane`, and creates a Start Menu shortcut.
 
-To update an installed personal build:
-
-1. Change `version` in `package.json` (for example `0.1.1`).
-2. Run `npm run package:win` again.
-3. Run the new setup EXE. It installs over the existing app.
-4. The app data in `%LOCALAPPDATA%\MemoryLane` and the archive catalogs remain.
-
-There is no auto-updater and no published release channel. Installed builds do
-not update themselves. Running `npm run dev` does not update the installed app;
-it runs the source tree with the `MemoryLane-dev` data directory. The uninstaller
-removes the application, not the app data, archive catalogs, or backups.
+To update an installed personal build, change `version` in `package.json`, run
+`npm run package:win`, and run the new setup executable. App data and archive
+catalogs remain. There is no auto-updater. The uninstaller removes the
+application, not app data, catalogs, or backups.
 
 ### Why not Docker
 
 Electron is a Windows desktop GUI application. It needs a native window, direct
-access to external drive letters, Windows Explorer integration, and eventually
-media playback. Docker Desktop on Windows does not give a normal desktop app
-that can see USB drive letters the way the product requires, and GUI/USB
-passthrough would be fragile.
-
-Docker is not used for runtime. The build toolchain is ordinary Node/npm, and
-packaging uses Windows-native `electron-builder`/NSIS. A Windows CI runner is the
-right place to build and smoke-test the installer.
+access to external drive letters, Windows Explorer integration, and media
+playback. Docker Desktop does not provide a normal desktop app with USB drive
+access. Packaging uses Windows-native `electron-builder`/NSIS and a Windows CI
+runner.
 
 ## Engineering standards
 
-The project treats structural quality as a CI gate, not a review preference:
+- 400-line hard file limit, 300-line soft target.
+- Function length 100, cyclomatic complexity 10, cognitive complexity 15.
+- TypeScript strict mode; no explicit `any`.
+- Enforced renderer/main/preload/shared architecture boundaries.
+- 80% overall coverage; 90% for shared contracts and database code.
+- Unit, component, integration, contract, E2E, and packaged-smoke tests.
+- GitHub Actions quality, E2E, and Windows packaging jobs.
 
-- 400-line hard file limit, 300-line soft target
-- Cyclomatic complexity 10, cognitive complexity 15
-- TypeScript strict mode; no explicit `any`
-- Enforced renderer/main/preload/shared architecture boundaries
-- 80% overall coverage, 90% for critical modules
-- Unit, component, integration, contract, E2E, and packaged-smoke tests
-- GitHub Actions quality, test, E2E, and packaging jobs on Windows
-
-The exact libraries, architecture, quality rules, CI pipeline, bundling, and
-release checklist are defined in `Memory_Lane_Scope_and_Implementation.md`.
+The exact limits, test layers, and CI pipeline are in
+`docs/Memory_Lane_Scope_and_Implementation.md`.
 
 ## Parallel development
 
-The project is designed to run with multiple coding agents from Phase 1 onward:
+The project supports multiple coding agents:
 
-- **Platform/Core** — Electron main process, DB worker, scanning, media tools,
-  packaging
-- **Renderer/UX** — React app, design system, screens, accessibility
-- **Quality/Release** — CI, E2E, fixtures, packaging smoke tests, ADRs
+- **Platform/Core** - Electron main, DB worker, scanning, media, packaging.
+- **Renderer/UX** - React app, design system, screens, accessibility.
+- **Quality/Release** - CI, E2E, fixtures, packaging smoke tests, ADRs.
 
-Path ownership, contract-first integration, worktree/branch rules, and agent
-prompts are documented in `docs/agent-workstreams.md`. The summary and
-phase-by-phase split are in §15 of the implementation plan.
+Path ownership, contract-first integration, worktree rules, and agent prompts
+are in `docs/agent-workstreams.md`. Agents commit locally; the human reviews and
+pushes.
 
 ## Future features
 
-These are explicitly post-v0.1 and are not part of current acceptance criteria:
+These are post-v0.1 and are not part of current acceptance criteria:
 
-- **Places map** — a local-only globe showing only photos and videos with GPS
+- **Places map** - local-only globe for photos and videos with valid GPS
   metadata. Items without location data are excluded.
-- **Non-memory images** — local AI classification of screenshots, app captures,
-  receipts, bank statements, documents, and similar low-value images. Review-only
-  by default; it never deletes or hides files automatically.
+- **Non-memory images** - local AI classification of screenshots, receipts,
+  documents, and similar images. Review-only by default; it never deletes or
+  hides files automatically.
+- **Partial backups** - verified backups of selected media to smaller
+  destination drives, with cumulative coverage.
 
-The technical designs, data models, privacy rules, and acceptance criteria are in
-§16 of the implementation plan.
+See `docs/roadmap.md` and the product specification for details.

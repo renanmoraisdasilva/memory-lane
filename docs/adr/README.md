@@ -6,23 +6,40 @@ and status.
 
 ## Status values
 
-- **Proposed** — under review.
-- **Accepted** — current direction.
-- **Superseded** — replaced by a later ADR.
-- **Deprecated** — no longer recommended.
+- **Proposed** - under review.
+- **Accepted** - current direction.
+- **Superseded** - replaced by a later ADR.
+- **Deprecated** - no longer recommended.
 
-## Planned records
+## Current records
 
-- `0001-electron-process-and-security-model.md`
-- `0002-single-sqlite-writer-and-repositories.md`
-- `0003-ipc-contracts-and-error-envelope.md`
-- `0004-renderer-state-and-data-flow.md`
-- `0005-styling-and-component-primitives.md`
-- `0006-testing-and-quality-gates.md`
-- `0007-packaging-and-distribution.md`
-- `0008-places-map.md` (post-v0.1)
-- `0009-non-memory-classification.md` (post-v0.1)
+No ADRs are recorded yet. The implemented decisions are summarized in
+`docs/Memory_Lane_Scope_and_Implementation.md`.
 
-Create each record during Phase 0 of the implementation plan, before the related
-code is written. A decision that changes later gets a new ADR rather than a
-silent edit to the old one.
+Create an ADR when a decision is significant, cross-cutting, and likely to be
+questioned later. Do not create one for routine implementation detail.
+
+## Template
+
+```markdown
+# NNNN - Title
+
+- Status: Proposed | Accepted | Superseded | Deprecated
+- Date: YYYY-MM-DD
+
+## Context
+
+What problem or constraint forced a decision?
+
+## Decision
+
+What was decided?
+
+## Alternatives
+
+What else was considered, and why was it rejected?
+
+## Consequences
+
+What becomes easier, harder, or constrained?
+```
