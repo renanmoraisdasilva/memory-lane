@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   DuplicateGroupsParams,
@@ -46,12 +47,26 @@ export function useHealthMoved() {
 
 export function useValidationState() {
   const client = useLibraryClient();
-  return useQuery({
+  const queryClient = useQueryClient();
+  const previousStatus = useRef<string | null>(null);
+  const query = useQuery({
     queryKey: queryKeys.healthValidation,
     queryFn: () => client.getValidationState(),
-    refetchInterval: (query) => (query.state.data?.status === "running" ? 1_000 : false),
+    refetchInterval: (current) => (current.state.data?.status === "running" ? 1_000 : false),
     staleTime: 0,
   });
+
+  useEffect(() => {
+    const status = query.data?.status ?? null;
+    const finished = status === "complete" || status === "failed";
+    if (finished && previousStatus.current !== status) {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.healthSummary });
+      void queryClient.invalidateQueries({ queryKey: ["library"] });
+    }
+    previousStatus.current = status;
+  }, [query.data?.status, queryClient]);
+
+  return query;
 }
 
 function useHealthMutation<TParams, TResult>(mutationFn: (params: TParams) => Promise<TResult>) {

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { VolumeId } from "@shared/contracts/drives";
 import { usePhaseOneClient } from "../../lib/client-context";
@@ -6,11 +7,25 @@ import type { ScanIntensity, ScanState } from "./types";
 
 export function useScanState(volumeId: VolumeId) {
   const client = usePhaseOneClient();
-  return useQuery({
+  const queryClient = useQueryClient();
+  const previousStatus = useRef<ScanState["status"] | null>(null);
+  const query = useQuery({
     queryKey: queryKeys.scan(String(volumeId)),
     queryFn: () => client.getScanState(volumeId),
-    refetchInterval: (query) => (query.state.data?.status === "active" ? 1_000 : false),
+    refetchInterval: (current) => (current.state.data?.status === "active" ? 1_000 : false),
   });
+
+  useEffect(() => {
+    const status = query.data?.status ?? null;
+    if (status === "complete" && previousStatus.current !== "complete") {
+      void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: ["other-files"] });
+    }
+    previousStatus.current = status;
+  }, [query.data?.status, queryClient]);
+
+  return query;
 }
 
 export function useScanActions(volumeId: VolumeId) {

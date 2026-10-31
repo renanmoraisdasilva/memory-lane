@@ -32,6 +32,7 @@
     "test:perf": "npm run rebuild:node && vitest run tests/integration/library-performance.test.ts",
     "test:e2e": "npm run rebuild:electron && npm run build && playwright test",
     "smoke:packaged": "node scripts/smoke-packaged.mjs",
+    "screenshots:readme": "npm run package:unpacked && node scripts/capture-readme-screenshots.mjs",
     "verify:package": "node scripts/verify-package.mjs",
     "fetch:binaries": "node scripts/fetch-binaries.mjs",
     "rebuild:node": "npm rebuild better-sqlite3",

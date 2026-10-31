@@ -59,7 +59,7 @@ describe("ScanPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Ready to scan" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start scan" })).toBeInTheDocument();
-    expect(screen.getByText("Next phases")).toBeInTheDocument();
+    expect(screen.getByText("Available while you scan")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Balanced/ })).toBeChecked();
   });
 
@@ -126,7 +126,7 @@ describe("ScanPage", () => {
     expect(screen.getByText("Changed files")).toBeInTheDocument();
     expect(screen.getByText("Missing files")).toBeInTheDocument();
     expect(screen.getByText("Likely moved")).toBeInTheDocument();
-    expect(screen.getByText("Next phases")).toBeInTheDocument();
+    expect(screen.getByText("What's ready now")).toBeInTheDocument();
     expect(screen.getByText("Scan report")).toBeInTheDocument();
     expect(await screen.findByRole("link", { name: "Open Memory Lane" })).toHaveAttribute(
       "href",

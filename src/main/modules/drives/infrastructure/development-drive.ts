@@ -33,7 +33,7 @@ export function createDevelopmentDrive(rootPath: string): DetectedDrive {
     // Capacity is optional for a development drive.
   }
 
-  const label = "Development drive";
+  const label = process.env.MEMORY_LANE_DEV_DRIVE_LABEL?.trim() || "Development drive";
   const fileSystem = "local";
 
   return {

@@ -142,7 +142,7 @@ export function Sidebar({
 
       <div className={styles.sidebarBottom}>
         <SidebarDriveCard drive={drive} onOpenDrawer={onOpenDrawer} />
-        <div className={styles.sidebarFootnote}>Phase 5 · local only · no telemetry</div>
+        <div className={styles.sidebarFootnote}>v0.1 · local only · no telemetry</div>
       </div>
     </aside>
   );

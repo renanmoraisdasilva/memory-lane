@@ -1,153 +1,247 @@
 # Memory Lane
 
-Memory Lane is a local-first, read-only archive catalog for Windows. It helps
-you rediscover personal photos and videos across large external drives without
-moving, renaming, editing, or deleting the originals.
+**A local-first, read-only memory archive for Windows.**
 
-## Status
+Memory Lane catalogs photos, videos, documents, and everything else on external
+drives so the archive can be browsed, dated, searched by category, and checked
+for integrity. It never moves, renames, edits, or deletes the originals.
 
-Phases 0-5 are implemented, with Phase 6 automated hardening complete:
+![Memory Lane timeline](docs/images/library.png)
 
-- Electron application shell with a narrow preload IPC boundary.
-- Dedicated SQLite database worker for PC and per-drive catalogs.
-- Drive selection, catalog setup, and changed-letter confirmation.
-- Four-stage scanning with pause/resume/intensity and interruption recovery.
-- Incremental changes, missing-file marking, moved-candidate detection, and a
-  completion report.
-- Memory Lane timeline with filters, density, year/month navigation, and a
-  virtualized grid.
-- Combined photo/video viewer with details, previous/next, reveal, and
-  open-external actions.
-- Viewport-priority thumbnails through the `ml-media` protocol.
-- ExifTool-based EXIF/XMP/video date extraction with filesystem fallbacks.
-- Date unavailable, bulk year/year-month assignment, and reversible catalog-only
-  overrides in the viewer.
-- Library health with duplicate groups, missing/moved-file management, duplicate
-  badges, and whole-catalog validation with pause/resume.
-- Other files browser with categories, pagination, external open, and reveal.
-- Settings with generated-cache controls, catalog details, backup status, and
-  About.
-- SQLite-safe PC backups every 15 minutes and on graceful close.
-- 100,000-file automated performance coverage, simulated disconnect/recovery,
-  unclean-restart and backup-restore drills, tightened IPC/CSP controls, a
-  read-only guard, package checksums, and a clean-VM release checklist.
-- Windows installer, portable build, E2E flows, and an expanded packaged smoke
-  test.
+---
 
-The manual Phase 6 release pass (clean Windows VM, physical USB disconnect,
-codec playback, 200k memory run, and real 2 TB archive) remains. See
-`docs/release-checklist.md`.
+## The archive stays the archive
 
-## Documentation
+Most catalog tools try to become the library. Memory Lane deliberately does not.
+The drive remains the source of truth; the catalog is a local index that can be
+rebuilt, backed up, and discarded without touching a single original.
 
-Start at `docs/README.md`.
+```mermaid
+flowchart LR
+    Originals["Original archive files"]
+    App["Memory Lane<br/>scan · browse · verify"]
+    Catalog[(".memorylane/catalog.db")]
+    Cache[(".memorylane/cache")]
+    AppData["%LOCALAPPDATA%<br/>app.db · logs · backups"]
+    Guard["Path guards +<br/>read-only guard"]
 
-| Document | Purpose |
-|---|---|
-| `docs/Memory_Lane_Product_Specification.md` | Product vision and requirements |
-| `docs/Memory_Lane_Scope_and_Implementation.md` | Current scope, architecture, data model, and quality gates |
-| `docs/roadmap.md` | Delivered phases and next steps |
-| `docs/phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
-| `docs/phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
-| `docs/phase-5-scope.md` | Implemented Other files, Settings, cache clearing, and backups |
-| `docs/phase-6-scope.md` | Hardening, performance, recovery, and release gates |
-| `docs/health-contract.md` | Library health IPC and validation contract |
-| `docs/other-files-contract.md` | Other files IPC and category contract |
-| `docs/settings-contract.md` | Settings, cache, and backup contract |
-| `docs/security-review.md` | Trust boundaries, controls, and residual risks |
-| `docs/codec-matrix.md` | Codec cataloging, playback expectations, and fallbacks |
-| `docs/release-checklist.md` | Clean-VM, recovery, disconnect, and codec pass |
-| `docs/acceptance.md` | v0.1 acceptance criteria and sign-off status |
-| `docs/scan-contract.md` | Scan IPC and state contract |
-| `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
-| `docs/agent-workstreams.md` | Parallel agent rules |
-| `docs/quality-exceptions.md` | Approved quality exceptions |
+    Originals -.->|"read only"| App
+    App --> Catalog
+    App --> Cache
+    App --> AppData
+    Guard -.->|"enforced by tests and CI"| App
 
-The static files in `ui-mockups/` are a design reference only.
-
-## Repository layout
-
-```text
-src/
-  main/                                Electron main, services, and DB worker
-  preload/                             Typed contextBridge API
-  renderer/                            React application
-  shared/                              IPC contracts and domain types
-tests/
-  integration/                         Real SQLite and temp-filesystem tests
-  e2e/                                 Playwright Electron flows
-scripts/                               Gates, packaging checks, smoke tests
-resources/bin/                          Reserved for future native binaries
-docs/                                   Product, scope, contracts, and roadmap
-.github/workflows/ci.yml               Windows quality, E2E, and packaging
-ui-mockups/                            Static design reference
+    classDef source fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef writable fill:#f3e8ff,stroke:#7e22ce,color:#581c87
+    classDef guard fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class Originals,App source
+    class Catalog,Cache,AppData writable
+    class Guard guard
 ```
 
-## Read-only guarantee
+Every write is scoped to app-managed locations. The quality gate scans the
+main process for filesystem write APIs and rejects anything outside the reviewed
+cache, lock, and backup allowlist.
 
-Memory Lane indexes files in place. The application must never move, rename,
-edit, or delete original files. Catalog databases, thumbnail caches, logs, and
-PC backups live in app-managed locations outside the original archive folders.
+## One scan, four stages
 
-## Technology
+A scan builds the catalog in four independent stages. Browsing unlocks after the
+catalog stage, so a large archive is usable before hashing and thumbnail work
+finish.
 
-| Layer | Choice |
-|---|---|
-| Desktop shell | Electron 42 with `contextIsolation`, `sandbox`, and a narrow preload API |
-| Build | `electron-vite` |
-| Packaging | `electron-builder`: NSIS per-user installer and portable executable |
-| Renderer | React 19 + TypeScript + HashRouter |
-| Data | TanStack Query over typed IPC |
-| Virtualization | TanStack Virtual |
-| Styling | CSS Modules + design tokens + Lucide icons |
-| Database | `better-sqlite3` in a dedicated worker; PC `app.db` + per-drive `catalog.db` |
-| Metadata | ExifTool 13.60 through `exiftool-vendored` |
-| Contracts | Zod |
-| Logging | `electron-log` |
-| Tests | Vitest + Testing Library + Playwright Electron |
-| Distribution | Unsigned Windows build; no auto-update |
+```mermaid
+flowchart LR
+    Drive["External archive<br/>photos · videos · other files"]
+    Catalog["1 · Catalog files<br/>paths + filesystem facts"]
+    Metadata["2 · Metadata + dates<br/>ExifTool with fallbacks"]
+    Thumbs["3 · Thumbnails<br/>Windows-native previews"]
+    Hashes["4 · SHA-256<br/>resumable integrity hashes"]
+    CatalogDB[("catalog.db")]
+    Cache[(".memorylane/cache")]
 
-ExifTool is a runtime dependency and ships with the app. ffmpeg/ffprobe and
-Sharp are candidates for later video thumbnail/playback work. Third-party
-license notices are in `THIRD_PARTY_NOTICES.md`.
+    Drive -->|"read only"| Catalog
+    Catalog --> Metadata
+    Metadata --> Thumbs
+    Catalog --> Hashes
+    Catalog --> CatalogDB
+    Metadata --> CatalogDB
+    Thumbs --> Cache
+    Thumbs --> CatalogDB
+    Hashes --> CatalogDB
 
-## Development
+    classDef source fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef stage fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef storage fill:#f3e8ff,stroke:#7e22ce,color:#581c87
+    class Drive source
+    class Catalog,Metadata,Thumbs,Hashes stage
+    class CatalogDB,Cache storage
+```
+
+Scans pause and resume explicitly, survive app restarts and disconnects, and
+record every stage in the per-drive catalog. A running scan can be interrupted
+without losing completed work.
+
+## The application
+
+| Media viewer | Scan & processing |
+| --- | --- |
+| ![Media viewer with a photo and details](docs/images/viewer.png) | ![Scan complete with four stage results](docs/images/scan.png) |
+| Photo and video playback, date details, manual date overrides, previous/next navigation, reveal in Explorer, and external open. | Four stage cards, pause/resume/intensity, live progress, a completion report, and safe reconnect behavior. |
+
+| Library health | Validation report |
+| --- | --- |
+| ![Duplicate group in Library health](docs/images/library-health.png) | ![Completed catalog validation report](docs/images/library-validation.png) |
+| Exact duplicate groups, missing and moved files, and whole-catalog validation with pause/resume. | Existence, metadata, deep SHA-256, and metadata revalidation with a per-run report. |
+
+| Other files | Settings |
+| --- | --- |
+| ![Other files browser with category chips](docs/images/other-files.png) | ![Settings with cache, catalog, and backup status](docs/images/settings.png) |
+| Documents, spreadsheets, presentations, PDFs, audio, archives, and other files with external open/reveal. | Generated cache size/clear, catalog location, backup status, background controls, About, and an explicit offline/read-only statement. |
+
+## How it is put together
+
+The renderer never receives Node.js or direct database access. A typed preload
+bridge exposes a narrow IPC surface, and every request is validated before it
+reaches the services.
+
+```mermaid
+flowchart TB
+    Renderer["React renderer<br/>HashRouter · TanStack Query"]
+    Bridge["Preload bridge<br/>typed contextBridge API"]
+    Main["Electron main<br/>domain services"]
+    Worker["SQLite DB worker<br/>single writer"]
+    AppDB[("app.db")]
+    CatalogDB[("catalog.db")]
+    Scanner["Scan service"]
+    ExifTool["ExifTool"]
+    Thumbs["Native thumbnails"]
+    Media["ml-media protocol"]
+
+    Renderer -->|"ipcRenderer.invoke"| Bridge
+    Bridge -->|"validated channels"| Main
+    Main -->|"worker requests"| Worker
+    Worker --> AppDB
+    Worker --> CatalogDB
+    Main --> Scanner
+    Scanner --> ExifTool
+    Scanner --> Thumbs
+    Scanner -->|"batch writes"| Worker
+    Renderer -->|"thumbnail and media URLs"| Media
+    Media -->|"catalog IDs only"| Worker
+    Main -->|"scheduled backups"| Worker
+
+    classDef ui fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef core fill:#f3e8ff,stroke:#7e22ce,color:#581c87
+    classDef data fill:#dcfce7,stroke:#16a34a,color:#14532d
+    class Renderer,Bridge,Media ui
+    class Main,Worker,Scanner,ExifTool,Thumbs core
+    class AppDB,CatalogDB data
+```
+
+A few decisions shape the rest:
+
+- **One SQLite writer.** The worker owns both `app.db` and the active
+  `catalog.db`. Renderer and main-process services never open SQLite directly.
+- **One catalog per drive.** `<drive>\.memorylane\catalog.db` is self-contained,
+  versioned, and portable with the drive.
+- **IDs, not paths, over media URLs.** `ml-media:` resolves catalog IDs in the
+  worker, so the renderer cannot ask for an arbitrary filesystem path.
+- **Contracts first.** Zod schemas define IPC payloads and shared types; the
+  preload bridge is generated from the same contract.
+- **Crash-safe writes.** SQLite WAL mode, migrations, graceful-close backups,
+  and a resumable scan session make interruption boring.
+
+The full architecture and data model are in
+[`docs/Memory_Lane_Scope_and_Implementation.md`](docs/Memory_Lane_Scope_and_Implementation.md).
+The IPC and media contracts are in
+[`docs/scan-contract.md`](docs/scan-contract.md),
+[`docs/library-contract.md`](docs/library-contract.md),
+[`docs/health-contract.md`](docs/health-contract.md),
+[`docs/other-files-contract.md`](docs/other-files-contract.md), and
+[`docs/settings-contract.md`](docs/settings-contract.md).
+
+## What is built today
+
+- **Four-stage scanning** with pause/resume, intensity control, incremental
+  changes, missing/moved detection, and interruption recovery.
+- **Memory Lane** timeline with a virtualized grid, filters, density, year/month
+  navigation, viewport-priority thumbnails, and a combined photo/video viewer.
+- **ExifTool dates** with EXIF/XMP/video extraction, a documented priority
+  chain, Date unavailable, and reversible catalog-only overrides.
+- **Library health** with exact duplicate groups, missing/moved-file actions,
+  and four-level whole-catalog validation.
+- **Other files** categories with pagination, external open, and reveal.
+- **Settings** for generated cache, catalog location, backup status, background
+  controls, and About.
+- **SQLite-safe PC backups** every 15 minutes and on graceful close, with manual
+  recovery documented.
+- **Hardening**: 100k/200k performance coverage, simulated disconnect and
+  unclean-restart drills, a backup-restore drill, tightened IPC/CSP controls, a
+  read-only guard, SHA-256 package checksums, and an expanded packaged smoke.
+- **315 automated tests** across 69 files, 7 Electron E2E flows, and a packaged
+  app smoke covering scan, library, Other files, Settings, backup, and cache.
+
+Phase 6 automated hardening is complete. The manual release pass — clean Windows
+VM install/uninstall, physical USB disconnect, codec playback, 200k memory
+measurement, and a real 2 TB archive — remains in
+[`docs/release-checklist.md`](docs/release-checklist.md).
+
+## Quality gates
+
+```powershell
+npm run check          # typecheck, lint, format, size, read-only, architecture, knip
+npm run test:coverage  # unit, component, integration, coverage floors
+npm run test:e2e       # Playwright Electron flows
+npm run check:full     # all of the above
+npm run test:perf      # 100k catalog query pass (200k with MEMORY_LANE_PERF_200K=1)
+```
+
+The suite covers contracts, repositories, migrations, scan coordination, media
+range responses, disconnect/recovery, backup restore, renderer states, E2E
+flows, and the packaged app. Coverage floors are 80% overall and 90% for shared
+contracts and database code.
+
+## Run it
 
 Node **22.12+** is required. The repository includes `.nvmrc` and
 `.node-version`.
 
 ```text
 npm ci
-
-# Development (rebuilds better-sqlite3 for Electron first)
 npm run dev
-
-# Fast static checks
-npm run check
-
-# Unit, component, and integration tests with coverage
-npm run test:coverage
-
-# Build + Playwright Electron E2E
-npm run test:e2e
-
-# Full local gate: static checks + coverage + E2E
-npm run check:full
-
-# Windows package: NSIS installer + portable executable
-npm run package:win
-
-# Refresh release/win-unpacked for local testing
-npm run package:unpacked
-
-npm run verify:package
-npm run smoke:packaged
 ```
 
+`npm run dev` rebuilds `better-sqlite3` for Electron, starts Vite, and launches
+the desktop shell. React and CSS changes hot-reload; main-process changes rebuild
+and relaunch Electron. DevTools are enabled in development.
+
+### Build a Windows package
+
+```powershell
+npm run package:win        # NSIS installer + portable executable
+npm run package:unpacked   # refresh release\win-unpacked for local testing
+npm run verify:package     # binaries, runtime files, SHA-256SUMS.txt
+npm run smoke:packaged     # scan → Other files → backup → cache clear
+```
+
+Artifacts:
+
+```text
+release\Memory-Lane-Setup-0.1.0-x64.exe   Per-user NSIS installer
+release\Memory-Lane-0.1.0-x64.exe         Portable executable
+release\win-unpacked\Memory Lane.exe      Unpacked app for quick testing
+release\SHA256SUMS.txt                    SHA-256 checksums
+```
+
+The installer is per-user and does not require administrator rights. There is no
+auto-updater. App data, catalogs, and backups survive uninstall.
+
+### Development notes
+
 Native module note: `better-sqlite3` must match the running ABI. Test scripts
-rebuild it for Node before unit/integration tests and fetch the pinned Electron
-prebuild before development, E2E, and packaging. `electron-builder` uses
-`npmRebuild: false` because the correct Electron binary is already selected.
+rebuild it for Node; development, E2E, and packaging use the pinned Electron
+prebuild. `electron-builder` sets `npmRebuild: false` because the correct binary
+is already selected.
 
 SQLite locations:
 
@@ -156,88 +250,73 @@ SQLite locations:
 %LOCALAPPDATA%\MemoryLane-dev\app.db      Development app state
 <drive>\.memorylane\catalog.db            Per-drive catalog
 <drive>\.memorylane\cache\                Generated thumbnails and previews
+%LOCALAPPDATA%\MemoryLane\backups\        PC-side SQLite backups
 ```
 
-### Dev mode
+`npm run screenshots:readme` rebuilds the unpacked app and refreshes the
+screenshots in `docs/images/` from the packaged UI.
 
-`npm run dev` starts the Vite renderer server and launches Electron against it.
-React and CSS changes hot-reload. Main-process and preload changes rebuild and
-relaunch Electron. DevTools are enabled in development. Main-process logs appear
-in the terminal and in `%LOCALAPPDATA%\MemoryLane-dev\logs\main.log`.
+Memory Lane is a desktop app that needs a native window, drive letters, Windows
+Explorer integration, and media playback. Docker is not a runtime dependency;
+packaging uses Electron Builder, NSIS, and a Windows CI runner.
 
-Migration files are bundled at build time. After editing a migration, restart
-dev with a fresh development catalog if the old schema is incompatible.
+## Documentation
 
-### Install a local build
+Start at [`docs/README.md`](docs/README.md).
 
-`npm run package:win` produces:
+| Document | Purpose |
+| --- | --- |
+| [`Memory_Lane_Product_Specification.md`](docs/Memory_Lane_Product_Specification.md) | Product vision and requirements |
+| [`Memory_Lane_Scope_and_Implementation.md`](docs/Memory_Lane_Scope_and_Implementation.md) | Scope, architecture, data model, quality gates |
+| [`roadmap.md`](docs/roadmap.md) | Delivered phases and next work |
+| [`phase-3-scope.md`](docs/phase-3-scope.md) | Dates, ExifTool, overrides, Date unavailable |
+| [`phase-4-scope.md`](docs/phase-4-scope.md) | Duplicates, missing/moved files, validation |
+| [`phase-5-scope.md`](docs/phase-5-scope.md) | Other files, Settings, cache, backups |
+| [`phase-6-scope.md`](docs/phase-6-scope.md) | Hardening, performance, recovery, release gates |
+| [`security-review.md`](docs/security-review.md) | Trust boundaries, controls, residual risks |
+| [`codec-matrix.md`](docs/codec-matrix.md) | Codec expectations and external fallbacks |
+| [`release-checklist.md`](docs/release-checklist.md) | Clean-VM and physical-drive release pass |
+| [`acceptance.md`](docs/acceptance.md) | v0.1 acceptance criteria and sign-off |
+| [`scan-contract.md`](docs/scan-contract.md) | Scan IPC, state, stages, and reports |
+| [`library-contract.md`](docs/library-contract.md) | Library IPC, media protocol, viewer |
+| [`health-contract.md`](docs/health-contract.md) | Health IPC, duplicates, validation |
+| [`other-files-contract.md`](docs/other-files-contract.md) | Other files IPC and categories |
+| [`settings-contract.md`](docs/settings-contract.md) | Settings, cache, backup, recovery |
+| [`agent-workstreams.md`](docs/agent-workstreams.md) | Parallel agent rules |
+| [`quality-exceptions.md`](docs/quality-exceptions.md) | Approved quality-rule exceptions |
 
-```text
-release\Memory-Lane-Setup-0.1.0-x64.exe   Per-user NSIS installer
-release\Memory-Lane-0.1.0-x64.exe         Portable single-file build
-release\win-unpacked\Memory Lane.exe      Unpacked app for quick testing
-```
+The static files in `ui-mockups/` are a design reference only; the screenshots
+above are captured from the packaged application.
 
-`npm run package:unpacked` refreshes `release\win-unpacked\Memory Lane.exe`
-without rebuilding the installer or portable executable. Use it after code
-changes when testing the unpacked app.
+## Roadmap
 
-The installer runs without administrator rights, installs under
-`%LOCALAPPDATA%\Programs\Memory Lane`, and creates a Start Menu shortcut.
+| Phase | Focus | Status |
+| --- | --- | --- |
+| 0 | Foundation | Complete |
+| 1 | Drive and scan | Complete |
+| 2 | Memory Lane | Complete |
+| 3 | Dates | Complete |
+| 4 | Integrity | Complete |
+| 5 | Other files and Settings | Complete |
+| 6 | Hardening | Automated complete; manual release pass pending |
 
-To update an installed personal build, change `version` in `package.json`, run
-`npm run package:win`, and run the new setup executable. App data and archive
-catalogs remain. There is no auto-updater. The uninstaller removes the
-application, not app data, catalogs, or backups.
-
-### Why not Docker
-
-Electron is a Windows desktop GUI application. It needs a native window, direct
-access to external drive letters, Windows Explorer integration, and media
-playback. Docker Desktop does not provide a normal desktop app with USB drive
-access. Packaging uses Windows-native `electron-builder`/NSIS and a Windows CI
-runner.
-
-## Engineering standards
-
-- 400-line hard file limit, 300-line soft target.
-- Function length 100, cyclomatic complexity 10, cognitive complexity 15.
-- TypeScript strict mode; no explicit `any`.
-- Enforced renderer/main/preload/shared architecture boundaries.
-- 80% overall coverage; 90% for shared contracts and database code.
-- Unit, component, integration, contract, E2E, and packaged-smoke tests.
-- GitHub Actions quality, E2E, and Windows packaging jobs.
-
-The exact limits, test layers, and CI pipeline are in
-`docs/Memory_Lane_Scope_and_Implementation.md`.
-
-## Parallel development
-
-The project supports multiple coding agents:
-
-- **Platform/Core** - Electron main, DB worker, scanning, media, packaging.
-- **Renderer/UX** - React app, design system, screens, accessibility.
-- **Quality/Release** - CI, E2E, fixtures, packaging smoke tests, ADRs.
-
-Path ownership, contract-first integration, worktree rules, and agent prompts
-are in `docs/agent-workstreams.md`. Agents commit locally; the human reviews and
-pushes.
+The status table in [`docs/roadmap.md`](docs/roadmap.md) is the source of truth.
 
 ## Future features
 
 These are post-v0.1 and are not part of current acceptance criteria:
 
-- **Places map** - local-only globe for photos and videos with valid GPS
-  metadata. Items without location data are excluded.
-- **Non-memory images** - local AI classification of screenshots, receipts,
-  documents, and similar images. Review-only by default; it never deletes or
-  hides files automatically.
-- **Partial backups** - verified backups of selected media to smaller
-  destination drives, with cumulative coverage.
-
-See `docs/roadmap.md` and the product specification for details.
+- **Places map** — local-only globe for items with valid GPS metadata.
+- **Non-memory images** — local-only classification of screenshots, receipts,
+  and documents with review-only suggestions.
+- **Partial backups** — verified copies of selected media to smaller destination
+  drives, with cumulative coverage.
+- **Search and saved filters** — keyword search over names, paths, and metadata.
+- **Favorites and collections** — user organization that never modifies
+  originals.
 
 ## License
 
-Memory Lane is released under the MIT License. See `LICENSE` for the full text.
-Third-party components are listed in `THIRD_PARTY_NOTICES.md`.
+Memory Lane is released under the MIT License. See [`LICENSE`](LICENSE) for the
+full text. Third-party components are listed in
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

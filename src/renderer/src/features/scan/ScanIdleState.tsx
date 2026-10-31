@@ -144,10 +144,10 @@ export function ScanIdleState({
           <Callout
             tone="amber"
             icon={<ScanLine size={17} aria-hidden="true" />}
-            title="Next phases"
+            title="Available while you scan"
           >
-            Memory Lane is available from the sidebar while scanning. Date assignment arrives in
-            Phase 3, and Library health arrives in Phase 4.
+            Memory Lane, Date unavailable, Library health, Other files, and Settings are available
+            from the sidebar. Browsing stays responsive while the scan continues.
           </Callout>
           <Callout
             tone="neutral"

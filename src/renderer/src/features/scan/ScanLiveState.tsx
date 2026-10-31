@@ -250,10 +250,10 @@ export function ScanLiveState(props: ScanLiveStateProps): React.JSX.Element {
           <Callout
             tone="amber"
             icon={<ScanLine size={17} aria-hidden="true" />}
-            title="Next phases"
+            title="While the scan runs"
           >
-            Open Memory Lane from the sidebar while the scan runs. Date assignment arrives in Phase
-            3, and Library health arrives in Phase 4.
+            Open Memory Lane, Date unavailable, Library health, Other files, or Settings from the
+            sidebar. The scan continues in the background.
           </Callout>
         </aside>
       </div>
