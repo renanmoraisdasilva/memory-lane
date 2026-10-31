@@ -27,7 +27,7 @@ const summary: CatalogSummary = {
   catalogPath: "F:\\.memorylane\\catalog.db",
   driveLabel: "Archive",
   volumeId,
-  schemaVersion: 2,
+  schemaVersion: 3,
   fileCount: 3,
   openedAt: "2026-10-31T14:00:00.000Z",
 };
@@ -81,6 +81,10 @@ function createApi(): MemoryLaneApi {
     ...createScanFixture("active", "Archive", volumeId),
     errorMessage: null,
   };
+  const libraryFailure = async (): Promise<IpcResult<never>> => ({
+    ok: false,
+    error: { code: "INVALID_REQUEST", message: "Not used by the Phase 1 client test" },
+  });
   return {
     getAppInfo: vi.fn(async () => ok(appInfo)),
     listDrives: vi.fn(async () => ok([connected, offline])),
@@ -92,6 +96,12 @@ function createApi(): MemoryLaneApi {
     pauseScan: vi.fn(async () => ok(scanState)),
     resumeScan: vi.fn(async () => ok(scanState)),
     setScanIntensity: vi.fn(async () => ok(scanState)),
+    getLibrarySummary: libraryFailure,
+    getLibraryTimeline: libraryFailure,
+    getLibraryTimelineIndex: libraryFailure,
+    getLibraryItem: libraryFailure,
+    revealLibraryItem: libraryFailure,
+    openLibraryItem: libraryFailure,
   };
 }
 

@@ -14,7 +14,7 @@ import { createDevelopmentDrive } from "../../src/main/modules/drives/infrastruc
 import { ScanService } from "../../src/main/modules/scanning/application/scan-service";
 import type {
   FileHasher,
-  ThumbnailGenerator,
+  ThumbnailWorkScheduler,
 } from "../../src/main/modules/scanning/domain/scan-files";
 import { createFileHasher } from "../../src/main/modules/scanning/infrastructure/file-hasher";
 import { createFileMetadataExtractor } from "../../src/main/modules/scanning/infrastructure/file-metadata";
@@ -23,7 +23,7 @@ export function testLogger(): Logger {
   return { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
 }
 
-export function thumbnailGenerator(): ThumbnailGenerator {
+export function thumbnailGenerator(): ThumbnailWorkScheduler {
   return {
     async generate(_filePath: string, outputPath: string): Promise<{ bytes: number }> {
       const bytes = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);

@@ -33,6 +33,12 @@ describe("IPC contracts", () => {
     expect(IPC_CHANNELS.pauseScan).toBe("scan:pause");
     expect(IPC_CHANNELS.resumeScan).toBe("scan:resume");
     expect(IPC_CHANNELS.setScanIntensity).toBe("scan:set-intensity");
+    expect(IPC_CHANNELS.getLibrarySummary).toBe("library:get-summary");
+    expect(IPC_CHANNELS.getLibraryTimeline).toBe("library:get-timeline");
+    expect(IPC_CHANNELS.getLibraryTimelineIndex).toBe("library:get-timeline-index");
+    expect(IPC_CHANNELS.getLibraryItem).toBe("library:get-item");
+    expect(IPC_CHANNELS.revealLibraryItem).toBe("shell:reveal-item");
+    expect(IPC_CHANNELS.openLibraryItem).toBe("shell:open-item");
   });
 
   it("parses app info and database state", () => {

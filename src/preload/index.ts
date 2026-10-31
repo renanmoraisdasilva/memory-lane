@@ -10,6 +10,16 @@ import type {
   OpenCatalogParams,
 } from "@shared/contracts/ipc";
 import type {
+  LibraryItemDetails,
+  LibraryItemParams,
+  LibraryItemTargetParams,
+  LibrarySummary,
+  LibraryTimelineIndex,
+  LibraryTimelineIndexParams,
+  LibraryTimelinePage,
+  LibraryTimelineParams,
+} from "@shared/contracts/library";
+import type {
   ScanIntensityParams,
   ScanStartParams,
   ScanState,
@@ -37,6 +47,24 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.resumeScan, params) as Promise<IpcResult<ScanState>>,
   setScanIntensity: (params: ScanIntensityParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.setScanIntensity, params) as Promise<IpcResult<ScanState>>,
+  getLibrarySummary: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getLibrarySummary) as Promise<IpcResult<LibrarySummary>>,
+  getLibraryTimeline: (params: LibraryTimelineParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getLibraryTimeline, params) as Promise<
+      IpcResult<LibraryTimelinePage>
+    >,
+  getLibraryTimelineIndex: (params: LibraryTimelineIndexParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getLibraryTimelineIndex, params) as Promise<
+      IpcResult<LibraryTimelineIndex>
+    >,
+  getLibraryItem: (params: LibraryItemParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getLibraryItem, params) as Promise<
+      IpcResult<LibraryItemDetails>
+    >,
+  revealLibraryItem: (params: LibraryItemTargetParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,
+  openLibraryItem: (params: LibraryItemTargetParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.openLibraryItem, params) as Promise<IpcResult<void>>,
 };
 
 contextBridge.exposeInMainWorld("memoryLane", api);

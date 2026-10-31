@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DriveIdentitySchema } from "@shared/contracts/drives";
 import type { AppErrorPayload } from "@shared/domain/errors";
+import type { LibraryDbMethod } from "./library-worker-protocol";
 import type { ScanDbMethod } from "./scan-worker-protocol";
 
 export const CatalogCreateParamsSchema = z.object({
@@ -24,7 +25,7 @@ export const RegisterDriveParamsSchema = z.object({
 export type CoreDbMethod =
   "health" | "app.listDrives" | "app.registerDrive" | "catalog.create" | "catalog.open" | "close";
 
-export type DbMethod = CoreDbMethod | ScanDbMethod;
+export type DbMethod = CoreDbMethod | ScanDbMethod | LibraryDbMethod;
 
 export interface DbRequest {
   id: number;

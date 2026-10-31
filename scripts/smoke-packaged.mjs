@@ -3,6 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { _electron as electron } from "playwright";
 
+const ONE_PIXEL_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
+
 const executablePath = path.resolve("release", "win-unpacked", "Memory Lane.exe");
 const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-smoke-"));
 const userDataPath = path.join(root, "user-data");
@@ -10,6 +15,7 @@ const developmentDrivePath = path.join(root, "development-drive");
 await mkdir(userDataPath, { recursive: true });
 await mkdir(developmentDrivePath, { recursive: true });
 await writeFile(path.join(developmentDrivePath, "scan.txt"), "packaged scan fixture");
+await writeFile(path.join(developmentDrivePath, "photo.png"), ONE_PIXEL_PNG);
 
 const environment = {};
 for (const [key, value] of Object.entries(process.env)) {
@@ -77,11 +83,30 @@ try {
     throw new Error("Timed out waiting for the packaged scan");
   });
 
-  if (scanState.report?.newFiles !== 1) {
+  if (scanState.report?.newFiles !== 2) {
     throw new Error(`Unexpected packaged scan report: ${JSON.stringify(scanState.report)}`);
   }
 
-  console.log("Packaged app launched, rendered, exposed the preload bridge, and completed a scan.");
+  const library = await page.evaluate(async () => {
+    const bridge = window.memoryLane;
+    const summary = await bridge.getLibrarySummary();
+    const timeline = await bridge.getLibraryTimeline({ filter: "all", limit: 10 });
+    if (!summary.ok) {
+      throw new Error(summary.error.message);
+    }
+    if (!timeline.ok) {
+      throw new Error(timeline.error.message);
+    }
+    return { summary: summary.data, timeline: timeline.data };
+  });
+
+  if (library.summary.totalItems !== 1 || library.timeline.items[0]?.name !== "photo.png") {
+    throw new Error(`Unexpected packaged library: ${JSON.stringify(library)}`);
+  }
+
+  console.log(
+    "Packaged app launched, rendered, exposed the preload bridge, completed a scan, and queried the library.",
+  );
 } finally {
   if (app !== undefined) {
     await app.close();

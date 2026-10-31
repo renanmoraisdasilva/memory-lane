@@ -121,6 +121,9 @@ export function saveMetadataBatch(
        original_value = excluded.original_value
      WHERE file_dates.is_override = 0`,
   );
+  const saveMediaFacts = db.prepare(
+    "UPDATE files SET width = ?, height = ?, duration_seconds = ? WHERE id = ?",
+  );
 
   const save = db.transaction(() => {
     for (const item of items) {
@@ -129,6 +132,7 @@ export function saveMetadataBatch(
         insert.run(item.fileId, entry.key, entry.value, entry.source, now);
       }
       insert.run(item.fileId, "scan.metadata", item.status, "scan", now);
+      saveMediaFacts.run(item.width, item.height, item.durationSeconds, item.fileId);
       if (item.date !== null) {
         saveDate.run(
           item.fileId,

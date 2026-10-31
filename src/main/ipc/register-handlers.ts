@@ -9,6 +9,16 @@ import {
   type IpcResult,
 } from "@shared/contracts/ipc";
 import {
+  LibraryItemParamsSchema,
+  LibraryItemTargetParamsSchema,
+  LibraryTimelineIndexParamsSchema,
+  LibraryTimelineParamsSchema,
+  type LibraryItemDetails,
+  type LibrarySummary,
+  type LibraryTimelineIndex,
+  type LibraryTimelinePage,
+} from "@shared/contracts/library";
+import {
   ScanIntensityParamsSchema,
   ScanStartParamsSchema,
   ScanVolumeParamsSchema,
@@ -17,6 +27,7 @@ import {
 import { APP_ERROR_CODES, AppError, toAppErrorPayload } from "@shared/domain/errors";
 import type { AppService } from "../modules/app/application/app-service";
 import type { DriveService } from "../modules/drives/application/drive-service";
+import type { LibraryService } from "../modules/library/application/library-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { Logger } from "../logging/types";
 
@@ -24,6 +35,7 @@ export interface IpcServices {
   appService: AppService;
   driveService: DriveService;
   scanService: ScanService;
+  libraryService: LibraryService;
   logger: Logger;
 }
 
@@ -59,7 +71,7 @@ async function respond<T>(
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
-  const { appService, driveService, scanService, logger } = services;
+  const { appService, driveService, scanService, libraryService, logger } = services;
 
   ipcMain.handle(IPC_CHANNELS.getAppInfo, (event) =>
     respond<AppInfo>(event, IPC_CHANNELS.getAppInfo, logger, () => appService.getInfo()),
@@ -117,5 +129,41 @@ export function registerIpcHandlers(services: IpcServices): void {
       const parsed = ScanIntensityParamsSchema.parse(params);
       return scanService.setIntensity(parsed.volumeId, parsed.intensity);
     }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getLibrarySummary, (event) =>
+    respond<LibrarySummary>(event, IPC_CHANNELS.getLibrarySummary, logger, () =>
+      libraryService.getSummary(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getLibraryTimeline, (event, params: unknown) =>
+    respond<LibraryTimelinePage>(event, IPC_CHANNELS.getLibraryTimeline, logger, () =>
+      libraryService.getTimeline(LibraryTimelineParamsSchema.parse(params)),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getLibraryTimelineIndex, (event, params: unknown) =>
+    respond<LibraryTimelineIndex>(event, IPC_CHANNELS.getLibraryTimelineIndex, logger, () =>
+      libraryService.getTimelineIndex(LibraryTimelineIndexParamsSchema.parse(params)),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getLibraryItem, (event, params: unknown) =>
+    respond<LibraryItemDetails>(event, IPC_CHANNELS.getLibraryItem, logger, () =>
+      libraryService.getItem(LibraryItemParamsSchema.parse(params)),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.revealLibraryItem, (event, params: unknown) =>
+    respond<void>(event, IPC_CHANNELS.revealLibraryItem, logger, () =>
+      libraryService.reveal(LibraryItemTargetParamsSchema.parse(params).fileId),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.openLibraryItem, (event, params: unknown) =>
+    respond<void>(event, IPC_CHANNELS.openLibraryItem, logger, () =>
+      libraryService.open(LibraryItemTargetParamsSchema.parse(params).fileId),
+    ),
   );
 }
