@@ -8,6 +8,8 @@ import { createMockPhaseOneClient } from "../../lib/ipc-client.mock";
 import { createMockDrives, mockCatalogSummary, mockVolumeIds } from "../../lib/mock-fixtures";
 import { createScanFixture } from "../../lib/mock-scan-controller";
 import { renderWithProviders } from "../../test/render";
+import { createLibraryFixtureClient } from "../../test/library-fixtures";
+import type { LibraryClient } from "../library/library-client";
 import type { PhaseOneClient } from "../../lib/phase-one-client";
 import { ScanPage } from "./ScanPage";
 import type { ScanState, ScanStatus } from "./types";
@@ -30,6 +32,7 @@ function fixture(status: ScanStatus): ScanState {
 function renderScan(
   state: ScanState | null,
   overrides: Partial<PhaseOneClient> = {},
+  libraryClient: LibraryClient = createLibraryFixtureClient(),
 ): { drive: ReturnType<typeof readyDrive>; client: PhaseOneClient } {
   const drive = readyDrive();
   const base = createMockPhaseOneClient({
@@ -39,6 +42,7 @@ function renderScan(
   const client: PhaseOneClient = { ...base, ...overrides };
   renderWithProviders(<ScanPage />, {
     client,
+    libraryClient,
     workspace: { drive, catalog: mockCatalogSummary(drive) },
     initialEntries: ["/scan"],
   });
@@ -55,7 +59,7 @@ describe("ScanPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Ready to scan" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Start scan" })).toBeInTheDocument();
-    expect(screen.getByText("Phase 1 handoff")).toBeInTheDocument();
+    expect(screen.getByText("Next phases")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Balanced/ })).toBeChecked();
   });
 
@@ -122,12 +126,26 @@ describe("ScanPage", () => {
     expect(screen.getByText("Changed files")).toBeInTheDocument();
     expect(screen.getByText("Missing files")).toBeInTheDocument();
     expect(screen.getByText("Likely moved")).toBeInTheDocument();
-    expect(screen.getByText("Phase 1 handoff")).toBeInTheDocument();
+    expect(screen.getByText("Next phases")).toBeInTheDocument();
     expect(screen.getByText("Scan report")).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Open Memory Lane" })).toHaveAttribute(
+      "href",
+      "/library",
+    );
 
     await userEvent.click(screen.getByRole("button", { name: "Scan again" }));
 
     expect(await screen.findByRole("button", { name: "Pause" })).toBeInTheDocument();
+  });
+
+  it("hides the library handoff when the catalog contains no media", async () => {
+    renderScan(fixture("complete"), {}, createLibraryFixtureClient({ items: [] }));
+
+    expect(await screen.findByRole("heading", { name: "Scan complete" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole("link", { name: "Open Memory Lane" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Scan again" })).toBeInTheDocument();
   });
 
   it("shows the error state with resume, retry, and switch-drive actions", async () => {

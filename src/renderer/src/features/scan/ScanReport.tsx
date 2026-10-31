@@ -141,14 +141,9 @@ function ReportSide({ report }: { report: ScanReportData }): React.JSX.Element {
           {missingBody(report)}
         </Callout>
         <div className={styles.reportCallout}>
-          <Callout
-            tone="amber"
-            icon={<Info size={17} aria-hidden="true" />}
-            title="Phase 1 handoff"
-          >
-            The Memory Lane timeline arrives in Phase 2, and Library health arrives in Phase 4.
-            There is no library screen to open from this build yet. The scan report above is the
-            Phase 1 result, and Scan again is safe to run at any time.
+          <Callout tone="amber" icon={<Info size={17} aria-hidden="true" />} title="Next phases">
+            Date assignment arrives in Phase 3, and Library health arrives in Phase 4. The scan
+            report above is the Phase 2 result, and Scan again is safe to run at any time.
           </Callout>
         </div>
       </div>

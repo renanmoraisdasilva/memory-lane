@@ -1,4 +1,4 @@
-import { HardDrive, Image, Radar } from "lucide-react";
+import { HardDrive, Image, Images, Radar } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { formatBytes } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
@@ -14,6 +14,10 @@ function usedPercent(drive: DriveSelectionItem): number | null {
     100,
     Math.max(0, Math.round(((drive.totalBytes - drive.freeBytes) / drive.totalBytes) * 100)),
   );
+}
+
+function navClass({ isActive }: { isActive: boolean }): string {
+  return `${styles.navItem}${isActive ? ` ${styles.navItemActive}` : ""}`;
 }
 
 export function Sidebar({
@@ -39,20 +43,22 @@ export function Sidebar({
       </div>
 
       <nav className={styles.sidebarNav} aria-label="Main navigation">
+        <div className={styles.navLabel}>Library</div>
+        <NavLink to="/library" className={navClass}>
+          <Images size={18} aria-hidden="true" />
+          <span>Memory Lane</span>
+        </NavLink>
+
+        <div className={styles.navDivider} />
+
         <div className={styles.navLabel}>System</div>
-        <NavLink
-          to="/scan"
-          className={({ isActive }) =>
-            `${styles.navItem}${isActive ? ` ${styles.navItemActive}` : ""}`
-          }
-        >
+        <NavLink to="/scan" className={navClass}>
           <Radar size={18} aria-hidden="true" />
           <span>Scan &amp; processing</span>
           {isScanRunning(scan.data?.status) ? (
             <span className={styles.navPulse} title="Background processing active" />
           ) : null}
         </NavLink>
-        <div className={styles.navNote}>Library screens arrive in Phase 2.</div>
       </nav>
 
       <div className={styles.sidebarBottom}>
@@ -86,7 +92,7 @@ export function Sidebar({
             <span style={percent === null ? undefined : { width: `${percent}%` }} />
           </span>
         </button>
-        <div className={styles.sidebarFootnote}>Phase 1 · local only · no telemetry</div>
+        <div className={styles.sidebarFootnote}>Phase 2 · local only · no telemetry</div>
       </div>
     </aside>
   );

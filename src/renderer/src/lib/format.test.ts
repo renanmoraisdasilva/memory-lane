@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatCount, formatDateTime, formatDuration, formatPercent } from "./format";
+import {
+  formatBytes,
+  formatCount,
+  formatDateTime,
+  formatDuration,
+  formatMediaDuration,
+  formatPercent,
+} from "./format";
 
 describe("formatBytes", () => {
   it("handles unknown and zero values", () => {
@@ -26,6 +33,13 @@ describe("scan formatting", () => {
     expect(formatDuration(2_880)).toBe("48 min");
     expect(formatDuration(3_900)).toBe("1 hr 5 min");
     expect(formatDuration(null)).toBe("Not available");
+  });
+
+  it("formats media playback durations", () => {
+    expect(formatMediaDuration(75)).toBe("01:15");
+    expect(formatMediaDuration(204)).toBe("03:24");
+    expect(formatMediaDuration(3_724)).toBe("1:02:04");
+    expect(formatMediaDuration(null)).toBeNull();
   });
 
   it("formats percentages and unknown totals", () => {

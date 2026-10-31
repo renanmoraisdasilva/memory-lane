@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { WorkspaceProvider, useWorkspace } from "./app/workspace";
 import { DriveSelectionPage } from "./features/drives/DriveSelectionPage";
+import { LibraryPage } from "./features/library/LibraryPage";
+import {
+  createUnavailableLibraryClient,
+  type LibraryClient,
+} from "./features/library/library-client";
+import { LibraryClientProvider } from "./features/library/library-client-context";
+import { ViewerShell } from "./features/library/ViewerShell";
 import { ScanPage } from "./features/scan/ScanPage";
 import { AppShell } from "./features/shell/AppShell";
 import { PhaseOneClientProvider } from "./lib/client-context";
@@ -18,23 +25,55 @@ function ScanRoute(): React.JSX.Element {
     return <Navigate to="/" replace />;
   }
   return (
-    <AppShell>
+    <AppShell crumbs={["Library", "Scan & processing"]}>
       <ScanPage />
     </AppShell>
   );
 }
 
-export function App({ client }: { client?: PhaseOneClient } = {}): React.JSX.Element {
+function LibraryRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return (
+    <AppShell mode="fill" crumbs={["Library", "Memory Lane"]}>
+      <LibraryPage />
+    </AppShell>
+  );
+}
+
+function ViewerRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return <ViewerShell />;
+}
+
+export function App({
+  client,
+  libraryClient,
+}: {
+  client?: PhaseOneClient;
+  libraryClient?: LibraryClient;
+} = {}): React.JSX.Element {
   const [fallbackClient] = useState(createDefaultPhaseOneClient);
+  const [fallbackLibraryClient] = useState(createUnavailableLibraryClient);
+
   return (
     <PhaseOneClientProvider client={client ?? fallbackClient}>
-      <WorkspaceProvider>
-        <Routes>
-          <Route path="/" element={<DriveGateRoute />} />
-          <Route path="/scan" element={<ScanRoute />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </WorkspaceProvider>
+      <LibraryClientProvider client={libraryClient ?? fallbackLibraryClient}>
+        <WorkspaceProvider>
+          <Routes>
+            <Route path="/" element={<DriveGateRoute />} />
+            <Route path="/scan" element={<ScanRoute />} />
+            <Route path="/library" element={<LibraryRoute />} />
+            <Route path="/library/item/:fileId" element={<ViewerRoute />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </WorkspaceProvider>
+      </LibraryClientProvider>
     </PhaseOneClientProvider>
   );
 }

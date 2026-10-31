@@ -6,7 +6,17 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import styles from "./AppShell.module.css";
 
-export function AppShell({ children }: { children: ReactNode }): React.JSX.Element | null {
+export type ShellMode = "default" | "fill";
+
+export function AppShell({
+  children,
+  crumbs,
+  mode = "default",
+}: {
+  children: ReactNode;
+  crumbs: string[];
+  mode?: ShellMode;
+}): React.JSX.Element | null {
   const { drive, catalog, closeWorkspace } = useWorkspace();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -25,8 +35,10 @@ export function AppShell({ children }: { children: ReactNode }): React.JSX.Eleme
     <div className={styles.app}>
       <Sidebar drive={drive} onOpenDrawer={() => setDrawerOpen(true)} />
       <div className={styles.workspace}>
-        <TopBar crumbs={["Library", "Scan & processing"]} volumeId={drive.volumeId} />
-        <main className={styles.page}>{children}</main>
+        <TopBar crumbs={crumbs} volumeId={drive.volumeId} />
+        <main className={mode === "fill" ? `${styles.page} ${styles.pageFill}` : styles.page}>
+          {children}
+        </main>
       </div>
       {drawerOpen ? (
         <DriveDrawer

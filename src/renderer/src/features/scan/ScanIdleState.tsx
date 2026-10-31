@@ -144,10 +144,10 @@ export function ScanIdleState({
           <Callout
             tone="amber"
             icon={<ScanLine size={17} aria-hidden="true" />}
-            title="Phase 1 handoff"
+            title="Next phases"
           >
-            The Memory Lane timeline is not available in this build. Phase 1 covers drive selection,
-            catalog setup, and scan progress; browsing arrives in Phase 2.
+            Memory Lane is available from the sidebar while scanning. Date assignment arrives in
+            Phase 3, and Library health arrives in Phase 4.
           </Callout>
           <Callout
             tone="neutral"

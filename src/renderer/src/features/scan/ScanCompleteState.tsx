@@ -1,8 +1,10 @@
 import { Play } from "lucide-react";
 import type { CatalogSummary } from "@shared/contracts/drives";
+import { Link } from "react-router-dom";
 import { Spinner } from "../../components/ui/Callout";
 import { formatCount, formatDuration } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
+import { useLibrarySummary } from "../library/public";
 import { ScanHero } from "./ScanHero";
 import { ScanReport } from "./ScanReport";
 import { scanDurationSeconds, type ScanState } from "./types";
@@ -25,6 +27,8 @@ export function CompleteState({
   const cataloged =
     state.stages.find((stage) => stage.id === "catalog")?.processed ?? catalog.fileCount;
   const duration = seconds === null ? "" : ` in ${formatDuration(seconds)}`;
+  const library = useLibrarySummary();
+  const hasMedia = (library.data?.totalItems ?? 0) > 0;
 
   return (
     <>
@@ -32,15 +36,22 @@ export function CompleteState({
         title="Scan complete"
         description={`Cataloged ${formatCount(cataloged)} files${duration}. New, changed, missing, and likely moved files are summarized below.`}
         actions={
-          <button
-            className={styles.primaryButton}
-            type="button"
-            disabled={startPending}
-            onClick={onStart}
-          >
-            {startPending ? <Spinner /> : <Play size={14} aria-hidden="true" />}
-            {startPending ? "Starting…" : "Scan again"}
-          </button>
+          <>
+            {hasMedia ? (
+              <Link className={styles.primaryButton} to="/library">
+                Open Memory Lane
+              </Link>
+            ) : null}
+            <button
+              className={hasMedia ? styles.secondaryButton : styles.primaryButton}
+              type="button"
+              disabled={startPending}
+              onClick={onStart}
+            >
+              {startPending ? <Spinner /> : <Play size={14} aria-hidden="true" />}
+              {startPending ? "Starting…" : "Scan again"}
+            </button>
+          </>
         }
       />
       <ScanReport state={state} driveLabel={drive.label} catalogPath={catalog.catalogPath} />

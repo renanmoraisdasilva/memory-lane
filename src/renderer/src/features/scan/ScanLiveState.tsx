@@ -250,10 +250,10 @@ export function ScanLiveState(props: ScanLiveStateProps): React.JSX.Element {
           <Callout
             tone="amber"
             icon={<ScanLine size={17} aria-hidden="true" />}
-            title="Phase 1 handoff"
+            title="Next phases"
           >
-            The Memory Lane timeline is not available in this build. You can monitor the scan here;
-            browsing arrives in Phase 2.
+            Open Memory Lane from the sidebar while the scan runs. Date assignment arrives in Phase
+            3, and Library health arrives in Phase 4.
           </Callout>
         </aside>
       </div>

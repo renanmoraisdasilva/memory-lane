@@ -11,12 +11,17 @@ import { createMockPhaseOneClient } from "./lib/ipc-client.mock";
 import { createMockDrives, mockVolumeIds } from "./lib/mock-fixtures";
 import { createScanFixture } from "./lib/mock-scan-controller";
 import { createTestQueryClient } from "./test/render";
+import { createLibraryFixtureClient } from "./test/library-fixtures";
+import type { LibraryClient } from "./features/library/library-client";
 
-function renderApp(client = createMockPhaseOneClient({ scenario: "catalog" })): void {
+function renderApp(
+  client = createMockPhaseOneClient({ scenario: "catalog" }),
+  libraryClient: LibraryClient = createLibraryFixtureClient(),
+): void {
   render(
     <QueryClientProvider client={createTestQueryClient()}>
       <MemoryRouter initialEntries={["/"]}>
-        <App client={client} />
+        <App client={client} libraryClient={libraryClient} />
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -39,11 +44,25 @@ describe("App shell", () => {
     renderApp();
     await openReadyDrive();
 
-    expect(screen.getByText("Library", { exact: true })).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByText("Library"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Read-only", { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Memory Lane" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Scan & processing" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Memory Lane" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
+  });
+
+  it("opens Memory Lane from the sidebar", async () => {
+    renderApp();
+    await openReadyDrive();
+
+    await userEvent.click(screen.getByRole("link", { name: "Memory Lane" }));
+
+    expect(await screen.findByRole("heading", { name: "Memory Lane" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "All" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Photos" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Videos" })).toBeInTheDocument();
   });
 
   it("shows a live background scan chip", async () => {
