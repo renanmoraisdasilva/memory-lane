@@ -9,6 +9,5 @@
   ],
   "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
   "ignore": ["src/types/**", "src/renderer/src/env.d.ts"],
-  "ignoreDependencies": ["@tanstack/react-virtual"],
   "ignoreExportsUsedInFile": true
 }
