@@ -10,7 +10,11 @@ release/
 *.tsbuildinfo
 
 # Fetched native binaries (ExifTool, ffmpeg, ffprobe)
-resources/bin/
+resources/bin/*
+!resources/bin/README.md
+
+# Local toolchains
+.tools/
 
 # Electron
 .electron/

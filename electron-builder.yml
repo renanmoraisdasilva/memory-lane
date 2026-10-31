@@ -1,0 +1,36 @@
+appId: com.memorylane.app
+productName: Memory Lane
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: resources/bin
+    to: bin
+    filter:
+      - "**/*"
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/**
+npmRebuild: false
+compression: normal
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Memory Lane
+  artifactName: Memory-Lane-Setup-${version}-${arch}.${ext}
+portable:
+  artifactName: Memory-Lane-${version}-${arch}.${ext}
+publish: null

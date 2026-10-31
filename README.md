@@ -6,23 +6,36 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-This repository currently contains the product definition, the v0.1 scope and
-implementation plan, and a clickable UI prototype. The Electron application has
-not been scaffolded yet.
+Phase 0 is implemented: the Electron application shell, secure preload/IPC
+boundary, dedicated SQLite database worker, `app.db` + per-drive `catalog.db`
+migrations, Windows drive identity, logging, quality gates, unit/integration/E2E
+tests, and Windows packaging all work.
+
+The scan pipeline, media catalog, and product screens arrive in Phase 1 onward.
+The static prototype in `ui-mockups/` remains the design reference.
 
 ## Repository layout
 
 ```text
-Memory_Lane_Product_Specification.md      Original product specification
-Memory_Lane_Scope_and_Implementation.md   v0.1 scope, architecture, and build plan
-ui-mockups/                               Clickable static prototype
-  index.html                              Prototype screen map and entry point
-  assets/                                 Shared CSS, JS, fonts, and local images
+src/
+  main/                                Electron main, DB worker, services
+  preload/                             Typed contextBridge API
+  renderer/                            React foundation screen
+  shared/                              IPC contracts and domain types
+tests/
+  integration/                         Real SQLite and temp-filesystem tests
+  e2e/                                 Playwright Electron flows
+scripts/                               Binaries, file-size gate, package checks
+resources/bin/                          Fetched native binaries (Phase 1)
 docs/
-  adr/                                    Architecture decision records
-  agent-workstreams.md                    Parallel agent ownership and integration rules
-  quality-exceptions.md                   Approved quality-rule exceptions
-.github/pull_request_template.md          Review and quality checklist
+  adr/                                 Architecture decision records
+  agent-workstreams.md                 Parallel agent ownership and integration rules
+  quality-exceptions.md                Approved quality-rule exceptions
+.github/workflows/ci.yml               Windows quality, E2E, and packaging pipeline
+.github/pull_request_template.md       Review and quality checklist
+ui-mockups/                            Clickable static prototype
+Memory_Lane_Product_Specification.md   Original product specification
+Memory_Lane_Scope_and_Implementation.md v0.1 scope, architecture, and build plan
 ```
 
 ## View the prototype
@@ -50,22 +63,66 @@ Memory Lane indexes files in place. The application must never move, rename,
 edit, or delete original files. Catalog databases, thumbnail caches, logs, and
 PC backups live in app-managed locations outside the original archive folders.
 
-## Planned technology
+## Technology
+
+Current Phase 0 foundation:
 
 | Layer | Choice |
 |---|---|
-| Desktop shell | Electron with a strict preload/IPC boundary |
+| Desktop shell | Electron 42 with `contextIsolation`, `sandbox`, and a narrow preload API |
 | Build | `electron-vite` |
 | Packaging | `electron-builder` (NSIS per-user installer + portable ZIP) |
-| Renderer | React + TypeScript + HashRouter |
-| Data and UI state | TanStack Query + Zustand |
-| Styling and primitives | CSS Modules + design tokens + Radix + Lucide |
-| Database | `better-sqlite3` in a dedicated DB worker; PC `app.db` + per-drive `catalog.db` |
-| Workers | Piscina worker pools |
-| Media tooling | Pinned ExifTool, ffmpeg/ffprobe, Sharp |
-| Validation | Zod IPC contracts |
+| Renderer | React 19 + TypeScript + HashRouter |
+| Data | TanStack Query over typed IPC |
+| Styling | CSS Modules + design tokens + Lucide icons |
+| Database | `better-sqlite3` in a dedicated worker; PC `app.db` + per-drive `catalog.db` |
+| Contracts | Zod |
+| Logging | `electron-log` |
 | Tests | Vitest + Testing Library + Playwright Electron |
 | Distribution | Unsigned NSIS installer + portable ZIP; SmartScreen warning documented |
+
+Planned additions for the next phases: Piscina worker pools, Zustand for local UI
+state, Radix primitives, TanStack Virtual, React Hook Form, ExifTool,
+ffmpeg/ffprobe, and Sharp.
+
+## Development
+
+Node **22.12+** is required. The repo includes `.nvmrc` and `.node-version`.
+
+```text
+npm ci
+
+# Development (rebuilds better-sqlite3 for Electron first)
+npm run dev
+
+# Fast local quality checks
+npm run check
+
+# Unit, component, and integration tests with coverage
+npm run test:coverage
+
+# Build + Playwright Electron E2E
+npm run test:e2e
+
+# Full Windows package: NSIS installer + portable ZIP
+npm run package:win
+npm run verify:package
+npm run smoke:packaged
+```
+
+Native module note: `better-sqlite3` must match the running ABI. The test scripts
+rebuild it for Node before unit/integration tests, and fetch the pinned Electron
+prebuild before development, E2E, and packaging. `npm run dev` does the Electron
+rebuild automatically. `electron-builder` is configured with `npmRebuild: false`
+because the prebuilt Electron binary is already selected.
+
+Phase 0 stores its SQLite databases here:
+
+```text
+%LOCALAPPDATA%\MemoryLane\app.db          Installation state
+<drive>\.memorylane\catalog.db            Per-drive catalog
+<drive>\.memorylane\cache\                Generated previews (Phase 1)
+```
 
 ## Engineering standards
 

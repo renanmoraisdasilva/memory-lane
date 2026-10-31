@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main/index.ts",
+    "src/main/workers/db-worker.ts",
+    "src/preload/index.ts",
+    "src/renderer/src/main.tsx",
+    "electron.vite.config.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
+  "ignore": ["src/types/**", "src/renderer/src/env.d.ts"],
+  "ignoreExportsUsedInFile": true
+}

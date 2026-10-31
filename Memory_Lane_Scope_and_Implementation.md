@@ -1,6 +1,7 @@
 # Memory Lane — MVP Scope & Implementation Plan
 
 **Status:** Working scope baseline for v0.1 (interview decisions applied)  
+**Implementation status:** Phase 0 foundation implemented — Electron shell, secure IPC, DB worker, migrations, drive identity, quality gates, E2E, and Windows packaging. Scanning begins in Phase 1.  
 **Platform:** Windows desktop  
 **Date:** 2026-10-31  
 **Companions:** `Memory_Lane_Product_Specification.md`, `ui-mockups/`
@@ -721,7 +722,7 @@ Rules:
 |---|---|---|
 | Desktop shell | Electron, current stable, pinned exact version | Windows desktop requirement; mature native filesystem access. |
 | Build | `electron-vite` | Separate Vite builds for main, preload, and renderer; HMR and fast iteration. |
-| Packaging | `electron-builder` | Mature Windows NSIS/portable targets and native-module rebuilds. Signing hooks remain available but are unused in v0.1. |
+| Packaging | `electron-builder` | Mature Windows NSIS/portable targets and prebuilt native-module packaging. Signing hooks remain available but are unused in v0.1. |
 | Renderer | React + TypeScript | Component model, ecosystem, strong typing. |
 | Routing | React Router with `HashRouter` | Works from `file://` in packaged Electron without a custom protocol. |
 | Server state | TanStack Query | Caching, loading/error states, invalidation for IPC-backed catalog data. |
@@ -1142,7 +1143,9 @@ The application is a single npm package with enforced internal boundaries:
 │  └─ bin/                  Fetched/pinned ExifTool, ffmpeg, ffprobe binaries
 ├─ scripts/
 │  ├─ fetch-binaries.mjs
+│  ├─ rebuild-electron.mjs
 │  ├─ check-file-size.mjs
+│  ├─ smoke-packaged.mjs
 │  └─ verify-package.mjs
 ├─ docs/
 │  ├─ adr/                  Architecture decision records
@@ -1218,8 +1221,10 @@ release/
   in `resources/bin`. The packaged smoke test verifies the resolved path.
 - Production path resolution uses `process.resourcesPath`; development uses the
   repository `resources/` directory.
-- `npmRebuild: true` and `@electron/rebuild` ensure native modules match the
-  Electron ABI, not the system Node ABI.
+- Native modules are selected with `prebuild-install` for the pinned Electron
+  version (ABI-specific), and `electron-builder` runs with `npmRebuild: false`
+  because the correct binary is already in `node_modules`. The packaged smoke
+  test verifies the ABI at runtime.
 - Binary versions and SHA-256 checksums live in `native-binaries.lock.json`.
   `scripts/fetch-binaries.mjs` downloads and verifies them during development and
   CI; binaries are not committed to git. Licenses and attribution are recorded
@@ -1259,7 +1264,7 @@ asarUnpack:
   - node_modules/better-sqlite3/**
   - node_modules/sharp/**
   - node_modules/@img/**
-npmRebuild: true
+npmRebuild: false
 win:
   target:
     - target: nsis
@@ -1498,7 +1503,8 @@ Coverage floor:
 
 Coverage rules:
 - Coverage is a floor, not a target to game.
-- Critical modules have per-file thresholds, not just a global average.
+- Critical module groups have stricter thresholds than the global floor, and
+  individual critical files are reviewed for uncovered failure paths.
 - Generated files, migrations, and pure wiring entrypoints may be excluded only
   with a documented reason.
 - A change that lowers coverage below the floor fails CI.
@@ -1854,10 +1860,8 @@ Additional non-functional checks:
 
 These remain technical decisions, not product-scope changes:
 
-- Exact Electron, React, and library versions pinned at scaffold time.
 - Exact upstream ExifTool/ffmpeg/ffprobe versions and license review.
 - Auto-update mechanism and release channel after v0.1.
-- Exact coverage exclusions and per-file thresholds after the first prototype.
 - Exact drive-identity API and behavior across NTFS/exFAT.
 - Final SQLite WAL/checkpoint strategy on removable drives.
 - Exact backup retention count.
