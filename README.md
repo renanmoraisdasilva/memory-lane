@@ -119,6 +119,10 @@ npm run check:full
 
 # Windows package: NSIS installer + portable executable
 npm run package:win
+
+# Refresh release/win-unpacked for local testing
+npm run package:unpacked
+
 npm run verify:package
 npm run smoke:packaged
 ```
@@ -156,6 +160,10 @@ release\Memory-Lane-Setup-0.1.0-x64.exe   Per-user NSIS installer
 release\Memory-Lane-0.1.0-x64.exe         Portable single-file build
 release\win-unpacked\Memory Lane.exe      Unpacked app for quick testing
 ```
+
+`npm run package:unpacked` refreshes `release\win-unpacked\Memory Lane.exe`
+without rebuilding the installer or portable executable. Use it after code
+changes when testing the unpacked app.
 
 The installer runs without administrator rights, installs under
 `%LOCALAPPDATA%\Programs\Memory Lane`, and creates a Start Menu shortcut.

@@ -15,6 +15,7 @@
     "preview": "electron-vite preview",
     "package": "npm run rebuild:electron && npm run build && electron-builder",
     "package:win": "npm run rebuild:electron && npm run build && electron-builder --win nsis portable",
+    "package:unpacked": "npm run rebuild:electron && npm run build && electron-builder --win dir",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
