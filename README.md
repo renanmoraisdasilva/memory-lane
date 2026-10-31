@@ -6,7 +6,7 @@ moving, renaming, editing, or deleting the originals.
 
 ## Status
 
-Phases 0-5 are implemented:
+Phases 0-5 are implemented, with Phase 6 automated hardening complete:
 
 - Electron application shell with a narrow preload IPC boundary.
 - Dedicated SQLite database worker for PC and per-drive catalogs.
@@ -28,10 +28,15 @@ Phases 0-5 are implemented:
 - Settings with generated-cache controls, catalog details, backup status, and
   About.
 - SQLite-safe PC backups every 15 minutes and on graceful close.
-- Windows installer, portable build, E2E flows, and a packaged EXIF smoke test.
+- 100,000-file automated performance coverage, simulated disconnect/recovery,
+  unclean-restart and backup-restore drills, tightened IPC/CSP controls, a
+  read-only guard, package checksums, and a clean-VM release checklist.
+- Windows installer, portable build, E2E flows, and an expanded packaged smoke
+  test.
 
-Phase 6 (hardening and final acceptance) is next. See `docs/roadmap.md` for the
-remaining work.
+The manual Phase 6 release pass (clean Windows VM, physical USB disconnect,
+codec playback, 200k memory run, and real 2 TB archive) remains. See
+`docs/release-checklist.md`.
 
 ## Documentation
 
@@ -45,9 +50,14 @@ Start at `docs/README.md`.
 | `docs/phase-3-scope.md` | Implemented dates, ExifTool, overrides, and Date unavailable |
 | `docs/phase-4-scope.md` | Implemented duplicates, missing/moved files, and validation |
 | `docs/phase-5-scope.md` | Implemented Other files, Settings, cache clearing, and backups |
+| `docs/phase-6-scope.md` | Hardening, performance, recovery, and release gates |
 | `docs/health-contract.md` | Library health IPC and validation contract |
 | `docs/other-files-contract.md` | Other files IPC and category contract |
 | `docs/settings-contract.md` | Settings, cache, and backup contract |
+| `docs/security-review.md` | Trust boundaries, controls, and residual risks |
+| `docs/codec-matrix.md` | Codec cataloging, playback expectations, and fallbacks |
+| `docs/release-checklist.md` | Clean-VM, recovery, disconnect, and codec pass |
+| `docs/acceptance.md` | v0.1 acceptance criteria and sign-off status |
 | `docs/scan-contract.md` | Scan IPC and state contract |
 | `docs/library-contract.md` | Library IPC, media protocol, and viewer contract |
 | `docs/agent-workstreams.md` | Parallel agent rules |

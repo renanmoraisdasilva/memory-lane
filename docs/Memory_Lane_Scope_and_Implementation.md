@@ -1,10 +1,11 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-5 implemented. Phase 6 (hardening) is next.
+**Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending.
 **Platform:** Windows desktop
 **Last updated:** 2026-10-31
 **Companions:** `Memory_Lane_Product_Specification.md`, `roadmap.md`,
-`scan-contract.md`, `library-contract.md`
+`scan-contract.md`, `library-contract.md`, `security-review.md`,
+`release-checklist.md`
 
 ---
 
@@ -31,22 +32,26 @@ The guiding rule remains:
 | 3 - Dates | Complete | ExifTool extraction, EXIF/XMP/video date resolution, Date unavailable, manual overrides, suspicious-date review |
 | 4 - Integrity | Complete | Duplicates, missing/moved management, validation, Library health |
 | 5 - Other files and settings | Complete | Category browser, cache controls, PC backup status, Settings |
-| 6 - Hardening | Next | Large-archive performance, disconnect recovery, codec matrix, clean-VM release pass |
+| 6 - Hardening | In progress | 100k performance, disconnect/recovery drills, security gates, package checksums; manual clean-VM pass pending |
 
-Verified at the Phase 5 integration point:
+Verified at the Phase 6 automated integration point:
 
-- 308 unit/component/integration tests across 66 files.
+- 315 unit/component/integration tests across 69 files.
 - 7 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer,
   Date unavailable, Library health, and Other files/Settings backups.
+- 100,000-file and 200,000-file in-memory query passes.
 - Coverage above the configured floors, including the critical database branch
   threshold.
-- Windows NSIS installer and portable build produced, verified, and smoke-tested.
-- The packaged smoke resolves an EXIF date through the packaged ExifTool binary.
+- Windows NSIS installer and portable build produced, verified with SHA-256
+  checksums, and smoke-tested.
+- The packaged smoke resolves an EXIF date through the packaged ExifTool binary
+  and covers Other files, Settings, backup, and cache clearing.
 
 Known gaps:
 
-- The automated performance suite covers 10,000 items; the manual 100,000-item
-  check and an ExifTool mixed-corpus benchmark are still outstanding.
+- The manual 200,000-file run, ExifTool mixed-corpus benchmark, physical USB
+  disconnect, clean-VM install/uninstall, and playback matrix are still
+  outstanding.
 - Backups run only while Memory Lane is open and overwrite the latest snapshot;
   recovery is manual and there is no restore UI in v0.1.
 - ffmpeg/ffprobe and Sharp are not dependencies of the current build. ExifTool
@@ -238,7 +243,9 @@ under `src/renderer/src/features`.
   - application logs and backups.
 - No UI verb implies source modification.
 - Path guards validate catalog-owned roots and catalog IDs.
-- Tests cover the read-only IPC surface and path boundaries.
+- `scripts/check-read-only.mjs` fails the quality gate if direct filesystem
+  write APIs appear outside the reviewed cache/lock/backup allowlist.
+- Tests cover the read-only IPC surface, path boundaries, and recovery.
 
 Windows access-time updates are not currently suppressed. Whether to suppress
 them remains an open decision; the current app does not write file contents or
@@ -411,9 +418,9 @@ even when the aggregate number is green.
 |---|---|---|
 | Unit | Vitest | Pure rules, contracts, formatting, timeline grouping |
 | Component | Vitest + Testing Library | Renderer screens, states, and interactions |
-| Integration | Vitest + real SQLite + temp filesystem | Repositories, migrations, scan coordination, media protocol, library queries |
+| Integration | Vitest + real SQLite + temp filesystem | Repositories, migrations, scan coordination, disconnect/recovery, backup restore, media protocol, library queries, 100k performance |
 | E2E | Playwright Electron | Drive setup, scan, library browsing, viewer navigation, bridge contracts |
-| Smoke | Packaged app | Launch, render, scan a fixture drive, query the library |
+| Smoke | Packaged app | Launch, render, scan, Other files, Settings, backup, cache clearing, library |
 
 E2E rules: temporary userData and fixture drive, no real archive, no fixed
 sleeps, trace on failure.
@@ -423,11 +430,11 @@ sleeps, trace on failure.
 GitHub Actions runs on `windows-latest`:
 
 - `npm ci`
-- typecheck, lint, format check, file-size, dependency-cruiser, knip
+- typecheck, lint, format check, file-size, read-only guard, dependency-cruiser, knip
 - unit/component/integration tests with coverage
 - Electron rebuild, build, Playwright E2E
 - NSIS and portable packaging
-- artifact verification and packaged smoke
+- artifact verification, SHA-256 checksums, and packaged smoke
 - artifact upload
 
 `npm run check:full` is the local equivalent.
@@ -446,18 +453,21 @@ Resolved:
 - `ml-media` protocol for thumbnails and ranged media.
 - Shared interactive/bulk thumbnail scheduler.
 - Unsigned Windows distribution with no auto-update.
+- All-generated-cache clearing.
+- Latest-snapshot SQLite backups with manual recovery.
+- Whole-catalog validation outcomes and wording.
+- Exact renderer-document IPC sender validation and tightened CSP.
+- Read-only static guard across main-process code.
 
 Open:
 
-- ExifTool concurrency and performance on a 100k mixed corpus.
+- ExifTool concurrency and performance on a mixed corpus.
 - Timezone conversion policy when EXIF wall-clock dates are displayed outside
   the capture timezone.
-- Supported image/video formats and codec matrix; whether ffmpeg is needed for
-  playback/thumbnails.
+- Confirming actual image/video playback on the release Windows VM.
 - Access-time preservation policy.
 - Behavior for encrypted, corrupt, permission-restricted, or unreadable files.
-- Backup retention and manual recovery procedure.
-- Exact validation outcome wording and thresholds.
+- Manual 200,000-file memory measurement.
 - Future partial-backup schema and coverage definition.
 - Search design and whether SQLite FTS5 is required.
 
@@ -469,6 +479,14 @@ Open:
 - `roadmap.md` - delivered phases and remaining work.
 - `phase-3-scope.md` - implemented date extraction, overrides, and Date unavailable.
 - `phase-4-scope.md` - implemented duplicates, missing/moved files, and validation.
+- `phase-5-scope.md` - implemented Other files, Settings, cache, and backups.
+- `phase-6-scope.md` - hardening, performance, recovery, and release gates.
+- `other-files-contract.md` - Other files IPC and categories.
+- `settings-contract.md` - Settings, cache, and backup contract.
+- `security-review.md` - trust boundaries, controls, and residual risks.
+- `codec-matrix.md` - cataloging, playback expectations, and fallbacks.
+- `release-checklist.md` - clean-VM, recovery, disconnect, and codec pass.
+- `acceptance.md` - v0.1 acceptance criteria and sign-off status.
 - `scan-contract.md` - scan IPC and state contract.
 - `library-contract.md` - library IPC and media contract.
 - `health-contract.md` - Library health IPC and validation contract.

@@ -1,8 +1,8 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-5 implemented\
+**Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete\
 **Platform:** Windows desktop\
-**Version:** 0.5\
+**Version:** 0.6\
 **Date:** 2026-10-31\
 **Scope companion:** `Memory_Lane_Scope_and_Implementation.md`
 

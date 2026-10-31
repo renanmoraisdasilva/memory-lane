@@ -55,6 +55,7 @@ import type { LibraryService } from "../modules/library/application/library-serv
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { SettingsService } from "../modules/settings/application/settings-service";
 import type { Logger } from "../logging/types";
+import { isTrustedRendererUrl, rendererFileUrl } from "./trusted-sender";
 
 export interface IpcServices {
   appService: AppService;
@@ -68,16 +69,9 @@ export interface IpcServices {
 
 function assertTrustedSender(event: IpcMainInvokeEvent): void {
   const url = event.senderFrame?.url ?? "";
-  const developmentUrl = process.env.ELECTRON_RENDERER_URL;
-
-  if (developmentUrl !== undefined && url.startsWith(developmentUrl)) {
-    return;
+  if (!isTrustedRendererUrl(url, rendererFileUrl(), process.env.ELECTRON_RENDERER_URL)) {
+    throw new AppError(APP_ERROR_CODES.FORBIDDEN, "IPC request came from an untrusted sender");
   }
-  if (url.startsWith("file://")) {
-    return;
-  }
-
-  throw new AppError(APP_ERROR_CODES.FORBIDDEN, "IPC request came from an untrusted sender");
 }
 
 async function respond<T>(

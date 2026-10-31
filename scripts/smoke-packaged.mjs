@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { exiftool } from "exiftool-vendored";
@@ -131,8 +131,72 @@ try {
     throw new Error(`Packaged ExifTool metadata missing: ${JSON.stringify(library.details)}`);
   }
 
+  const phaseFive = await page.evaluate(async () => {
+    const bridge = window.memoryLane;
+    const other = await bridge.getOtherFiles({ category: "documents", limit: 10 });
+    if (!other.ok) {
+      throw new Error(other.error.message);
+    }
+    const settings = await bridge.getSettingsInfo();
+    if (!settings.ok) {
+      throw new Error(settings.error.message);
+    }
+    const backup = await bridge.runBackup();
+    if (!backup.ok) {
+      throw new Error(backup.error.message);
+    }
+    const afterBackup = await bridge.getSettingsInfo();
+    if (!afterBackup.ok) {
+      throw new Error(afterBackup.error.message);
+    }
+    const cache = await bridge.clearCache();
+    if (!cache.ok) {
+      throw new Error(cache.error.message);
+    }
+    const summary = await bridge.getLibrarySummary();
+    if (!summary.ok) {
+      throw new Error(summary.error.message);
+    }
+    return {
+      other: other.data,
+      settings: settings.data,
+      backup: backup.data,
+      afterBackup: afterBackup.data,
+      cache: cache.data,
+      summary: summary.data,
+    };
+  });
+
+  if (
+    phaseFive.other.total !== 1 ||
+    phaseFive.other.items[0]?.name !== "scan.txt" ||
+    phaseFive.other.items[0]?.category !== "documents"
+  ) {
+    throw new Error(`Unexpected packaged Other files result: ${JSON.stringify(phaseFive.other)}`);
+  }
+  if (!phaseFive.settings.offline) {
+    throw new Error("Packaged settings did not report offline mode");
+  }
+  if (phaseFive.backup.status !== "success" || phaseFive.afterBackup.backup.lastBackupAt === null) {
+    throw new Error(`Packaged backup did not complete: ${JSON.stringify(phaseFive)}`);
+  }
+  if (phaseFive.summary.totalItems !== 1) {
+    throw new Error(`Cache clearing changed the catalog: ${JSON.stringify(phaseFive.summary)}`);
+  }
+
+  await stat(phaseFive.backup.path);
+  await stat(path.join(path.dirname(phaseFive.backup.path), "app.db"));
+  try {
+    await stat(phaseFive.settings.cache.path);
+    throw new Error(`Packaged cache directory still exists: ${phaseFive.settings.cache.path}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Packaged cache directory")) {
+      throw error;
+    }
+  }
+
   console.log(
-    "Packaged app launched, rendered, exposed the preload bridge, completed a scan, and queried the library.",
+    "Packaged app launched, rendered, scanned, browsed Other files, completed a backup, and cleared generated cache.",
   );
 } finally {
   if (app !== undefined) {

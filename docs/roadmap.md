@@ -4,7 +4,7 @@ Last updated: 2026-10-31
 
 ## Current state
 
-Phases 0-5 are implemented:
+Phases 0-5 are implemented, and Phase 6 automated hardening is in place:
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -23,22 +23,29 @@ Phases 0-5 are implemented:
 - Other files categories with external open/reveal, Settings with cache
   controls and catalog details, and SQLite backups every 15 minutes and on
   graceful close.
+- Hardening: 100k automated performance, simulated disconnect/resume and
+  unclean-restart drills, backup-restore drill, tightened IPC/CSP controls, a
+  read-only guard, package checksums, and a clean-VM release checklist.
 
-Verification at the Phase 5 integration point: 308 unit/component/integration
-tests across 66 files, 7 Electron E2E flows, coverage above the configured
-floors, and a packaged smoke test that resolves an EXIF date through the packaged
-ExifTool binary.
+The automated Phase 6 gates are complete. The manual clean-VM, physical USB
+disconnect, codec, and 200k release pass remains. See
+`docs/release-checklist.md` for the manual sign-off.
+
+Verification at the Phase 6 automated integration point: 315
+unit/component/integration tests across 69 files, 7 Electron E2E flows, 100k and
+200k in-memory query passes, coverage above the configured floors, and an
+expanded packaged smoke test with SHA-256 package checksums.
 
 ## Immediate follow-ups
 
-1. Run the manual 100,000-item performance check on a real drive profile. The
-   automated suite covers 10,000 items.
+1. Run the 200,000-file performance pass and record process memory.
 2. Benchmark ExifTool on a mixed corpus of JPEG, HEIC, MP4/MOV, and legacy
    camcorder files; adjust `maxProcs` if needed.
-3. Record actual video codec support from Chromium and confirm the
-   open-externally fallback for unsupported files.
-4. Validate scan and browsing behavior against a real 2 TB USB 3 archive,
-   including disconnect and reconnect.
+3. Record actual image/video playback results on a clean Windows VM using
+   `codec-matrix.md`.
+4. Validate scan, disconnect/reconnect, backup, and restore against a real 2 TB
+   USB 3 archive.
+5. Install, uninstall, and run the portable build on a clean Windows VM.
 
 ## Phase 3 - Dates (delivered)
 
@@ -94,19 +101,32 @@ benchmark.
 Known limits: the latest backup set is overwritten, backups only run while the
 app is open, cache clearing is all-or-nothing, and no restore UI ships in v0.1.
 
-## Phase 6 - Hardening (next)
+## Phase 6 - Hardening (automated complete, manual pass pending)
 
-- 100k-200k file performance and memory tests.
-- USB disconnect, unclean shutdown, and resume tests.
-- SQLite backup and manual recovery drill.
-- Image/video codec matrix.
-- IPC, CSP, and read-only security review.
-- Full packaged-build E2E on a clean Windows VM.
-- Installer, portable build, uninstaller, and checksum verification.
-- Final acceptance-criteria pass.
+Automated:
 
-Exit criteria: the packaged build passes E2E and smoke tests, quality gates are
-green, and the v0.1 acceptance criteria are met.
+- 100,000-file catalog performance across timeline, summary, month index, and
+  Other files; 200,000-file mode via `MEMORY_LANE_PERF_200K=1`.
+- Simulated USB disconnect, persisted error, resume after reconnect.
+- Worker-level unclean restart recovery to `interrupted`.
+- Backup and restore drill for both databases.
+- Exact IPC sender validation, tightened CSP, and a static read-only guard.
+- Package verification of native/runtime binaries and SHA-256 checksums.
+- Packaged smoke covers scan, Other files, Settings, backup, and cache clearing.
+- Codec matrix and release checklist documented.
+
+Manual:
+
+- Clean Windows VM install, launch, uninstall, and portable run.
+- Physical USB disconnect/reconnect during a real scan.
+- Actual image/video playback matrix.
+- Real 2 TB archive scan, browsing, backup, and recovery.
+- 200,000-file run with memory measurement.
+- Final acceptance sign-off.
+
+Exit criteria: the packaged build passes E2E and smoke tests, automated gates are
+green, the manual release checklist is signed, and the v0.1 acceptance criteria
+are met.
 
 ## Post-v0.1 candidates
 

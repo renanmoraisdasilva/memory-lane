@@ -13,6 +13,7 @@ import type {
   ThumbnailWorkScheduler,
 } from "../domain/scan-files";
 import { ScanRunner } from "./scan-runner";
+import { assertDriveAvailable } from "./drive-availability";
 import type { ScanRuntime } from "./scan-runtime";
 
 class ScanStoppedError extends Error {
@@ -48,6 +49,7 @@ export interface ScanServiceDependencies {
   now?: () => Date;
   sleep?: (milliseconds: number) => Promise<void>;
   batchDelayMs?: number;
+  checkDriveAvailable?: (rootPath: string) => Promise<void>;
 }
 
 function createPauseGate(): PauseGate {
@@ -77,6 +79,7 @@ export class ScanService {
   private readonly nowDate: () => Date;
   private readonly sleep: (milliseconds: number) => Promise<void>;
   private readonly batchDelayMs: number;
+  private readonly checkDriveAvailable: (rootPath: string) => Promise<void>;
   private active: ActiveScan | null = null;
 
   constructor(dependencies: ScanServiceDependencies) {
@@ -89,6 +92,7 @@ export class ScanService {
     this.nowDate = dependencies.now ?? (() => new Date());
     this.sleep = dependencies.sleep ?? defaultSleep;
     this.batchDelayMs = dependencies.batchDelayMs ?? 0;
+    this.checkDriveAvailable = dependencies.checkDriveAvailable ?? assertDriveAvailable;
   }
 
   async getState(volumeId: VolumeId): Promise<ScanState> {
@@ -334,7 +338,7 @@ export class ScanService {
       throw new ScanStoppedError();
     }
     try {
-      await fs.access(active.rootPath);
+      await this.checkDriveAvailable(active.rootPath);
     } catch {
       throw new AppError(APP_ERROR_CODES.DRIVE_NOT_FOUND, "The drive disconnected during the scan");
     }

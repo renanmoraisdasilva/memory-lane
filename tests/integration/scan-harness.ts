@@ -49,6 +49,7 @@ export interface ScanHarness {
 export interface ScanHarnessOptions {
   hasher?: FileHasher;
   metadata?: FileMetadataExtractor;
+  checkDriveAvailable?: (rootPath: string) => Promise<void>;
 }
 
 export async function createScanHarness(options: ScanHarnessOptions = {}): Promise<ScanHarness> {
@@ -75,6 +76,9 @@ export async function createScanHarness(options: ScanHarnessOptions = {}): Promi
     metadata: options.metadata ?? createFileMetadataExtractor({ exif: null, logger }),
     thumbnails: thumbnailGenerator(),
     hasher: options.hasher ?? createFileHasher(),
+    ...(options.checkDriveAvailable === undefined
+      ? {}
+      : { checkDriveAvailable: options.checkDriveAvailable }),
   });
   const catalogPath = path.join(driveRoot, ".memorylane", "catalog.db");
 

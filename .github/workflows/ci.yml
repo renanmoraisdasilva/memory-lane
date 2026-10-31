@@ -43,6 +43,9 @@ jobs:
       - name: File-size gate
         run: npm run check:file-size
 
+      - name: Read-only guard
+        run: npm run check:read-only
+
       - name: Architecture boundaries
         run: npm run depcruise
 
@@ -107,6 +110,7 @@ jobs:
             release/*.exe
             release/*.zip
             release/*.blockmap
+            release/SHA256SUMS.txt
           if-no-files-found: error
 
       - name: Upload Playwright report
