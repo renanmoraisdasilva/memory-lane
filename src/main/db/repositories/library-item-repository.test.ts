@@ -12,8 +12,10 @@ import {
   resolveMediaFile,
   resolvePreview,
   resolveThumbnail,
+  resolveVideoProxy,
   savePreview,
   saveThumbnail,
+  saveVideoProxy,
 } from "./library-item-repository";
 
 const volumeId = toVolumeId("volume-1");
@@ -200,6 +202,50 @@ describe("library item repository", () => {
       catalogPath,
       cachePath: path.join(path.dirname(catalogPath), "cache"),
     });
+    db.close();
+  });
+
+  it("saves and resolves a video proxy with its source fingerprint", () => {
+    const db = createDb();
+    const ids = seed(db);
+    expect(resolveVideoProxy(db, ids.b)).toMatchObject({
+      status: "pending",
+      cachePath: null,
+      sourceSize: null,
+    });
+
+    saveVideoProxy(db, {
+      fileId: ids.b,
+      path: "C:\\cache\\proxies\\b.mp4",
+      bytes: 1234,
+      sourceSize: 100,
+      sourceModifiedAtFs: now,
+      status: "ready",
+      errorMessage: null,
+      now,
+    });
+    expect(resolveVideoProxy(db, ids.b)).toMatchObject({
+      status: "ready",
+      cachePath: "C:\\cache\\proxies\\b.mp4",
+      sourceSize: 100,
+      sourceModifiedAtFs: now,
+    });
+
+    saveVideoProxy(db, {
+      fileId: ids.b,
+      path: "C:\\cache\\proxies\\b.mp4",
+      bytes: 0,
+      sourceSize: 100,
+      sourceModifiedAtFs: now,
+      status: "failed",
+      errorMessage: "unsupported",
+      now,
+    });
+    expect(resolveVideoProxy(db, ids.b)).toMatchObject({
+      status: "failed",
+      errorMessage: "unsupported",
+    });
+    expect(resolveVideoProxy(db, ids.a)).toBeNull();
     db.close();
   });
 

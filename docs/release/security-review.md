@@ -1,6 +1,6 @@
 # Security review
 
-Status: Phase 6 automated review complete; replication write surface reviewed; clean-VM manual checks pending.
+Status: Phase 6 automated review complete; replication and video-proxy write surfaces reviewed; clean-VM manual checks pending.
 
 ## Trust boundaries
 
@@ -11,6 +11,7 @@ Status: Phase 6 automated review complete; replication write surface reviewed; c
 | Main process to archive files | Read-only | No direct write APIs outside cache, logs, catalog, and backups |
 | Main process to replication destinations | Registered destination roots only | Single destination writer, path policy, explicit plan confirmation, read-only source guard |
 | Media protocol to renderer | Catalog IDs only | `ml-media` resolves IDs through the DB worker; no raw paths |
+| Main process to FFmpeg | Local child process, validated paths | Argument array, no shell, source opened read-only, output confined to the cache proxy directory |
 | Package and update channel | User-installed binary | Unsigned build, no auto-update, manual download |
 | Backups | Local filesystem | SQLite online backup, plaintext, latest-snapshot retention |
 
@@ -37,7 +38,7 @@ Status: Phase 6 automated review complete; replication write surface reviewed; c
   appear outside the reviewed allowlist.
 - Backups use SQLite's online backup API rather than copying live database files.
 - Package verification checks the installer, portable build, app archive,
-  native SQLite module, ExifTool, and SHA-256 checksums.
+  native SQLite module, ExifTool, bundled FFmpeg, and SHA-256 checksums.
 
 ## Files allowed to write
 
@@ -45,6 +46,8 @@ The read-only guard allowlist is intentionally small:
 
 - catalog lock creation/removal;
 - generated thumbnail files;
+- generated HEIC preview files;
+- generated compatible video proxy files;
 - generated cache deletion;
 - SQLite catalog/app databases, logs, and backup copies (through their owning
   modules).
@@ -76,6 +79,23 @@ drives. It does not relax the source-archive guarantee.
 - The security review and read-only guard cover the destination writer and the
   promotion snapshot adapter.
 
+## Video compatible-copy extension
+
+`modules/media/video-proxy.ts` is the only new write surface. It writes only
+under `.memorylane/cache/proxies` and stores state in `cache_entries`.
+
+- FFmpeg is spawned with an argument array, never a shell command string.
+- The input path comes from the catalog by file ID and is opened read-only.
+- Output is written to a unique temporary file and renamed only after FFmpeg
+  exits successfully.
+- The source path is never passed as an output argument, and the writer rejects
+  jobs for files that are not present videos.
+- Conversion failures remove the temporary file and expose only a retry/open
+  error state.
+- The bundled FFmpeg is GPLv3; its license and source notice ship in
+  `resources/bin`.
+- The read-only guard allowlist includes `modules/media/video-proxy.ts`.
+
 ## Changes made in Phase 6
 
 - Replaced the broad `file://` IPC sender check with an exact packaged-document
@@ -96,6 +116,9 @@ drives. It does not relax the source-archive guarantee.
 - Backup files are plaintext and inherit the user's filesystem permissions.
 - Opening a file externally delegates security to the user's default Windows
   application.
+- FFmpeg decodes local media files in a separate process. A maliciously crafted
+  video is an additional native-code attack surface; the process runs with the
+  user's permissions and writes only to the cache directory.
 - Windows may update file access times when reading originals; this is
   documented but not suppressed in v0.1.
 - Encrypted, corrupt, or permission-restricted files are skipped with explicit

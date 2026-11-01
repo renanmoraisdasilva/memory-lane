@@ -37,10 +37,12 @@ import type { PromotionService } from "../modules/replication/application/promot
 import type { RunService } from "../modules/replication/application/run-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { SettingsService } from "../modules/settings/application/settings-service";
+import type { VideoProxyService } from "../modules/media/video-proxy";
 import type { Logger } from "../logging/types";
 import { registerLibraryHandlers } from "./register-library-handlers";
 import { registerReplicationHandlers } from "./register-replication-handlers";
 import { registerScanHandlers } from "./register-scan-handlers";
+import { registerVideoProxyHandlers } from "./register-video-proxy-handlers";
 import { respond } from "./respond";
 
 export interface IpcServices {
@@ -55,6 +57,7 @@ export interface IpcServices {
   planService: PlanService;
   runService: RunService;
   promotionService: PromotionService;
+  videoProxyService: VideoProxyService;
   logger: Logger;
 }
 
@@ -71,6 +74,7 @@ export function registerIpcHandlers(services: IpcServices): void {
     planService,
     runService,
     promotionService,
+    videoProxyService,
     logger,
   } = services;
 
@@ -102,6 +106,7 @@ export function registerIpcHandlers(services: IpcServices): void {
 
   registerScanHandlers(scanService, logger, () => promotionService.closeRollbackWindow());
   registerLibraryHandlers(libraryService, logger, () => promotionService.closeRollbackWindow());
+  registerVideoProxyHandlers(videoProxyService, logger);
   registerReplicationHandlers({
     destinationService,
     adoptionService,

@@ -6,11 +6,19 @@ directories:
 files:
   - out/**
   - package.json
+  - "!node_modules/ffmpeg-static/ffmpeg.exe"
+  - "!node_modules/ffmpeg-static/ffmpeg.exe.*"
 extraResources:
   - from: resources/bin
     to: bin
     filter:
       - "**/*"
+  - from: node_modules/ffmpeg-static/ffmpeg.exe
+    to: bin/ffmpeg.exe
+  - from: node_modules/ffmpeg-static/ffmpeg.exe.LICENSE
+    to: bin/ffmpeg.exe.LICENSE
+  - from: node_modules/ffmpeg-static/ffmpeg.exe.README
+    to: bin/ffmpeg.exe.README
   - from: resources/icon.png
     to: icon.png
 asar: true

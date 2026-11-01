@@ -123,6 +123,42 @@ describe("library DB handlers", () => {
     db.close();
   });
 
+  it("resolves and saves video proxy cache state", () => {
+    const { db, handler } = createHarness();
+    const video = db
+      .prepare(
+        `INSERT INTO files (
+          path, name, size, modified_at_fs, media_class, format, mime, state, last_seen_at
+        ) VALUES ('C:\\archive\\clip.wmv', 'clip.wmv', 100, ?, 'video', 'WMV',
+                  'video/x-ms-wmv', 'present', ?)
+        RETURNING id`,
+      )
+      .get(now, now) as { id: number };
+
+    expect(handler.handle("library.resolveVideoProxy", { fileId: video.id })).toMatchObject({
+      status: "pending",
+      cachePath: null,
+    });
+    expect(
+      handler.handle("library.saveVideoProxy", {
+        fileId: video.id,
+        path: "C:\\cache\\proxies\\clip.mp4",
+        bytes: 42,
+        sourceSize: 100,
+        sourceModifiedAtFs: now,
+        status: "ready",
+        errorMessage: null,
+        now,
+      }),
+    ).toEqual({ saved: true });
+    expect(handler.handle("library.resolveVideoProxy", { fileId: video.id })).toMatchObject({
+      status: "ready",
+      cachePath: "C:\\cache\\proxies\\clip.mp4",
+      sourceSize: 100,
+    });
+    db.close();
+  });
+
   it("lists undated items, applies a manual date, and clears it", () => {
     const { db, handler, fileId } = createHarness();
     const undated = db

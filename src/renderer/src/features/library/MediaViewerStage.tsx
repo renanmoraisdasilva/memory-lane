@@ -131,7 +131,7 @@ function StageControls({
       ) : (
         <span className={styles.playbackNote}>In-app playback · read-only original</span>
       )}
-      <span className={styles.readonlyNote}>Native controls · no transcoding</span>
+      <span className={styles.readonlyNote}>Native controls · read-only original</span>
     </footer>
   );
 }

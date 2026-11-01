@@ -25,6 +25,8 @@ export const LIBRARY_DB_METHODS = [
   "library.saveThumbnail",
   "library.resolvePreview",
   "library.savePreview",
+  "library.resolveVideoProxy",
+  "library.saveVideoProxy",
 ] as const;
 
 export type LibraryDbMethod = (typeof LIBRARY_DB_METHODS)[number];
@@ -46,6 +48,17 @@ export const LibrarySavePreviewParamsSchema = z.object({
   path: z.string(),
   bytes: z.number().int().nonnegative(),
   status: z.enum(["ready", "failed"]),
+  now: z.string().min(1),
+});
+
+export const LibrarySaveVideoProxyParamsSchema = z.object({
+  fileId: z.number().int().positive(),
+  path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  sourceSize: z.number().int().nonnegative(),
+  sourceModifiedAtFs: z.string().min(1),
+  status: z.enum(["ready", "failed"]),
+  errorMessage: z.string().nullable(),
   now: z.string().min(1),
 });
 

@@ -4,6 +4,8 @@ import { DbWorkerClient } from "./clients/db-client";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
 import { configureUserData } from "./bootstrap/user-data";
+import { shutdownServices } from "./bootstrap/shutdown";
+import { appIconPath } from "./bootstrap/app-icon";
 import {
   createReplicationServices,
   type ReplicationServices,
@@ -19,6 +21,8 @@ import { createQuickFileHasher } from "./modules/scanning/infrastructure/quick-f
 import { createFileMetadataExtractor } from "./modules/scanning/infrastructure/file-metadata";
 import { createThumbnailScheduler } from "./modules/media/thumbnail-scheduler";
 import { createHeicPreviewConverter, type PreviewConverter } from "./modules/media/heic-preview";
+import { resolveFfmpegPath } from "./modules/media/ffmpeg-path";
+import { VideoProxyService } from "./modules/media/video-proxy";
 import { registerMediaProtocol, registerMediaScheme } from "./modules/media/media-protocol";
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
@@ -42,15 +46,10 @@ let settingsService: SettingsService | null = null;
 let adoptionService: ReplicationServices["adoptionService"] | null = null;
 let runService: ReplicationServices["runService"] | null = null;
 let previewService: PreviewConverter | null = null;
+let videoProxyService: VideoProxyService | null = null;
 let tray: Tray | null = null;
 let trayPending = false;
 let shuttingDown = false;
-
-function appIconPath(): string {
-  return app.isPackaged
-    ? path.join(process.resourcesPath, "icon.png")
-    : path.join(__dirname, "../../resources/icon.png");
-}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -254,6 +253,12 @@ async function startServices(): Promise<void> {
   const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());
   const previews = createHeicPreviewConverter({ logger });
   previewService = previews;
+  const videoProxies = new VideoProxyService({
+    db,
+    ffmpegPath: resolveFfmpegPath(app.isPackaged),
+    logger,
+  });
+  videoProxyService = videoProxies;
   const libraryService = new LibraryService({
     db,
     shellActions: createShellActions(),
@@ -306,42 +311,35 @@ async function startServices(): Promise<void> {
     libraryService,
     healthService: health,
     settingsService: settings,
+    videoProxyService: videoProxies,
     ...replication,
     logger,
   });
-  registerMediaProtocol({ db, listDetected: listDetectedDrives, thumbnails, previews, logger });
+  registerMediaProtocol({
+    db,
+    listDetected: listDetectedDrives,
+    thumbnails,
+    previews,
+    videoProxies,
+    logger,
+  });
   settings.startBackupTimer();
   createWindow();
 }
 
 async function shutdown(): Promise<void> {
-  destroyTray();
-  if (adoptionService !== null) {
-    await adoptionService.shutdown();
-  }
-  if (runService !== null) {
-    await runService.shutdown();
-  }
-  if (healthService !== null) {
-    await healthService.shutdown();
-  }
-  if (scanService !== null) {
-    await scanService.shutdown();
-  }
-  if (settingsService !== null) {
-    await settingsService.shutdown();
-  }
-  if (previewService !== null) {
-    await previewService.shutdown();
-  }
-  if (dbClient !== null) {
-    try {
-      await dbClient.close();
-      logger.info("Database worker closed");
-    } catch (error) {
-      logger.error("Failed to close database worker", error);
-    }
-  }
+  await shutdownServices({
+    destroyTray,
+    adoptionService,
+    runService,
+    healthService,
+    scanService,
+    settingsService,
+    previewService,
+    videoProxyService,
+    dbClient,
+    logger,
+  });
 }
 
 async function bootstrap(): Promise<void> {

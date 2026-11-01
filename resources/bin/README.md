@@ -5,6 +5,8 @@ This directory is populated by `npm run fetch:binaries` from
 
 The manifest is currently empty. ExifTool ships through the
 `exiftool-vendored.exe` npm optional package and is unpacked from ASAR, not
-through this directory. If ffmpeg/ffprobe or another native tool is adopted in a
-later phase, add pinned versions and SHA-256 checksums to the manifest, verify
-them in the fetch script, and include license notices before shipping.
+through this directory.
+
+FFmpeg is provided by the pinned `ffmpeg-static` package. Packaging copies its
+executable, license, and source notice into `resources/bin` as extra resources.
+See `docs/release/third-party-notices.md`.

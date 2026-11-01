@@ -3,7 +3,10 @@ import { createReadStream } from "node:fs";
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const RELEASE_DIR = path.resolve("release");
+const RELEASE_DIR =
+  process.env.MEMORY_LANE_RELEASE_DIR === undefined
+    ? path.resolve("release")
+    : path.resolve(process.env.MEMORY_LANE_RELEASE_DIR);
 const packageJson = JSON.parse(await readFile(path.resolve("package.json"), "utf8"));
 const version = packageJson.version;
 const unpackedExe = path.join(RELEASE_DIR, "win-unpacked", "Memory Lane.exe");
@@ -33,6 +36,7 @@ const exifToolBinary = path.join(
   "bin",
   "exiftool.exe",
 );
+const ffmpegBinary = path.join(RELEASE_DIR, "win-unpacked", "resources", "bin", "ffmpeg.exe");
 
 const required = [
   ["Unpacked executable", unpackedExe],
@@ -43,6 +47,7 @@ const required = [
   ["Application icon", appIcon],
   ["SQLite native binary", sqliteBinary],
   ["ExifTool binary", exifToolBinary],
+  ["FFmpeg binary", ffmpegBinary],
 ];
 
 for (const [label, filePath] of required) {

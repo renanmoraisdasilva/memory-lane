@@ -1,7 +1,8 @@
 # Library and viewer contract
 
-Status: implemented in Phase 2. The authoritative TypeScript and Zod definitions
-live in `src/shared/contracts/library.ts`.
+Status: implemented in Phase 2. The video compatible-copy extension is
+implemented as post-v0.1 playback support. The authoritative TypeScript and Zod
+definitions live in `src/shared/contracts/library.ts`.
 
 ## Routes
 
@@ -28,6 +29,8 @@ previous/next navigation and returns to the same filtered grid on Escape.
 | `library:clear-date` | `clearLibraryDate` | `{ fileIds }` | `{ updated }` |
 | `shell:reveal-item` | `revealLibraryItem` | `{ fileId }` | `void` |
 | `shell:open-item` | `openLibraryItem` | `{ fileId }` | `void` |
+| `library:get-video-proxy-state` | `getVideoProxyState` | `{ fileId }` | `VideoProxyState` |
+| `library:prepare-video-proxy` | `prepareVideoProxy` | `{ fileId, retry? }` | `VideoProxyState` |
 
 ## Timeline semantics
 
@@ -93,6 +96,7 @@ The app registers a privileged `ml-media:` scheme:
 
 - `ml-media://thumbnail/<fileId>`
 - `ml-media://media/<fileId>`
+- `ml-media://proxy/<fileId>`
 
 Thumbnails:
 
@@ -120,13 +124,36 @@ Media:
 
 The renderer CSP allows `ml-media:` in `img-src` and `media-src`.
 
+## Compatible video copies
+
+WMV and 3GP do not have reliable Chromium decoders. The viewer requests a
+compatible H.264/AAC MP4 copy for `.wmv` and `.3gp` files and automatically
+falls back to one when another video fails direct playback.
+
+- `prepareVideoProxy` starts one background FFmpeg job per file and returns
+  `processing`; the viewer polls `getVideoProxyState`.
+- Proxies are cached under `.memorylane/cache/proxies/<fileId>.mp4` with a
+  `proxy` row in `cache_entries`, including source size and modified time.
+- A source change invalidates the cache row through the normal scan catalog
+  invalidation; the next play regenerates the copy.
+- The original file is opened read-only. Failed conversions return a failed
+  state with a retry action and the external-open fallback.
+- Proxy files appear in Settings cache size and are removed by **Clear
+  generated cache**.
+- `ml-media://proxy/<fileId>` serves the cached MP4 with byte-range support.
+  It returns 404 until the copy is ready.
+
+The FFmpeg binary is bundled as a separate resource. Its GPLv3 license and
+source notice ship beside it.
+
 ## Presentation rules
 
 - Date grouping uses stored precision: day for `exact`, month for `month`, year
   for `year`, and a trailing Date unavailable section for null dates.
 - Dates come from ExifTool EXIF/XMP/video metadata, then filesystem fallbacks.
   Manual overrides take priority and preserve the extracted value.
-- Unsupported video playback falls back to external open.
+- WMV/3GP and failed direct video playback use a cached compatible copy. If
+  conversion fails, the viewer falls back to external open.
 - No library screen moves, renames, edits, or deletes an original file.
 
 ## Verification

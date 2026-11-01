@@ -32,6 +32,8 @@ import type {
   LibraryTimelineParams,
   LibraryUndatedPage,
   LibraryUndatedParams,
+  VideoProxyPrepareParams,
+  VideoProxyState,
 } from "./library";
 import type { OtherFilesPage, OtherFilesParams } from "./other-files";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "./settings";
@@ -74,5 +76,7 @@ export interface MemoryLaneApi {
   runBackup(): Promise<IpcResult<BackupResult>>;
   revealLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
   openLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
+  getVideoProxyState(params: LibraryItemTargetParams): Promise<IpcResult<VideoProxyState>>;
+  prepareVideoProxy(params: VideoProxyPrepareParams): Promise<IpcResult<VideoProxyState>>;
   replication: ReplicationApi;
 }

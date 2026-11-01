@@ -1,6 +1,7 @@
 # Release checklist
 
-Status: automated gates run locally; clean-VM, physical-drive, and replication release checks pending.
+Status: automated gates run locally; clean-VM, physical-drive, replication, and
+codec playback checks pending.
 
 ## Automated gates
 
@@ -118,7 +119,7 @@ Test a real 2 TB USB 3 archive:
 | Packaged smoke | Yes | - | Scan, Other files, Settings, backup, cache |
 | Installer/uninstaller | Verification only | Pending | Clean VM |
 | Portable build | Launch smoke | Pending | Clean VM |
-| Codec matrix | Classification only | Pending | Clean VM; HEIC packaged check available via `npm run validate:heic -- <photo.heic>` |
+| Codec matrix | WMV/3GP packaged proxy smoke | Pending | Clean VM; HEIC packaged check available via `npm run validate:heic -- <photo.heic>` |
 | Real 2 TB archive | - | Pending | Physical drive |
 | Replication full copy/promotion | Yes | Pending | Physical destination drives; rollback and disconnect drills |
 | Checksums | Yes | Pending | Target-machine verification |

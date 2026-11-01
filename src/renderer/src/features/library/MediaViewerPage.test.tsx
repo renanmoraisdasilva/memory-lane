@@ -118,7 +118,7 @@ describe("MediaViewerPage", () => {
     expect(video).not.toBeNull();
     expect(video).toHaveAttribute("controls");
     expect(video).toHaveAttribute("poster", "ml-media://thumbnail/2");
-    expect(screen.getByText("In-app playback · read-only original")).toBeInTheDocument();
+    expect(screen.getByText("Native controls · read-only original")).toBeInTheDocument();
     expect(screen.getByText("03:24")).toBeInTheDocument();
     expect(screen.getByText("Frame rate")).toBeInTheDocument();
     expect(screen.getByText("29.97 fps")).toBeInTheDocument();
@@ -166,7 +166,7 @@ describe("MediaViewerPage", () => {
     });
   });
 
-  it("shows an unsupported video message", async () => {
+  it("shows a preparation failure when a video cannot be converted", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(2, "videos", client);
     const { container } = renderWithProviders(
@@ -184,7 +184,52 @@ describe("MediaViewerPage", () => {
     }
     fireEvent.error(video);
 
-    expect(await screen.findByText("This video format cannot be played here")).toBeInTheDocument();
+    expect(
+      await screen.findByText("This video could not be prepared for playback"),
+    ).toBeInTheDocument();
+    const status = screen.getByRole("status");
+    expect(within(status).getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(within(status).getByRole("button", { name: "Open externally" })).toBeInTheDocument();
+  });
+
+  it("prepares a compatible copy for WMV playback", async () => {
+    const client = createLibraryFixtureClient();
+    const details = await detailsFor(2, "videos", client);
+    const wmv: LibraryItemDetails = {
+      ...details,
+      item: { ...details.item, name: "MOV_0428.WMV", format: "WMV" },
+    };
+    vi.spyOn(client, "prepareVideoProxy").mockResolvedValue({
+      fileId: 2,
+      status: "processing",
+      progress: 0.4,
+      mediaUrl: null,
+      errorMessage: null,
+    });
+    vi.spyOn(client, "getVideoProxyState").mockResolvedValue({
+      fileId: 2,
+      status: "ready",
+      progress: 1,
+      mediaUrl: "ml-media://proxy/2",
+      errorMessage: null,
+    });
+
+    const { container } = renderWithProviders(
+      <MediaViewerPage details={wmv} filter="videos" density="comfortable" />,
+      {
+        client: createMockPhaseOneClient({ scenario: "catalog" }),
+        libraryClient: client,
+        initialEntries: ["/library/item/2?filter=videos"],
+      },
+    );
+
+    expect(await screen.findByText("Preparing compatible playback")).toBeInTheDocument();
+    await waitFor(
+      () => {
+        expect(container.querySelector("video")).toHaveAttribute("src", "ml-media://proxy/2");
+      },
+      { timeout: 3000 },
+    );
   });
 
   it("shows a thumbnail placeholder for a video without a poster", async () => {

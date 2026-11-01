@@ -49,6 +49,12 @@ const CacheEntryRowSchema = z.object({
   status: z.enum(["pending", "ready", "failed"]).nullable(),
 });
 
+const VideoProxyRowSchema = CacheEntryRowSchema.extend({
+  source_size: z.number().int().nonnegative().nullable(),
+  source_modified_at_fs: z.string().nullable(),
+  error_message: z.string().nullable(),
+});
+
 export interface ResolvedMedia {
   fileId: number;
   path: string;
@@ -68,6 +74,23 @@ export interface ResolvedCacheEntry {
 
 export type ResolvedThumbnail = ResolvedCacheEntry;
 export type ResolvedPreview = ResolvedCacheEntry;
+
+export interface ResolvedVideoProxy extends ResolvedCacheEntry {
+  sourceSize: number | null;
+  sourceModifiedAtFs: string | null;
+  errorMessage: string | null;
+}
+
+export interface SaveVideoProxyInput {
+  fileId: number;
+  path: string;
+  bytes: number;
+  sourceSize: number;
+  sourceModifiedAtFs: string;
+  status: "ready" | "failed";
+  errorMessage: string | null;
+  now: string;
+}
 
 export interface LibraryContext {
   volumeId: string;
@@ -254,6 +277,62 @@ export function saveThumbnail(db: Database.Database, input: SaveThumbnailInput):
 
 export function savePreview(db: Database.Database, input: SavePreviewInput): void {
   saveCacheEntry(db, "preview", input);
+}
+
+export function resolveVideoProxy(
+  db: Database.Database,
+  fileId: number,
+): ResolvedVideoProxy | null {
+  const row = db
+    .prepare(
+      `SELECT f.id, f.path, f.state, c.path AS cache_path, c.status,
+              c.source_size, c.source_modified_at_fs, c.error_message
+       FROM files f
+       LEFT JOIN cache_entries c ON c.file_id = f.id AND c.kind = 'proxy'
+       WHERE f.id = ? AND f.media_class = 'video'`,
+    )
+    .get(fileId);
+
+  const parsed = VideoProxyRowSchema.safeParse(row);
+  if (!parsed.success) {
+    return null;
+  }
+  return {
+    fileId: parsed.data.id,
+    sourcePath: parsed.data.path,
+    state: parsed.data.state,
+    cachePath: parsed.data.cache_path,
+    status: parsed.data.status ?? "pending",
+    sourceSize: parsed.data.source_size,
+    sourceModifiedAtFs: parsed.data.source_modified_at_fs,
+    errorMessage: parsed.data.error_message,
+  };
+}
+
+export function saveVideoProxy(db: Database.Database, input: SaveVideoProxyInput): void {
+  db.prepare(
+    `INSERT INTO cache_entries (
+       file_id, kind, path, bytes, source_size, source_modified_at_fs,
+       generated_at, status, error_message
+     ) VALUES (?, 'proxy', ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(file_id, kind) DO UPDATE SET
+       path = excluded.path,
+       bytes = excluded.bytes,
+       source_size = excluded.source_size,
+       source_modified_at_fs = excluded.source_modified_at_fs,
+       generated_at = excluded.generated_at,
+       status = excluded.status,
+       error_message = excluded.error_message`,
+  ).run(
+    input.fileId,
+    input.path,
+    input.bytes,
+    input.sourceSize,
+    input.sourceModifiedAtFs,
+    input.now,
+    input.status,
+    input.errorMessage,
+  );
 }
 
 export function getLibraryContext(db: Database.Database, catalogPath: string): LibraryContext {

@@ -187,6 +187,19 @@
   line-height: 1.55;
 }
 
+.proxyProgress {
+  width: min(260px, 100%);
+  margin-top: 2px;
+}
+
+.inlineActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .stageControls {
   flex: 0 0 auto;
   display: flex;

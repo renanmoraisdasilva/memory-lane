@@ -21,6 +21,7 @@ Status: v0.1 and replication automated criteria complete; manual release pass pe
 | 15 | Codec behavior and external fallback are known | `codec-matrix.md` | Manual playback pending |
 | 16 | Disconnect during a real scan is safe | Simulated disconnect test | Physical USB pending |
 | 17 | Clean Windows VM release pass | `release-checklist.md` | Pending |
+| 18 | WMV/3GP compatible playback | Packaged WMV proxy smoke, codec matrix | Automated; clean-VM playback pending |
 
 ## Replication acceptance (post-v0.1)
 
@@ -38,7 +39,7 @@ Status: v0.1 and replication automated criteria complete; manual release pass pe
 
 ## Sign-off rule
 
-v0.1 is accepted only when every v0.1 row (1-17) is either automated-green or
+v0.1 is accepted only when every v0.1 row (1-18) is either automated-green or
 marked complete in `release-checklist.md` with a date and tester. No manual row
 may be waived without updating the product scope.
 

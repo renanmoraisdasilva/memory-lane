@@ -119,6 +119,8 @@ function createApi(): MemoryLaneApi {
     runBackup: libraryFailure,
     revealLibraryItem: libraryFailure,
     openLibraryItem: libraryFailure,
+    getVideoProxyState: libraryFailure,
+    prepareVideoProxy: libraryFailure,
     replication: {
       getOverview: libraryFailure,
       listDestinationCandidates: vi.fn(async () => ok([])),

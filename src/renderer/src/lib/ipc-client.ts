@@ -25,6 +25,8 @@ import type {
   LibraryTimelineParams,
   LibraryUndatedPage,
   LibraryUndatedParams,
+  VideoProxyPrepareParams,
+  VideoProxyState,
 } from "@shared/contracts/library";
 import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
 import type {
@@ -127,6 +129,10 @@ export const api = {
   revealLibraryItem: (fileId: number): Promise<void> =>
     unwrap(getApi().revealLibraryItem({ fileId })),
   openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),
+  getVideoProxyState: (fileId: number): Promise<VideoProxyState> =>
+    unwrap(getApi().getVideoProxyState({ fileId })),
+  prepareVideoProxy: (params: VideoProxyPrepareParams): Promise<VideoProxyState> =>
+    unwrap(getApi().prepareVideoProxy(params)),
   replication: {
     getOverview: (): Promise<ReplicationOverview> => unwrap(getApi().replication.getOverview()),
     listDestinationCandidates: (): Promise<DestinationCandidate[]> =>

@@ -29,6 +29,8 @@ and status.
   and guided promotion of a verified copy into the new source archive.
 - `0008-replication-implementation-boundaries.md` - Accepted process, catalog,
   workload, write-boundary, and API decisions for implementing replication.
+- `0009-bundled-ffmpeg-video-proxies.md` - Accepted bundled FFmpeg compatible
+  video copies for WMV, 3GP, and direct-playback failures.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

@@ -1,15 +1,24 @@
+import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { promisify } from "node:util";
 import { exiftool } from "exiftool-vendored";
+import ffmpegStatic from "ffmpeg-static";
 import { _electron as electron } from "playwright";
+
+const execFileAsync = promisify(execFile);
 
 const ONE_PIXEL_JPEG = Buffer.from(
   "/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABD/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAEDAQE/EB//xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oACAECAQE/EB//xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oACAEBAAE/EB//2Q==",
   "base64",
 );
 
-const executablePath = path.resolve("release", "win-unpacked", "Memory Lane.exe");
+const releaseDirectory =
+  process.env.MEMORY_LANE_RELEASE_DIR === undefined
+    ? path.resolve("release")
+    : path.resolve(process.env.MEMORY_LANE_RELEASE_DIR);
+const executablePath = path.join(releaseDirectory, "win-unpacked", "Memory Lane.exe");
 const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-smoke-"));
 const userDataPath = path.join(root, "user-data");
 const developmentDrivePath = path.join(root, "development-drive");
@@ -18,6 +27,37 @@ await mkdir(developmentDrivePath, { recursive: true });
 await writeFile(path.join(developmentDrivePath, "scan.txt"), "packaged scan fixture");
 const photoPath = path.join(developmentDrivePath, "photo.jpg");
 await writeFile(photoPath, ONE_PIXEL_JPEG);
+if (ffmpegStatic === null) {
+  throw new Error("ffmpeg-static is unavailable for the packaged video smoke");
+}
+const videoPath = path.join(developmentDrivePath, "clip.wmv");
+await execFileAsync(ffmpegStatic, [
+  "-hide_banner",
+  "-loglevel",
+  "error",
+  "-y",
+  "-f",
+  "lavfi",
+  "-i",
+  "color=c=red:s=64x64:d=0.5",
+  "-f",
+  "lavfi",
+  "-i",
+  "anullsrc=channel_layout=mono:sample_rate=44100",
+  "-t",
+  "0.5",
+  "-c:v",
+  "wmv2",
+  "-b:v",
+  "200k",
+  "-c:a",
+  "wmav2",
+  "-b:a",
+  "64k",
+  "-f",
+  "asf",
+  videoPath,
+]);
 try {
   await exiftool.write(photoPath, { DateTimeOriginal: "2011:07:04 15:30:00", Make: "MemoryLane" }, [
     "-overwrite_original",
@@ -92,7 +132,7 @@ try {
     throw new Error("Timed out waiting for the packaged scan");
   });
 
-  if (scanState.report?.newFiles !== 2) {
+  if (scanState.report?.newFiles !== 3) {
     throw new Error(`Unexpected packaged scan report: ${JSON.stringify(scanState.report)}`);
   }
 
@@ -106,22 +146,28 @@ try {
     if (!timeline.ok) {
       throw new Error(timeline.error.message);
     }
-    const item = timeline.data.items[0];
-    if (item === undefined) {
-      throw new Error("Packaged library returned no items");
+    const photo = timeline.data.items.find((item) => item.name === "photo.jpg");
+    const video = timeline.data.items.find((item) => item.name === "clip.wmv");
+    if (photo === undefined || video === undefined) {
+      throw new Error(
+        `Packaged library did not return both media items: ${JSON.stringify(timeline.data)}`,
+      );
     }
-    const details = await bridge.getLibraryItem({ fileId: item.fileId, filter: "all" });
+    const details = await bridge.getLibraryItem({ fileId: photo.fileId, filter: "all" });
     if (!details.ok) {
       throw new Error(details.error.message);
     }
-    return { summary: summary.data, timeline: timeline.data, details: details.data };
+    return { summary: summary.data, timeline: timeline.data, details: details.data, video };
   });
 
-  if (library.summary.totalItems !== 1 || library.timeline.items[0]?.name !== "photo.jpg") {
+  if (library.summary.totalItems !== 2) {
     throw new Error(`Unexpected packaged library: ${JSON.stringify(library)}`);
   }
-  if (library.timeline.items[0]?.date.source !== "exif.datetimeOriginal") {
-    throw new Error(`Packaged ExifTool date was not used: ${JSON.stringify(library.timeline)}`);
+  if (
+    library.details.item.name !== "photo.jpg" ||
+    library.details.item.date.source !== "exif.datetimeOriginal"
+  ) {
+    throw new Error(`Packaged ExifTool date was not used: ${JSON.stringify(library.details)}`);
   }
   if (
     !library.details.metadata.some(
@@ -129,6 +175,35 @@ try {
     )
   ) {
     throw new Error(`Packaged ExifTool metadata missing: ${JSON.stringify(library.details)}`);
+  }
+
+  const proxy = await page.evaluate(
+    async ({ fileId }) => {
+      const bridge = window.memoryLane;
+      const first = await bridge.prepareVideoProxy({ fileId });
+      if (!first.ok) {
+        throw new Error(first.error.message);
+      }
+      let state = first.data;
+      const deadline = Date.now() + 60_000;
+      while (Date.now() < deadline) {
+        if (state.status === "ready" || state.status === "failed") {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const next = await bridge.getVideoProxyState({ fileId });
+        if (!next.ok) {
+          throw new Error(next.error.message);
+        }
+        state = next.data;
+      }
+      return state;
+    },
+    { fileId: library.video.fileId },
+  );
+
+  if (proxy.status !== "ready" || proxy.mediaUrl === null) {
+    throw new Error(`Packaged video proxy was not ready: ${JSON.stringify(proxy)}`);
   }
 
   const phaseFive = await page.evaluate(async () => {
@@ -180,7 +255,7 @@ try {
   if (phaseFive.backup.status !== "success" || phaseFive.afterBackup.backup.lastBackupAt === null) {
     throw new Error(`Packaged backup did not complete: ${JSON.stringify(phaseFive)}`);
   }
-  if (phaseFive.summary.totalItems !== 1) {
+  if (phaseFive.summary.totalItems !== 2) {
     throw new Error(`Cache clearing changed the catalog: ${JSON.stringify(phaseFive.summary)}`);
   }
 
@@ -196,7 +271,7 @@ try {
   }
 
   console.log(
-    "Packaged app launched, rendered, scanned, browsed Other files, completed a backup, and cleared generated cache.",
+    "Packaged app launched, rendered, scanned, prepared a WMV compatible copy, browsed Other files, completed a backup, and cleared generated cache.",
   );
 } finally {
   if (app !== undefined) {

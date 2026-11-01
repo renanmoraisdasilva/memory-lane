@@ -1,6 +1,6 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending. Post-v0.1 replication is implemented as a separate release slice.
+**Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending. Post-v0.1 replication and WMV/3GP compatible playback are implemented as separate release slices.
 **Platform:** Windows desktop
 **Last updated:** 2026-11-01
 **Companions:** `product-specification.md`, `roadmap.md`,
@@ -48,10 +48,12 @@ Verified at the Phase 6 automated integration point:
   and covers Other files, Settings, backup, and cache clearing.
 
 Post-v0.1 replication adds 154 tests and two Electron E2E flows. Lazy hashing
-and its migration coverage add 9 more tests. Current totals are 478 tests across
-121 files and 9 Electron E2E flows. See
-[`partial-backups.md`](partial-backups.md) and
-[`../contracts/replication.md`](../contracts/replication.md).
+and video-proxy coverage add 20 more tests. Current totals are 489 tests across
+125 files and 10 Electron E2E flows. See
+[`partial-backups.md`](partial-backups.md),
+[`../contracts/replication.md`](../contracts/replication.md),
+[`../contracts/library.md`](../contracts/library.md), and
+[`../release/codec-matrix.md`](../release/codec-matrix.md).
 
 Known gaps:
 
@@ -105,8 +107,9 @@ Known gaps:
 
 - Combined photo/video route with filter-aware previous/next navigation.
 - Photo fit/100%; native HTML5 video playback with external-open fallback.
-- On-demand HEIC/HEIF to JPEG previews, generated in a worker and cached; other
-  unsupported codecs use the external-open fallback.
+- WMV/3GP and failed direct-playback videos use a cached FFmpeg-compatible copy;
+  preparation progress, cache reuse, retry, and external open are included.
+- On-demand HEIC/HEIF to JPEG previews, generated in a worker and cached.
 - Date, format, size, dimensions, duration, video frame rate, and technical
   metadata.
 - Original path, Reveal in Explorer, and Open externally.
@@ -304,7 +307,7 @@ Both databases are owned by the DB worker.
 | `missing_files` | Current missing state |
 | `moved_candidates` | Hash-matched relocations |
 | `validation_sessions`, `validation_results` | Validation structure |
-| `cache_entries` | Thumbnail and preview cache records |
+| `cache_entries` | Thumbnail, preview, and compatible video-proxy cache records |
 | `schema_migrations` | Applied catalog migrations |
 
 Catalog migration 3 added media dimensions, video duration, and the timeline
@@ -315,6 +318,7 @@ backfills it from existing `media.frameRate` metadata. Migration 7 adds archive
 identity, replica destinations/files, adoption/run/promotion records, and their
 indexes for the post-v0.1 replication work. Migration 8 adds sampled quick
 hashes for large unique files; it does not invalidate existing full hashes.
+Migration 9 adds compatible video-proxy cache records with source fingerprints.
 Phase 5 reuses the existing
 `backup_history` and `registered_drives.last_backup_at` fields and adds no
 catalog migration.

@@ -25,9 +25,11 @@ pass remains.
 - Post-v0.1 replication: adoption of existing destination copies, resumable
   partial runs, local destination libraries and media, complete full copies,
   shortfall/source-growth handling, and metadata-only promotion with rollback.
+- WMV/3GP and failed direct-playback videos use a cached FFmpeg-compatible MP4
+  copy, with preparation progress and external-open fallback.
 
-Verification at the current integration point: 478 unit/component/integration
-tests across 121 files, 9 Electron E2E flows, 100k and 200k in-memory query
+Verification at the current integration point: 489 unit/component/integration
+tests across 125 files, 10 Electron E2E flows, 100k and 200k in-memory query
 passes, coverage above the configured floors, and a packaged smoke with SHA-256
 package checksums.
 

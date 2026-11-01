@@ -37,6 +37,11 @@ describe("media URL parsing", () => {
       kind: "media",
       fileId: 7,
     });
+    expect(parseMediaUrl("ml-media://proxy/9")).toEqual({
+      scope: "source",
+      kind: "proxy",
+      fileId: 9,
+    });
   });
 
   it("accepts destination-scoped URLs by id", () => {

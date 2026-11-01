@@ -129,6 +129,23 @@ export const LibraryItemTargetParamsSchema = z.object({
 });
 export type LibraryItemTargetParams = z.infer<typeof LibraryItemTargetParamsSchema>;
 
+export const VideoProxyStatusSchema = z.enum(["idle", "processing", "ready", "failed"]);
+
+export const VideoProxyStateSchema = z.object({
+  fileId: z.number().int().positive(),
+  status: VideoProxyStatusSchema,
+  progress: z.number().min(0).max(1).nullable(),
+  mediaUrl: z.string().min(1).nullable(),
+  errorMessage: z.string().nullable(),
+});
+export type VideoProxyState = z.infer<typeof VideoProxyStateSchema>;
+
+export const VideoProxyPrepareParamsSchema = z.object({
+  fileId: z.number().int().positive(),
+  retry: z.boolean().optional(),
+});
+export type VideoProxyPrepareParams = z.infer<typeof VideoProxyPrepareParamsSchema>;
+
 export const LibraryUndatedItemSchema = LibraryItemSchema.extend({
   folder: z.string(),
 });

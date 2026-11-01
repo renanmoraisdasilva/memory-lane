@@ -17,6 +17,8 @@ export type {
   LibraryUndatedParams,
   ThumbnailStatus,
   TimelinePrecision,
+  VideoProxyPrepareParams,
+  VideoProxyState,
 } from "@shared/contracts/library";
 
 export type LibraryDensity = "comfortable" | "dense";

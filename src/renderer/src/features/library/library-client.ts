@@ -22,6 +22,8 @@ import type {
   LibraryTimelineParams,
   LibraryUndatedPage,
   LibraryUndatedParams,
+  VideoProxyPrepareParams,
+  VideoProxyState,
 } from "./types";
 import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
@@ -51,6 +53,8 @@ export interface LibraryClient {
   runBackup(): Promise<BackupResult>;
   revealItem(params: { fileId: number }): Promise<void>;
   openItem(params: { fileId: number }): Promise<void>;
+  getVideoProxyState(params: { fileId: number }): Promise<VideoProxyState>;
+  prepareVideoProxy(params: VideoProxyPrepareParams): Promise<VideoProxyState>;
 }
 
 /**
@@ -81,5 +85,7 @@ export function createLibraryClient(): LibraryClient {
     runBackup: () => api.runBackup(),
     revealItem: (params) => api.revealLibraryItem(params.fileId),
     openItem: (params) => api.openLibraryItem(params.fileId),
+    getVideoProxyState: (params) => api.getVideoProxyState(params.fileId),
+    prepareVideoProxy: (params) => api.prepareVideoProxy(params),
   };
 }

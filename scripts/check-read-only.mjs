@@ -13,6 +13,7 @@ const ALLOWED = new Set(
     "src/main/db/source-index-writer.ts",
     "src/main/modules/drives/application/drive-service.ts",
     "src/main/modules/media/media-request-handler.ts",
+    "src/main/modules/media/video-proxy.ts",
     "src/main/modules/replication/infrastructure/destination-writer.ts",
     "src/main/modules/scanning/application/scan-runner.ts",
     "src/main/modules/scanning/infrastructure/electron-thumbnail-generator.ts",

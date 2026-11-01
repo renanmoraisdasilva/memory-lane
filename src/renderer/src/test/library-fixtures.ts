@@ -2,6 +2,8 @@ import type { LibraryClient } from "../features/library/library-client";
 import type { OtherFilesPage } from "@shared/contracts/other-files";
 import type { SettingsInfo } from "@shared/contracts/settings";
 import { idleValidation, otherFilesFixture, settingsFixture } from "./phase-five-fixtures";
+import { videoProxyFixtureMethods } from "./video-proxy-fixtures";
+import { monthsFromItems, summaryFromItems } from "./library-fixture-summary";
 import type {
   LibraryClearDateParams,
   LibraryFilter,
@@ -15,7 +17,6 @@ import type {
 } from "../features/library/types";
 
 const MB = 1024 ** 2;
-const GB = 1024 ** 3;
 
 export const libraryFixtureItems: LibraryItem[] = [
   {
@@ -216,40 +217,6 @@ function anchorItems(items: LibraryItem[], params: LibraryTimelineParams): Libra
   });
 }
 
-function summaryFromItems(items: LibraryItem[]): LibrarySummary {
-  return {
-    totalItems: items.length,
-    photoCount: items.filter((item) => item.mediaClass === "image").length,
-    videoCount: items.filter((item) => item.mediaClass === "video").length,
-    indexedBytes: items.reduce((total, item) => total + item.sizeBytes, 0) + GB,
-    undatedCount: items.filter((item) => item.date.value === null).length,
-    lastScanAt: "2026-10-31T14:32:00.000Z",
-    metadataRefreshCount: 0,
-  };
-}
-
-function monthsFromItems(items: LibraryItem[]): LibraryMonth[] {
-  const counts = new Map<string, LibraryMonth>();
-  for (const item of items) {
-    if (item.date.value === null) {
-      continue;
-    }
-    const date = new Date(item.date.value);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const key = `${String(year)}-${String(month)}`;
-    const existing = counts.get(key);
-    if (existing === undefined) {
-      counts.set(key, { year, month, count: 1 });
-    } else {
-      existing.count += 1;
-    }
-  }
-  return Array.from(counts.values()).sort((left, right) =>
-    left.year === right.year ? right.month - left.month : right.year - left.year,
-  );
-}
-
 function detailsForItem(item: LibraryItem, items: LibraryItem[]): LibraryItemDetails {
   const index = items.findIndex((candidate) => candidate.fileId === item.fileId);
   return {
@@ -394,6 +361,7 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
       Promise.resolve().then(() => {
         throwIf(options.failures?.open);
       }),
+    ...videoProxyFixtureMethods(),
   };
 }
 

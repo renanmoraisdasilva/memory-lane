@@ -32,4 +32,6 @@ export const IPC_CHANNELS = {
   runBackup: "settings:run-backup",
   revealLibraryItem: "shell:reveal-item",
   openLibraryItem: "shell:open-item",
+  getVideoProxyState: "library:get-video-proxy-state",
+  prepareVideoProxy: "library:prepare-video-proxy",
 } as const;

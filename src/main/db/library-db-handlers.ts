@@ -8,6 +8,7 @@ import {
   LibraryOtherFilesDbParamsSchema,
   LibrarySavePreviewParamsSchema,
   LibrarySaveThumbnailParamsSchema,
+  LibrarySaveVideoProxyParamsSchema,
   LibrarySetDateDbParamsSchema,
   LibraryTimelineDbParamsSchema,
   LibraryTimelineIndexDbParamsSchema,
@@ -30,8 +31,10 @@ import {
   resolveMediaFile,
   resolvePreview,
   resolveThumbnail,
+  resolveVideoProxy,
   savePreview,
   saveThumbnail,
+  saveVideoProxy,
 } from "./repositories/library-item-repository";
 import { getOtherFiles } from "./repositories/other-files-repository";
 
@@ -113,6 +116,13 @@ export function createLibraryDbHandlers(options: LibraryDbHandlerOptions): Libra
     "library.savePreview": (params) => {
       const parsed = LibrarySavePreviewParamsSchema.parse(params);
       savePreview(catalog(), parsed);
+      return { saved: true };
+    },
+    "library.resolveVideoProxy": (params) =>
+      resolveVideoProxy(catalog(), LibraryFileParamsSchema.parse(params).fileId),
+    "library.saveVideoProxy": (params) => {
+      const parsed = LibrarySaveVideoProxyParamsSchema.parse(params);
+      saveVideoProxy(catalog(), parsed);
       return { saved: true };
     },
   };

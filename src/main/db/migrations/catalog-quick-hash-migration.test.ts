@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import { QUICK_HASH_ALGORITHM } from "@shared/domain/hashing";
 import { ensureDriveIdentity } from "../repositories/catalog-repository";
+import { CATALOG_SCHEMA_VERSION } from "../schema-version";
 import { catalogMigrations } from "./catalog-migrations";
 import { runMigrations } from "./runner";
 
@@ -56,7 +57,7 @@ describe("catalog quick hash migration", () => {
     ).run(fileId, "a".repeat(64), now);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(8);
+    expect(result.version).toBe(CATALOG_SCHEMA_VERSION);
     expect(db.prepare("SELECT sha256 FROM hashes WHERE file_id = ?").get(fileId)).toEqual({
       sha256: "a".repeat(64),
     });

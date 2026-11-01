@@ -1,4 +1,4 @@
-import { access, mkdir } from "node:fs/promises";
+import { access, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
 import {
   createMediaResponse,
@@ -229,6 +229,28 @@ async function serveMedia(
   });
 }
 
+async function serveProxy(
+  dependencies: MediaRequestDependencies,
+  fileId: number,
+  request: Request,
+): Promise<Response> {
+  const proxyPath = await dependencies.videoProxies?.resolveProxyPath(fileId);
+  if (proxyPath === undefined || proxyPath === null) {
+    return notFound();
+  }
+  const info = await stat(proxyPath).catch(() => null);
+  if (info === null) {
+    return notFound();
+  }
+  return createMediaResponse({
+    filePath: proxyPath,
+    mime: "video/mp4",
+    size: info.size,
+    rangeHeader: request.headers.get("range"),
+    method: request.method,
+  });
+}
+
 export async function handleMediaRequest(
   dependencies: MediaRequestDependencies,
   request: Request,
@@ -236,6 +258,11 @@ export async function handleMediaRequest(
   const target = parseMediaUrl(request.url);
   if (target === null) {
     return notFound();
+  }
+  if (target.kind === "proxy") {
+    return target.scope === "source"
+      ? serveProxy(dependencies, target.fileId, request)
+      : notFound();
   }
   const resolver = await resolverFor(dependencies, target);
   if (resolver === null) {

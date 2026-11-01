@@ -61,8 +61,13 @@ export interface MediaRequestDependencies {
   listDetected?: () => Promise<DetectedDrive[]>;
   thumbnails: ThumbnailWorkScheduler;
   previews: PreviewConverter;
+  videoProxies?: VideoProxyMediaResolver;
   logger: Logger;
   now?: () => Date;
+}
+
+export interface VideoProxyMediaResolver {
+  resolveProxyPath(fileId: number): Promise<string | null>;
 }
 
 export function sourceResolver(db: DbClient): MediaResolver {

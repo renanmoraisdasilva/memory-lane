@@ -170,6 +170,8 @@ The IPC and media contracts are in
   SHA-256 on duplicate, move, replication, or validation demand.
 - **Memory Lane** timeline with a virtualized grid, filters, density, year/month
   navigation, viewport-priority thumbnails, and a combined photo/video viewer.
+- **WMV/3GP playback** through cached FFmpeg-compatible MP4 copies, with
+  preparation progress, retry, and external-open fallback.
 - **ExifTool dates** with EXIF/XMP/video extraction, a documented priority
   chain, Date unavailable, and reversible catalog-only overrides.
 - **Library health** with exact duplicate groups, missing/moved-file actions,
@@ -185,9 +187,9 @@ The IPC and media contracts are in
 - **Partial and full backups**: adopted destination libraries, resumable partial
   runs, complete full copies, source-growth degradation, and metadata-only
   promotion with rollback.
-- **478 automated tests** across 121 files, 9 Electron E2E flows, and a packaged
+- **489 automated tests** across 125 files, 10 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
-  replication promotion.
+  WMV compatible playback.
 
 Phase 6 automated hardening is complete. The manual release pass (clean Windows
 VM install/uninstall, physical USB disconnect, codec playback, 200k memory
@@ -291,6 +293,7 @@ Start at [`docs/README.md`](docs/README.md).
 | [`release/release-checklist.md`](docs/release/release-checklist.md) | Clean-VM, physical-drive, and replication release pass |
 | [`release/security-review.md`](docs/release/security-review.md) | Trust boundaries, controls, residual risks |
 | [`release/codec-matrix.md`](docs/release/codec-matrix.md) | Codec expectations and external fallbacks |
+| [`release/third-party-notices.md`](docs/release/third-party-notices.md) | Bundled FFmpeg license and source notice |
 | [`adr/`](docs/adr/README.md) | Architecture decision records |
 
 The static files in `ui-mockups/` are a design reference only; the screenshots

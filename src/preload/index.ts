@@ -35,6 +35,8 @@ import type {
   LibraryTimelineParams,
   LibraryUndatedPage,
   LibraryUndatedParams,
+  VideoProxyPrepareParams,
+  VideoProxyState,
 } from "@shared/contracts/library";
 import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
@@ -153,6 +155,14 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,
   openLibraryItem: (params: LibraryItemTargetParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.openLibraryItem, params) as Promise<IpcResult<void>>,
+  getVideoProxyState: (params: LibraryItemTargetParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getVideoProxyState, params) as Promise<
+      IpcResult<VideoProxyState>
+    >,
+  prepareVideoProxy: (params: VideoProxyPrepareParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.prepareVideoProxy, params) as Promise<
+      IpcResult<VideoProxyState>
+    >,
   replication: {
     getOverview: () =>
       ipcRenderer.invoke(REPLICATION_CHANNELS.getOverview) as Promise<

@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Film, FolderOpen, Image as ImageIcon } from "lucide-react";
 import { Callout } from "../../components/ui/Callout";
+import { ProgressBar } from "../../components/ui/ProgressBar";
 import type { LibraryItemDetails } from "./types";
+import { useVideoProxy } from "./use-video-proxy";
 import styles from "./MediaViewer.module.css";
 
 export type ZoomMode = "fit" | "actual";
@@ -77,22 +80,71 @@ function PhotoStage({
   );
 }
 
-function VideoStage({
-  details,
-  mediaError,
-  onError,
+function VideoPreparing({ progress }: { progress: number | null }): React.JSX.Element {
+  return (
+    <div className={styles.unavailable} role="status">
+      <Film size={30} aria-hidden="true" />
+      <h2>Preparing compatible playback</h2>
+      <p>
+        This video is being converted to a temporary MP4 copy. The original file stays untouched.
+      </p>
+      <div className={styles.proxyProgress}>
+        <ProgressBar
+          processed={progress ?? 0}
+          total={progress === null ? null : 1}
+          label="Video preparation progress"
+        />
+      </div>
+    </div>
+  );
+}
+
+function VideoPreparationFailed({
+  detail,
   onOpen,
   openPending,
+  onRetry,
 }: {
-  details: LibraryItemDetails;
-  mediaError: boolean;
-  onError: () => void;
+  detail: string | null;
   onOpen: () => void;
   openPending: boolean;
+  onRetry: () => void;
 }): React.JSX.Element {
-  if (mediaError) {
-    return <UnsupportedMedia mediaClass="video" onOpen={onOpen} openPending={openPending} />;
-  }
+  return (
+    <div className={styles.unavailable} role="status">
+      <Film size={30} aria-hidden="true" />
+      <h2>This video could not be prepared for playback</h2>
+      <p>{detail ?? "The original file is still cataloged and untouched."}</p>
+      <div className={styles.inlineActions}>
+        <button className={styles.secondaryButton} type="button" onClick={onRetry}>
+          Try again
+        </button>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          disabled={openPending}
+          onClick={onOpen}
+        >
+          <FolderOpen size={14} aria-hidden="true" />
+          {openPending ? "Opening…" : "Open externally"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function needsProxy(fileName: string): boolean {
+  const extension = fileName.toLowerCase().split(".").pop();
+  return extension === "wmv" || extension === "3gp";
+}
+
+function DirectVideoStage({
+  details,
+  onError,
+}: {
+  details: LibraryItemDetails;
+  onError: () => void;
+}): React.JSX.Element {
   return (
     <div className={styles.videoStage}>
       {details.item.thumbnailUrl === null ? (
@@ -115,6 +167,98 @@ function VideoStage({
       </video>
     </div>
   );
+}
+
+function ProxyVideoStage({
+  details,
+  proxy,
+  onOpen,
+  openPending,
+  onRetry,
+  onPlaybackError,
+}: {
+  details: LibraryItemDetails;
+  proxy: ReturnType<typeof useVideoProxy>;
+  onOpen: () => void;
+  openPending: boolean;
+  onRetry: () => void;
+  onPlaybackError: () => void;
+}): React.JSX.Element {
+  if (proxy?.status === "ready" && proxy.mediaUrl !== null) {
+    return (
+      <div className={styles.videoStage}>
+        <video
+          className={styles.video}
+          src={proxy.mediaUrl}
+          poster={details.item.thumbnailUrl ?? undefined}
+          controls
+          preload="metadata"
+          data-media-controls
+          onError={onPlaybackError}
+        >
+          <track kind="captions" />
+          Your browser cannot play this compatible copy.
+        </video>
+      </div>
+    );
+  }
+  if (proxy?.status === "failed") {
+    return (
+      <VideoPreparationFailed
+        detail={proxy.errorMessage}
+        onOpen={onOpen}
+        openPending={openPending}
+        onRetry={onRetry}
+      />
+    );
+  }
+  return <VideoPreparing progress={proxy?.progress ?? null} />;
+}
+
+function VideoStage({
+  details,
+  onOpen,
+  openPending,
+}: {
+  details: LibraryItemDetails;
+  onOpen: () => void;
+  openPending: boolean;
+}): React.JSX.Element {
+  const [proxyActive, setProxyActive] = useState(() => needsProxy(details.item.name));
+  const [proxyFailed, setProxyFailed] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const proxy = useVideoProxy(details.item.fileId, proxyActive, retryKey);
+
+  function retry(): void {
+    setProxyFailed(false);
+    setRetryKey((value) => value + 1);
+  }
+
+  if (proxyFailed) {
+    return (
+      <VideoPreparationFailed
+        detail="The converted copy could not be played. Open the original in its default Windows app."
+        onOpen={onOpen}
+        openPending={openPending}
+        onRetry={retry}
+      />
+    );
+  }
+
+  if (proxyActive) {
+    return (
+      <ProxyVideoStage
+        details={details}
+        proxy={proxy}
+        onOpen={onOpen}
+        openPending={openPending}
+        onRetry={retry}
+        onPlaybackError={() => setProxyFailed(true)}
+      />
+    );
+  }
+
+  return <DirectVideoStage details={details} onError={() => setProxyActive(true)} />;
 }
 
 export function ViewerMedia({
@@ -163,13 +307,7 @@ export function ViewerMedia({
         />
       ) : null}
       {!missing && !mediaUnavailable && details.item.mediaClass === "video" ? (
-        <VideoStage
-          details={details}
-          mediaError={mediaError}
-          onError={onMediaError}
-          onOpen={onOpen}
-          openPending={openPending}
-        />
+        <VideoStage details={details} onOpen={onOpen} openPending={openPending} />
       ) : null}
     </div>
   );

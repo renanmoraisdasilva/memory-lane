@@ -33,6 +33,7 @@ needed.
 | [`release/release-checklist.md`](release/release-checklist.md) | Clean-VM, recovery, disconnect, codec, real-archive, and replication pass |
 | [`release/security-review.md`](release/security-review.md) | Trust boundaries, controls, and residual risks |
 | [`release/codec-matrix.md`](release/codec-matrix.md) | Image/video cataloging, playback expectations, fallbacks |
+| [`release/third-party-notices.md`](release/third-party-notices.md) | Bundled FFmpeg version, license, and source notice |
 
 ## Decisions and history
 

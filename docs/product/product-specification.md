@@ -1,8 +1,8 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete; post-v0.1 replication implemented\
+**Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete; post-v0.1 replication and video compatibility implemented\
 **Platform:** Windows desktop\
-**Version:** 0.8\
+**Version:** 0.9\
 **Date:** 2026-11-01\
 **Scope companion:** `scope-and-implementation.md`
 
@@ -321,10 +321,11 @@ It should classify and expose useful metadata for other files, but does
 not need built-in PDF, Word, spreadsheet, or ebook viewers. Users can
 open those files externally through Windows when appropriate.
 
-Support broad format identification. A codec/media compatibility layer
-is desirable so that common video and image formats can be handled
-consistently. Unsupported formats should be identified clearly rather
-than crashing the viewer.
+Support broad format identification. WMV, 3GP, and other videos that fail
+direct Chromium playback use an on-demand cached MP4 compatible copy generated
+with the bundled FFmpeg binary. The original stays read-only. Unsupported
+formats should still be identified clearly and offer external open rather than
+crashing the viewer.
 
 ### 11.3 Date organization and uncertainty
 

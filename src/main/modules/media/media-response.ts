@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 
-export type MediaKind = "thumbnail" | "media";
+export type MediaKind = "thumbnail" | "media" | "proxy";
 
 export type MediaUrlTarget =
   | { scope: "source"; kind: MediaKind; fileId: number }
@@ -22,7 +22,11 @@ function parseFileId(value: string | undefined): number | null {
 }
 
 function sourceTarget(parsed: URL): MediaUrlTarget | null {
-  if (parsed.hostname !== "thumbnail" && parsed.hostname !== "media") {
+  if (
+    parsed.hostname !== "thumbnail" &&
+    parsed.hostname !== "media" &&
+    parsed.hostname !== "proxy"
+  ) {
     return null;
   }
   const match = /^\/(\d+)$/.exec(parsed.pathname);
@@ -32,7 +36,12 @@ function sourceTarget(parsed: URL): MediaUrlTarget | null {
   }
   return {
     scope: "source",
-    kind: parsed.hostname === "thumbnail" ? "thumbnail" : "media",
+    kind:
+      parsed.hostname === "thumbnail"
+        ? "thumbnail"
+        : parsed.hostname === "proxy"
+          ? "proxy"
+          : "media",
     fileId,
   };
 }

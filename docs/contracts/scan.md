@@ -156,8 +156,10 @@ current drive letter differs from the last registered letter.
 - Catalog migration 8 adds `quick_hashes` for sampled large-file fingerprints,
   a size/state index for pending-hash selection, and triggers that clear a
   quick hash when a full hash is saved.
+- Catalog migration 9 extends cache entries with compatible video-proxy rows and
+  source fingerprints.
 
-The current catalog schema version is 8. Opening an older catalog applies
+The current catalog schema version is 9. Opening an older catalog applies
 pending migrations checksum-safely. A catalog upgraded from schema 6 receives a
 stable archive identity and defaults existing files to `source` membership.
 Existing full SHA-256 hashes remain valid; migration 8 does not rehash them.

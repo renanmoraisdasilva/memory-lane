@@ -43,9 +43,13 @@ interface Harness {
     convert: (inputPath: string, outputPath: string) => Promise<{ bytes: number } | null>;
     shutdown: () => Promise<void>;
   };
+  videoProxies: {
+    resolveProxyPath: (fileId: number) => Promise<string | null>;
+  };
   saves: unknown[];
   previewSaves: unknown[];
   directory: string;
+  proxyPath: string;
 }
 
 function previewEntry(
@@ -153,7 +157,22 @@ async function createHarness(options: HarnessOptions = {}): Promise<Harness> {
     shutdown: vi.fn(async () => undefined),
   };
 
-  return { db, thumbnails, previews, saves, previewSaves, directory };
+  const proxyPath = path.join(directory, "proxy.mp4");
+  await writeFile(proxyPath, Buffer.from("compatible-video"));
+  const videoProxies = {
+    resolveProxyPath: vi.fn(async (_fileId: number) => proxyPath),
+  };
+
+  return {
+    db,
+    thumbnails,
+    previews,
+    videoProxies,
+    saves,
+    previewSaves,
+    directory,
+    proxyPath,
+  };
 }
 
 afterEach(async () => {
@@ -347,5 +366,23 @@ describe("media request handler", () => {
     );
     expect((await response.arrayBuffer()).byteLength).toBe(4);
     expect((await readFile(path.join(harness.directory, "thumbs", "1.jpg"))).length).toBe(4);
+  });
+
+  it("serves a prepared video proxy with range support", async () => {
+    const harness = await createHarness();
+    const response = await handleMediaRequest(
+      {
+        db: harness.db,
+        thumbnails: harness.thumbnails,
+        previews: harness.previews,
+        videoProxies: harness.videoProxies,
+        logger: logger(),
+      },
+      fakeRequest("ml-media://proxy/1", { range: "bytes=0-3" }),
+    );
+    expect(response.status).toBe(206);
+    expect(response.headers.get("content-type")).toBe("video/mp4");
+    expect((await response.arrayBuffer()).byteLength).toBe(4);
+    expect(harness.videoProxies.resolveProxyPath).toHaveBeenCalledWith(1);
   });
 });

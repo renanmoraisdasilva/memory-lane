@@ -6,6 +6,7 @@ import catalogValidation from "./catalog/0005-validation.sql?raw";
 import catalogFrameRate from "./catalog/0006-frame-rate.sql?raw";
 import catalogReplication from "./catalog/0007-replication.sql?raw";
 import catalogQuickHashes from "./catalog/0008-quick-hashes.sql?raw";
+import catalogVideoProxies from "./catalog/0009-video-proxies.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -48,5 +49,10 @@ export const catalogMigrations: Migration[] = [
     version: 8,
     name: "quick hashes for large files",
     sql: catalogQuickHashes,
+  },
+  {
+    version: 9,
+    name: "video proxy cache entries",
+    sql: catalogVideoProxies,
   },
 ];

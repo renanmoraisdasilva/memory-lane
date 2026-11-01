@@ -1,12 +1,13 @@
 # Codec matrix
 
-Status: classification and fallback behavior are automated; playback results
-need a manual pass on the release Windows VM.
+Status: classification, fallback behavior, and packaged WMV proxy smoke are
+automated; playback results still need a manual pass on the release Windows VM.
 
 Memory Lane always catalogs the file and attempts metadata/thumbnail extraction.
-In-app playback depends on Chromium/Electron plus Windows codecs. When playback
-or display fails, the viewer shows a clear fallback with **Open externally**.
-The original file is never modified.
+Direct in-app playback depends on Chromium/Electron codecs. WMV, 3GP, and other
+direct-playback failures can use the bundled FFmpeg compatible-copy fallback.
+When all playback fails, the viewer shows a clear fallback with **Open
+externally**. The original file is never modified.
 
 ## Images
 
@@ -30,11 +31,29 @@ The original file is never modified.
 | `mov` | video | Windows shell / poster | H.264/AAC may play; other codecs depend on OS | Open externally |
 | `webm` | video | Windows shell / poster | VP8/VP9/Opus expected | Open externally |
 | `mkv` | video | Windows shell / poster | Often unsupported by stock Chromium | Open externally |
-| `avi` | video | Windows shell / poster | Generally unsupported | Open externally |
-| `wmv` | video | Windows shell / poster | Generally unsupported | Open externally |
-| `mpg`, `mpeg` | video | Windows shell / poster | Generally unsupported | Open externally |
-| `3gp` | video | Windows shell / poster | Device/codec dependent | Open externally |
-| `mts`, `m2ts` | video | Windows shell / poster | Generally unsupported | Open externally |
+| `avi` | video | Windows shell / poster | Direct playback generally unsupported; compatible-copy fallback | Open externally |
+| `wmv` | video | Windows shell / poster | Compatible H.264/AAC copy prepared with FFmpeg | Open externally |
+| `mpg`, `mpeg` | video | Windows shell / poster | Direct playback generally unsupported; compatible-copy fallback | Open externally |
+| `3gp` | video | Windows shell / poster | Compatible H.264/AAC copy prepared with FFmpeg | Open externally |
+| `mts`, `m2ts` | video | Windows shell / poster | Direct playback generally unsupported; compatible-copy fallback | Open externally |
+
+## Compatible video copies
+
+WMV and 3GP open through an on-demand compatible copy. The app runs the bundled
+FFmpeg binary to produce a cached H.264/AAC MP4 under
+`.memorylane/cache/proxies`. The original remains read-only. Direct playback is
+still attempted first for other video formats; a failed direct load starts the
+same fallback.
+
+- The first play shows preparation progress; later plays use the cache.
+- Cache entries are included in Settings cache size and cleared by **Clear
+  generated cache**.
+- Conversion failure shows **Try again** and **Open externally**.
+- Source changes invalidate the cached copy.
+
+The bundled FFmpeg is the GPLv3 Windows essentials build recorded in
+`resources/bin/ffmpeg.exe.README`; its license is shipped as
+`resources/bin/ffmpeg.exe.LICENSE`.
 
 ## Other files
 
@@ -49,10 +68,13 @@ On a clean Windows release VM:
 1. Create one short fixture for each video extension available.
 2. Open it in the viewer and record whether it plays, shows only a poster, or
    falls back.
-3. Do the same for one image per extension group.
-4. Confirm every failed case still shows the catalog metadata and the
+3. For WMV and 3GP, confirm the compatible-copy preparation progress, successful
+   playback from the cached MP4, cache reuse on the second open, and cache
+   clearing in Settings.
+4. Do the same for one image per extension group.
+5. Confirm every failed case still shows the catalog metadata and the
    **Open externally** action.
-5. Record the results in the release checklist.
+6. Record the results in the release checklist.
 
 For HEIC/HEIF, run the packaged-app check against a real iPhone photo:
 
