@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import type { ScanState } from "@shared/contracts/scan";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
+import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
 import { createScanHarness, waitForComplete } from "./scan-harness";
 
 const now = "2026-10-31T12:00:00.000Z";
@@ -85,13 +86,13 @@ describe("recovery drills", () => {
       handler.handle("app.registerDrive", {
         identity,
         lastSeenAt: now,
-        catalogSchema: 6,
+        catalogSchema: CATALOG_SCHEMA_VERSION,
       });
       handler.handle("catalog.create", {
         catalogPath,
         cachePath,
         identity,
-        catalogSchema: 6,
+        catalogSchema: CATALOG_SCHEMA_VERSION,
       });
       handler.handle("scan.start", {
         volumeId,

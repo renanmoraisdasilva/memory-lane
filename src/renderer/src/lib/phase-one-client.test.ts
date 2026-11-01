@@ -27,7 +27,7 @@ const summary: CatalogSummary = {
   catalogPath: "F:\\.memorylane\\catalog.db",
   driveLabel: "Archive",
   volumeId,
-  schemaVersion: 6,
+  schemaVersion: 7,
   fileCount: 3,
   openedAt: "2026-10-31T14:00:00.000Z",
 };
@@ -119,6 +119,20 @@ function createApi(): MemoryLaneApi {
     runBackup: libraryFailure,
     revealLibraryItem: libraryFailure,
     openLibraryItem: libraryFailure,
+    replication: {
+      getOverview: libraryFailure,
+      listDestinationCandidates: vi.fn(async () => ok([])),
+      listDestinations: vi.fn(async () => ok([])),
+      getDestination: libraryFailure,
+      registerDestination: libraryFailure,
+      updateDestination: libraryFailure,
+      getAdoptionState: libraryFailure,
+      startAdoption: libraryFailure,
+      pauseAdoption: libraryFailure,
+      resumeAdoption: libraryFailure,
+      getPlan: libraryFailure,
+      getCoverage: libraryFailure,
+    },
   };
 }
 

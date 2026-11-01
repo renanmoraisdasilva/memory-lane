@@ -5,6 +5,7 @@ import type { HealthDbMethod } from "./health-worker-protocol";
 import type { LibraryDbMethod } from "./library-worker-protocol";
 import type { ScanDbMethod } from "./scan-worker-protocol";
 import type { SettingsDbMethod } from "./settings-worker-protocol";
+import type { ReplicationDbMethod } from "./replication-worker-protocol";
 
 export const CatalogCreateParamsSchema = z.object({
   catalogPath: z.string().min(1),
@@ -28,7 +29,12 @@ export type CoreDbMethod =
   "health" | "app.listDrives" | "app.registerDrive" | "catalog.create" | "catalog.open" | "close";
 
 export type DbMethod =
-  CoreDbMethod | ScanDbMethod | LibraryDbMethod | HealthDbMethod | SettingsDbMethod;
+  | CoreDbMethod
+  | ScanDbMethod
+  | LibraryDbMethod
+  | HealthDbMethod
+  | SettingsDbMethod
+  | ReplicationDbMethod;
 
 export interface DbRequest {
   id: number;

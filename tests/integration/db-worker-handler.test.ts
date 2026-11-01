@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { toVolumeId, type CatalogSummary } from "@shared/contracts/drives";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
+import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
 import type { DbMethod } from "../../src/main/db/worker-protocol";
 
 const temporaryDirectories: string[] = [];
@@ -68,7 +69,7 @@ describe("database worker handler", () => {
   it("reports health and an empty drive registry", async () => {
     const { handler, appDbPath } = await createHarness();
 
-    expect(handler.handle("health", {})).toMatchObject({ appDbPath, schemaVersion: 2 });
+    expect(handler.handle("health", {})).toMatchObject({ appDbPath, schemaVersion: 3 });
     expect(handler.handle("app.listDrives", {})).toEqual([]);
   });
 
@@ -92,7 +93,7 @@ describe("database worker handler", () => {
     ) as CatalogSummary;
 
     expect(created.fileCount).toBe(0);
-    expect(created.schemaVersion).toBe(6);
+    expect(created.schemaVersion).toBe(CATALOG_SCHEMA_VERSION);
     await expect(access(catalogPath)).resolves.toBeUndefined();
     await expect(access(cachePath)).resolves.toBeUndefined();
 
@@ -147,11 +148,11 @@ describe("database worker handler", () => {
     handler.handle("app.registerDrive", {
       identity: identity(root),
       lastSeenAt: "2026-10-31T12:00:00.000Z",
-      catalogSchema: 6,
+      catalogSchema: CATALOG_SCHEMA_VERSION,
     });
     handler.handle("catalog.create", {
       ...createParams(root, catalogPath, cachePath),
-      catalogSchema: 6,
+      catalogSchema: CATALOG_SCHEMA_VERSION,
     });
 
     expect(handler.handle("library.getOtherFiles", {})).toMatchObject({

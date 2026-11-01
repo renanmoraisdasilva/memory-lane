@@ -299,9 +299,11 @@ Catalog migration 3 added media dimensions, video duration, and the timeline
 index. Migration 4 added extracted-date fields for reversible overrides and
 undated lookup indexes. Migration 5 added validation progress, current level,
 error state, and per-result levels. Migration 6 added the video frame rate and
-backfills it from existing `media.frameRate` metadata. Phase 5 reuses the
-existing `backup_history` and `registered_drives.last_backup_at` fields and
-adds no catalog migration.
+backfills it from existing `media.frameRate` metadata. Migration 7 adds archive
+identity, replica destinations/files, adoption/run/promotion records, and their
+indexes for the post-v0.1 replication work. Phase 5 reuses the existing
+`backup_history` and `registered_drives.last_backup_at` fields and adds no
+catalog migration.
 
 ### 5.5 Scan pipeline
 

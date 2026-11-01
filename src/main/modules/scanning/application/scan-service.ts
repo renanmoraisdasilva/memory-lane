@@ -8,36 +8,19 @@ import type { Logger } from "../../../logging/types";
 import type { DetectedDrive } from "../../drives/domain/drive";
 import { getCatalogPaths } from "../../drives/application/drive-service";
 import type {
+  WorkloadCoordinator,
+  WorkloadLease,
+} from "../../workloads/application/workload-coordinator";
+import type {
   FileHasher,
   FileMetadataExtractor,
   ThumbnailWorkScheduler,
 } from "../domain/scan-files";
 import { ScanRunner } from "./scan-runner";
 import { assertDriveAvailable } from "./drive-availability";
+import { createPauseGate, defaultSleep } from "./pause-gate";
+import { isResumableScan, ScanStoppedError, type ActiveScan } from "./scan-active-state";
 import type { ScanRuntime } from "./scan-runtime";
-
-class ScanStoppedError extends Error {
-  constructor() {
-    super("Scan stopped");
-    this.name = "ScanStoppedError";
-  }
-}
-
-interface PauseGate {
-  promise: Promise<void>;
-  resolve: () => void;
-}
-
-interface ActiveScan {
-  volumeId: VolumeId;
-  rootPath: string;
-  cachePath: string;
-  state: ScanState;
-  paused: boolean;
-  stopping: boolean;
-  gate: PauseGate | null;
-  loop: Promise<void> | null;
-}
 
 export interface ScanServiceDependencies {
   db: DbClient;
@@ -46,27 +29,11 @@ export interface ScanServiceDependencies {
   metadata: FileMetadataExtractor;
   thumbnails: ThumbnailWorkScheduler;
   hasher: FileHasher;
+  workloads?: WorkloadCoordinator;
   now?: () => Date;
   sleep?: (milliseconds: number) => Promise<void>;
   batchDelayMs?: number;
   checkDriveAvailable?: (rootPath: string) => Promise<void>;
-}
-
-function createPauseGate(): PauseGate {
-  let resolveGate: (() => void) | null = null;
-  const promise = new Promise<void>((resolve) => {
-    resolveGate = resolve;
-  });
-  return {
-    promise,
-    resolve: () => resolveGate?.(),
-  };
-}
-
-function defaultSleep(milliseconds: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, milliseconds);
-  });
 }
 
 export class ScanService {
@@ -76,6 +43,7 @@ export class ScanService {
   private readonly metadata: FileMetadataExtractor;
   private readonly thumbnails: ThumbnailWorkScheduler;
   private readonly hasher: FileHasher;
+  private readonly workloads: WorkloadCoordinator | undefined;
   private readonly nowDate: () => Date;
   private readonly sleep: (milliseconds: number) => Promise<void>;
   private readonly batchDelayMs: number;
@@ -89,6 +57,7 @@ export class ScanService {
     this.metadata = dependencies.metadata;
     this.thumbnails = dependencies.thumbnails;
     this.hasher = dependencies.hasher;
+    this.workloads = dependencies.workloads;
     this.nowDate = dependencies.now ?? (() => new Date());
     this.sleep = dependencies.sleep ?? defaultSleep;
     this.batchDelayMs = dependencies.batchDelayMs ?? 0;
@@ -122,15 +91,27 @@ export class ScanService {
 
     const current = await this.db.request<ScanState>("scan.getState", { volumeId });
     const chosenIntensity = intensity ?? current.intensity;
-    const state = await this.db.request<ScanState>("scan.start", {
+    const lease = this.workloads?.acquire("scan", String(volumeId)) ?? null;
+    const state = await this.db
+      .request<ScanState>("scan.start", {
+        volumeId,
+        rootPath: drive.rootPath,
+        cachePath: paths.cachePath,
+        intensity: chosenIntensity,
+        now: this.now(),
+      })
+      .catch((error: unknown) => {
+        lease?.release();
+        throw error;
+      });
+
+    const active = this.createActive({
       volumeId,
       rootPath: drive.rootPath,
       cachePath: paths.cachePath,
-      intensity: chosenIntensity,
-      now: this.now(),
+      state,
+      workloadLease: lease,
     });
-
-    const active = this.createActive(volumeId, drive.rootPath, paths.cachePath, state);
     this.active = active;
     this.launch(active);
     return state;
@@ -160,41 +141,53 @@ export class ScanService {
 
   async resumeScan(volumeId: VolumeId): Promise<ScanState> {
     if (this.active !== null && this.active.volumeId === volumeId) {
-      const active = this.active;
-      if (active.state.status !== "paused" && active.state.status !== "error") {
-        throw new AppError(APP_ERROR_CODES.SCAN_STATE_INVALID, "The scan is not paused");
-      }
-      const state = await this.db.request<ScanState>("scan.resume", {
-        volumeId,
-        now: this.now(),
-      });
-      active.state = state;
-      active.paused = false;
-      active.gate?.resolve();
-      active.gate = null;
-      return state;
+      return this.resumeActiveScan(this.active, volumeId);
     }
 
     const current = await this.db.request<ScanState>("scan.getState", { volumeId });
-    if (
-      current.status !== "paused" &&
-      current.status !== "interrupted" &&
-      current.status !== "error"
-    ) {
+    if (!isResumableScan(current.status)) {
       throw new AppError(APP_ERROR_CODES.SCAN_STATE_INVALID, "There is no interrupted scan");
     }
 
     const drive = await this.resolveDrive(volumeId);
     const paths = getCatalogPaths(drive.rootPath);
     await this.assertCatalog(paths.catalogPath);
+    const lease = this.workloads?.acquire("scan", String(volumeId)) ?? null;
+    let state: ScanState;
+    try {
+      state = await this.db.request<ScanState>("scan.resume", {
+        volumeId,
+        now: this.now(),
+      });
+    } catch (error) {
+      lease?.release();
+      throw error;
+    }
+
+    const active = this.createActive({
+      volumeId,
+      rootPath: drive.rootPath,
+      cachePath: paths.cachePath,
+      state,
+      workloadLease: lease,
+    });
+    this.active = active;
+    this.launch(active);
+    return state;
+  }
+
+  private async resumeActiveScan(active: ActiveScan, volumeId: VolumeId): Promise<ScanState> {
+    if (active.state.status !== "paused" && active.state.status !== "error") {
+      throw new AppError(APP_ERROR_CODES.SCAN_STATE_INVALID, "The scan is not paused");
+    }
     const state = await this.db.request<ScanState>("scan.resume", {
       volumeId,
       now: this.now(),
     });
-
-    const active = this.createActive(volumeId, drive.rootPath, paths.cachePath, state);
-    this.active = active;
-    this.launch(active);
+    active.state = state;
+    active.paused = false;
+    active.gate?.resolve();
+    active.gate = null;
     return state;
   }
 
@@ -226,21 +219,23 @@ export class ScanService {
     return this.active;
   }
 
-  private createActive(
-    volumeId: VolumeId,
-    rootPath: string,
-    cachePath: string,
-    state: ScanState,
-  ): ActiveScan {
+  private createActive(input: {
+    volumeId: VolumeId;
+    rootPath: string;
+    cachePath: string;
+    state: ScanState;
+    workloadLease: WorkloadLease | null;
+  }): ActiveScan {
     return {
-      volumeId,
-      rootPath: path.resolve(rootPath),
-      cachePath,
-      state,
+      volumeId: input.volumeId,
+      rootPath: path.resolve(input.rootPath),
+      cachePath: input.cachePath,
+      state: input.state,
       paused: false,
       stopping: false,
       gate: null,
       loop: null,
+      workloadLease: input.workloadLease,
     };
   }
 
@@ -281,6 +276,8 @@ export class ScanService {
         this.logger.error("Failed to persist scan failure", failError);
       }
     } finally {
+      active.workloadLease?.release();
+      active.workloadLease = null;
       if (this.active === active) {
         this.active = null;
       }

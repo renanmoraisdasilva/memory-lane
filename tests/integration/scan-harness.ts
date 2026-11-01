@@ -8,6 +8,7 @@ import type { DbClient } from "../../src/main/clients/db-client";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
 import type { DbMethod } from "../../src/main/db/worker-protocol";
 import type { Logger } from "../../src/main/logging/types";
+import type { WorkloadCoordinator } from "../../src/main/modules/workloads/application/workload-coordinator";
 import { DriveService } from "../../src/main/modules/drives/application/drive-service";
 import type { DetectedDrive } from "../../src/main/modules/drives/domain/drive";
 import { createDevelopmentDrive } from "../../src/main/modules/drives/infrastructure/development-drive";
@@ -50,6 +51,7 @@ export interface ScanHarnessOptions {
   hasher?: FileHasher;
   metadata?: FileMetadataExtractor;
   checkDriveAvailable?: (rootPath: string) => Promise<void>;
+  workloads?: WorkloadCoordinator;
 }
 
 export async function createScanHarness(options: ScanHarnessOptions = {}): Promise<ScanHarness> {
@@ -76,6 +78,7 @@ export async function createScanHarness(options: ScanHarnessOptions = {}): Promi
     metadata: options.metadata ?? createFileMetadataExtractor({ exif: null, logger }),
     thumbnails: thumbnailGenerator(),
     hasher: options.hasher ?? createFileHasher(),
+    ...(options.workloads === undefined ? {} : { workloads: options.workloads }),
     ...(options.checkDriveAvailable === undefined
       ? {}
       : { checkDriveAvailable: options.checkDriveAvailable }),

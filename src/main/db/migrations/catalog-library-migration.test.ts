@@ -1,5 +1,6 @@
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
+import { CATALOG_SCHEMA_VERSION } from "../schema-version";
 import { catalogMigrations } from "./catalog-migrations";
 import { runMigrations } from "./runner";
 
@@ -30,7 +31,7 @@ describe("catalog library migration", () => {
     ).run(row.id);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(6);
+    expect(result.version).toBe(CATALOG_SCHEMA_VERSION);
 
     const media = db
       .prepare("SELECT width, height, duration_seconds, frame_rate FROM files WHERE id = ?")
@@ -63,7 +64,7 @@ describe("catalog library migration", () => {
        VALUES (?, '2011-07-04T15:30:00', 'exact', 'exif.datetimeOriginal', 0.95, '2011:07:04 15:30:00')`,
     ).run(row.id);
 
-    expect(runMigrations(db, catalogMigrations).version).toBe(6);
+    expect(runMigrations(db, catalogMigrations).version).toBe(CATALOG_SCHEMA_VERSION);
     expect(
       db
         .prepare(

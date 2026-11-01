@@ -27,6 +27,17 @@ import type {
   LibraryUndatedParams,
 } from "@shared/contracts/library";
 import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
+import type {
+  AdoptionState,
+  CoverageSummary,
+  DestinationCandidate,
+  DestinationDetail,
+  DestinationSummary,
+  RegisterDestinationParams,
+  ReplicationOverview,
+  ReplicationPlan,
+  UpdateDestinationParams,
+} from "@shared/contracts/replication/types";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { AppError, APP_ERROR_CODES } from "@shared/domain/errors";
@@ -106,4 +117,27 @@ export const api = {
   revealLibraryItem: (fileId: number): Promise<void> =>
     unwrap(getApi().revealLibraryItem({ fileId })),
   openLibraryItem: (fileId: number): Promise<void> => unwrap(getApi().openLibraryItem({ fileId })),
+  replication: {
+    getOverview: (): Promise<ReplicationOverview> => unwrap(getApi().replication.getOverview()),
+    listDestinationCandidates: (): Promise<DestinationCandidate[]> =>
+      unwrap(getApi().replication.listDestinationCandidates()),
+    listDestinations: (): Promise<DestinationSummary[]> =>
+      unwrap(getApi().replication.listDestinations()),
+    getDestination: (destinationId: string): Promise<DestinationDetail> =>
+      unwrap(getApi().replication.getDestination(destinationId)),
+    registerDestination: (params: RegisterDestinationParams): Promise<DestinationDetail> =>
+      unwrap(getApi().replication.registerDestination(params)),
+    updateDestination: (params: UpdateDestinationParams): Promise<DestinationDetail> =>
+      unwrap(getApi().replication.updateDestination(params)),
+    getAdoptionState: (destinationId: string): Promise<AdoptionState> =>
+      unwrap(getApi().replication.getAdoptionState(destinationId)),
+    startAdoption: (destinationId: string): Promise<AdoptionState> =>
+      unwrap(getApi().replication.startAdoption(destinationId)),
+    pauseAdoption: (destinationId: string): Promise<AdoptionState> =>
+      unwrap(getApi().replication.pauseAdoption(destinationId)),
+    resumeAdoption: (destinationId: string): Promise<AdoptionState> =>
+      unwrap(getApi().replication.resumeAdoption(destinationId)),
+    getPlan: (): Promise<ReplicationPlan> => unwrap(getApi().replication.getPlan()),
+    getCoverage: (): Promise<CoverageSummary> => unwrap(getApi().replication.getCoverage()),
+  },
 };

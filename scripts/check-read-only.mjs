@@ -3,12 +3,20 @@ import path from "node:path";
 
 const ROOT = path.resolve("src", "main");
 const WRITE_PATTERN =
-  /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|rename|renameSync|unlink|unlinkSync|rm|rmSync|truncate|truncateSync|copyFile|copyFileSync)\s*\(/;
+  /\b(?:writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|rename|renameSync|unlink|unlinkSync|rm|rmSync|truncate|truncateSync|copyFile|copyFileSync|mkdir|mkdirSync|rmdir|rmdirSync|cp|cpSync)\s*\(/;
 const ALLOWED = new Set(
   [
-    "src/main/platform/catalog-lock.ts",
+    "src/main/bootstrap/user-data.ts",
+    "src/main/db/db-worker-handler.ts",
+    "src/main/db/settings-db-handlers.ts",
+    "src/main/db/source-index-writer.ts",
+    "src/main/modules/drives/application/drive-service.ts",
+    "src/main/modules/media/media-request-handler.ts",
+    "src/main/modules/replication/infrastructure/destination-writer.ts",
+    "src/main/modules/scanning/application/scan-runner.ts",
     "src/main/modules/scanning/infrastructure/electron-thumbnail-generator.ts",
     "src/main/modules/settings/application/settings-service.ts",
+    "src/main/platform/catalog-lock.ts",
     "src/main/workers/heic-worker.ts",
   ].map((file) => file.replaceAll("/", path.sep)),
 );

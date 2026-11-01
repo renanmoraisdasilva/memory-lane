@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { CatalogSummary, DriveIdentity, VolumeId } from "@shared/contracts/drives";
 import { VolumeIdSchema } from "@shared/contracts/drives";
@@ -44,6 +45,7 @@ export function ensureDriveIdentity(
 ): CatalogDriveIdentity {
   const existing = db.prepare("SELECT * FROM drive_identity WHERE id = 1").get();
 
+  let catalogIdentity: CatalogDriveIdentity;
   if (existing === undefined) {
     const created = db
       .prepare(
@@ -61,24 +63,50 @@ export function ensureDriveIdentity(
         new Date().toISOString(),
       );
 
-    return parseIdentity(created);
+    catalogIdentity = parseIdentity(created);
+  } else {
+    catalogIdentity = parseIdentity(existing);
+    if (catalogIdentity.volumeId !== identity.volumeId) {
+      throw new AppError(
+        APP_ERROR_CODES.CATALOG_MISMATCH,
+        "This catalog belongs to a different drive",
+        { expectedVolumeId: catalogIdentity.volumeId, actualVolumeId: identity.volumeId },
+      );
+    }
+
+    if (catalogIdentity.catalogSchema < schemaVersion) {
+      db.prepare("UPDATE drive_identity SET catalog_schema = ? WHERE id = 1").run(schemaVersion);
+      catalogIdentity = { ...catalogIdentity, catalogSchema: schemaVersion };
+    }
   }
 
-  const catalogIdentity = parseIdentity(existing);
-  if (catalogIdentity.volumeId !== identity.volumeId) {
-    throw new AppError(
-      APP_ERROR_CODES.CATALOG_MISMATCH,
-      "This catalog belongs to a different drive",
-      { expectedVolumeId: catalogIdentity.volumeId, actualVolumeId: identity.volumeId },
-    );
-  }
-
-  if (catalogIdentity.catalogSchema < schemaVersion) {
-    db.prepare("UPDATE drive_identity SET catalog_schema = ? WHERE id = 1").run(schemaVersion);
-    return { ...catalogIdentity, catalogSchema: schemaVersion };
-  }
-
+  ensureSourceArchiveIdentity(db, catalogIdentity, schemaVersion);
   return catalogIdentity;
+}
+
+function ensureSourceArchiveIdentity(
+  db: Database.Database,
+  identity: CatalogDriveIdentity,
+  schemaVersion: number,
+): void {
+  const table = db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'archive_identity'")
+    .get();
+  if (table === undefined) {
+    return;
+  }
+  const existing = db.prepare("SELECT role FROM archive_identity WHERE id = 1").get() as
+    { role: string } | undefined;
+  if (existing !== undefined) {
+    return;
+  }
+
+  db.prepare(
+    `INSERT INTO archive_identity (
+      id, catalog_id, label, role, source_root_relative, library_scope,
+      active_source_volume_id, created_at, schema_version
+    ) VALUES (1, ?, ?, 'source', '', 'whole_catalog_root', ?, ?, ?)`,
+  ).run(randomUUID(), identity.label, identity.volumeId, new Date().toISOString(), schemaVersion);
 }
 
 export function readDriveIdentity(db: Database.Database): CatalogDriveIdentity {

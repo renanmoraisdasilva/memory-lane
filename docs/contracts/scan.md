@@ -143,10 +143,12 @@ current drive letter differs from the last registered letter.
 - Catalog migration 5 adds validation progress and per-result levels.
 - Catalog migration 6 adds the `files.frame_rate` video fact and backfills it
   from existing `media.frameRate` metadata entries.
+- Catalog migration 7 adds archive identity, replica destinations and files,
+  adoption/run/promotion records, and queue/coverage indexes.
 
-The current catalog schema version is 6. Opening an older catalog applies
-pending migrations checksum-safely. A catalog upgraded from schema 5 starts
-with null frame rates for videos indexed before the field existed.
+The current catalog schema version is 7. Opening an older catalog applies
+pending migrations checksum-safely. A catalog upgraded from schema 6 receives a
+stable archive identity and defaults existing files to `source` membership.
 
 Metadata has its own extractor version independent of the catalog schema.
 Files below `METADATA_EXTRACTOR_VERSION` are treated as pending by the metadata

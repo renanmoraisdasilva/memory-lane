@@ -1,0 +1,125 @@
+import { access, mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { toVolumeId } from "@shared/contracts/drives";
+import { AppError } from "@shared/domain/errors";
+import type { ArchiveIdentity } from "../../../db/repositories/archive-identity-repository";
+import { createScanHarness } from "../../../../../tests/integration/scan-harness";
+import type { DetectedDrive } from "../../drives/domain/drive";
+import { DestinationService } from "./destination-service";
+
+const roots: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
+});
+
+function destinationDrive(rootPath: string): DetectedDrive {
+  return {
+    volumeId: toVolumeId("destination-volume"),
+    serialNumber: "DEST-SERIAL",
+    label: "Backup A",
+    fileSystem: "NTFS",
+    letter: "F:",
+    rootPath,
+    totalBytes: 1_000_000,
+    freeBytes: 900_000,
+    driveType: "removable",
+    isExternal: true,
+  };
+}
+
+describe("destination service", () => {
+  it("registers a dedicated destination, writes a marker, and lists it", async () => {
+    const harness = await createScanHarness();
+    const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-destination-"));
+    roots.push(destinationRoot);
+    const drive = destinationDrive(destinationRoot);
+    const service = new DestinationService({
+      db: harness.db,
+      listDetected: async () => [harness.drive, drive],
+      logger: {
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+        debug: () => undefined,
+      },
+    });
+
+    try {
+      const detail = await service.register({
+        volumeId: drive.volumeId,
+        rootRelative: "",
+        goal: "extend_coverage",
+        layout: "dedicated",
+        allocationMode: "all_safe",
+        allocationPercent: null,
+        allocationBytes: null,
+        reserveBytes: 1024,
+      });
+      expect(detail).toMatchObject({
+        label: "Backup A",
+        goal: "extend_coverage",
+        connection: "connected",
+        priority: 0,
+        isFirstInFillOrder: true,
+      });
+      await expect(
+        access(path.join(destinationRoot, ".memorylane", "catalog.db")),
+      ).resolves.toBeUndefined();
+      const source = await harness.db.request<ArchiveIdentity>("replication.getSourceIdentity", {});
+      await expect(
+        access(path.join(destinationRoot, ".memorylane", "replicas", `${source.catalogId}.json`)),
+      ).resolves.toBeUndefined();
+
+      const listed = await service.list();
+      expect(listed).toHaveLength(1);
+      expect(listed[0]?.mount).toBe(destinationRoot);
+
+      const again = await service.register({
+        volumeId: drive.volumeId,
+        rootRelative: "",
+        goal: "extend_coverage",
+        layout: "dedicated",
+        allocationMode: "all_safe",
+        allocationPercent: null,
+        allocationBytes: null,
+        reserveBytes: 1024,
+      });
+      expect(again.id).toBe(detail.id);
+    } finally {
+      await harness.dispose();
+    }
+  });
+
+  it("rejects the source volume as a destination", async () => {
+    const harness = await createScanHarness();
+    const service = new DestinationService({
+      db: harness.db,
+      listDetected: async () => [harness.drive],
+      logger: {
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+        debug: () => undefined,
+      },
+    });
+    try {
+      await expect(
+        service.register({
+          volumeId: harness.drive.volumeId,
+          rootRelative: "",
+          goal: "extend_coverage",
+          layout: "dedicated",
+          allocationMode: "all_safe",
+          allocationPercent: null,
+          allocationBytes: null,
+          reserveBytes: 1024,
+        }),
+      ).rejects.toBeInstanceOf(AppError);
+    } finally {
+      await harness.dispose();
+    }
+  });
+});

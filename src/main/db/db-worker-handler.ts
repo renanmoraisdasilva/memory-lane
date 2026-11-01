@@ -1,15 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import type Database from "better-sqlite3";
-import type { DriveIdentity } from "@shared/contracts/drives";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { createCatalogRegistry } from "./catalog-registry";
 import { openDatabase } from "./connection";
 import { appMigrations } from "./migrations/app-migrations";
-import { catalogMigrations } from "./migrations/catalog-migrations";
 import { getSchemaVersion, runMigrations } from "./migrations/runner";
-import { ensureDriveIdentity, getCatalogSummary } from "./repositories/catalog-repository";
+import { getCatalogSummary } from "./repositories/catalog-repository";
 import { listRegisteredDrives, registerDrive } from "./repositories/app-repository";
-import { recoverInterruptedScans } from "./repositories/scan-session-repository";
 import { createScanDbHandlers } from "./scan-db-handlers";
 import { SCAN_DB_METHODS, type ScanDbMethod } from "./scan-worker-protocol";
 import { createLibraryDbHandlers } from "./library-db-handlers";
@@ -18,7 +15,8 @@ import { createHealthDbHandlers } from "./health-db-handlers";
 import { HEALTH_DB_METHODS, type HealthDbMethod } from "./health-worker-protocol";
 import { createSettingsDbHandlers } from "./settings-db-handlers";
 import { SETTINGS_DB_METHODS, type SettingsDbMethod } from "./settings-worker-protocol";
-import { acquireCatalogLock } from "../platform/catalog-lock";
+import { createReplicationDbHandlers } from "./replication-db-handlers";
+import { REPLICATION_DB_METHODS, type ReplicationDbMethod } from "./replication-worker-protocol";
 import { CATALOG_SCHEMA_VERSION } from "./schema-version";
 import {
   CatalogCreateParamsSchema,
@@ -38,127 +36,63 @@ interface HealthResult {
   schemaVersion: number;
 }
 
-interface CatalogSession {
-  open(
-    filePath: string,
-    identity: DriveIdentity,
-    schemaVersion: number,
-    create: boolean,
-  ): Database.Database;
-  get(): Database.Database;
-  getPath(): string;
-  close(): void;
-}
-
-function createCatalogSession(): CatalogSession {
-  let catalogDb: Database.Database | null = null;
-  let catalogFilePath: string | null = null;
-  let releaseLock: (() => void) | null = null;
-
-  const close = (): void => {
-    if (catalogDb !== null) {
-      catalogDb.close();
-      catalogDb = null;
-    }
-    catalogFilePath = null;
-    releaseLock?.();
-    releaseLock = null;
-  };
-
-  const open = (
-    filePath: string,
-    identity: DriveIdentity,
-    schemaVersion: number,
-    create: boolean,
-  ): Database.Database => {
-    if (!path.isAbsolute(filePath)) {
-      throw new AppError(APP_ERROR_CODES.INVALID_REQUEST, "Catalog path must be absolute");
-    }
-
-    const exists = fs.existsSync(filePath);
-    if (create && exists) {
-      throw new AppError(APP_ERROR_CODES.CATALOG_ALREADY_EXISTS, "Catalog already exists");
-    }
-    if (!create && !exists) {
-      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Catalog file was not found", {
-        catalogPath: filePath,
-      });
-    }
-
-    close();
-    const release = acquireCatalogLock(path.dirname(filePath));
-    const db = openDatabase(filePath);
-    try {
-      runMigrations(db, catalogMigrations);
-      ensureDriveIdentity(db, identity, schemaVersion);
-      if (!create) {
-        recoverInterruptedScans(db);
-      }
-    } catch (error) {
-      db.close();
-      release();
-      throw error;
-    }
-
-    catalogDb = db;
-    catalogFilePath = filePath;
-    releaseLock = release;
-    return db;
-  };
-
-  const get = (): Database.Database => {
-    if (catalogDb === null) {
-      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Open a catalog before scanning");
-    }
-    return catalogDb;
-  };
-
-  const getPath = (): string => {
-    if (catalogFilePath === null) {
-      throw new AppError(APP_ERROR_CODES.CATALOG_NOT_FOUND, "Open a catalog before browsing");
-    }
-    return catalogFilePath;
-  };
-
-  return { open, get, getPath, close };
+function createDomainHandlerMap(handlers: {
+  scan: ReturnType<typeof createScanDbHandlers>;
+  library: ReturnType<typeof createLibraryDbHandlers>;
+  health: ReturnType<typeof createHealthDbHandlers>;
+  settings: ReturnType<typeof createSettingsDbHandlers>;
+  replication: ReturnType<typeof createReplicationDbHandlers>;
+}): Map<string, (params: unknown) => unknown> {
+  const map = new Map<string, (params: unknown) => unknown>();
+  for (const method of SCAN_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.scan.handle(method as ScanDbMethod, params));
+  }
+  for (const method of LIBRARY_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.library.handle(method as LibraryDbMethod, params));
+  }
+  for (const method of HEALTH_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.health.handle(method as HealthDbMethod, params));
+  }
+  for (const method of SETTINGS_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.settings.handle(method as SettingsDbMethod, params));
+  }
+  for (const method of REPLICATION_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.replication.handle(method as ReplicationDbMethod, params));
+  }
+  return map;
 }
 
 export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
   const appDb = openDatabase(options.appDbPath);
   runMigrations(appDb, appMigrations);
-  const catalogs = createCatalogSession();
+  const catalogs = createCatalogRegistry();
   const scanHandlers = createScanDbHandlers({
-    getCatalog: () => catalogs.get(),
+    getCatalog: () => catalogs.getSource(),
     getAppDb: () => appDb,
   });
   const libraryHandlers = createLibraryDbHandlers({
-    getCatalog: () => catalogs.get(),
-    getCatalogPath: () => catalogs.getPath(),
+    getCatalog: () => catalogs.getSource(),
+    getCatalogPath: () => catalogs.getSourcePath(),
   });
   const healthHandlers = createHealthDbHandlers({
-    getCatalog: () => catalogs.get(),
+    getCatalog: () => catalogs.getSource(),
   });
   const settingsHandlers = createSettingsDbHandlers({
     getAppDb: () => appDb,
-    getCatalog: () => catalogs.get(),
+    getCatalog: () => catalogs.getSource(),
   });
-  const domainHandlers = new Map<string, (params: unknown) => unknown>();
-  for (const method of SCAN_DB_METHODS as readonly string[]) {
-    domainHandlers.set(method, (params) => scanHandlers.handle(method as ScanDbMethod, params));
-  }
-  for (const method of LIBRARY_DB_METHODS as readonly string[]) {
-    domainHandlers.set(method, (params) =>
-      libraryHandlers.handle(method as LibraryDbMethod, params),
-    );
-  }
-  for (const method of HEALTH_DB_METHODS as readonly string[]) {
-    domainHandlers.set(method, (params) => healthHandlers.handle(method as HealthDbMethod, params));
-  }
-  for (const method of SETTINGS_DB_METHODS as readonly string[]) {
-    domainHandlers.set(method, (params) =>
-      settingsHandlers.handle(method as SettingsDbMethod, params),
-    );
-  }
+  const replicationHandlers = createReplicationDbHandlers({
+    getCatalog: () => catalogs.getSource(),
+    getCatalogPath: () => catalogs.getSourcePath(),
+    getRegistry: () => catalogs,
+  });
+  const domainHandlers = createDomainHandlerMap({
+    scan: scanHandlers,
+    library: libraryHandlers,
+    health: healthHandlers,
+    settings: settingsHandlers,
+    replication: replicationHandlers,
+  });
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);
@@ -172,13 +106,23 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
     fs.mkdirSync(path.dirname(parsed.catalogPath), { recursive: true });
     fs.mkdirSync(parsed.cachePath, { recursive: true });
 
-    const db = catalogs.open(parsed.catalogPath, parsed.identity, parsed.catalogSchema, true);
+    const db = catalogs.openSource({
+      filePath: parsed.catalogPath,
+      identity: parsed.identity,
+      schemaVersion: parsed.catalogSchema,
+      create: true,
+    });
     return getCatalogSummary(db, parsed.catalogPath);
   };
 
   const handleOpenCatalog = (params: unknown): unknown => {
     const parsed = CatalogOpenParamsSchema.parse(params);
-    const db = catalogs.open(parsed.catalogPath, parsed.identity, CATALOG_SCHEMA_VERSION, false);
+    const db = catalogs.openSource({
+      filePath: parsed.catalogPath,
+      identity: parsed.identity,
+      schemaVersion: CATALOG_SCHEMA_VERSION,
+      create: false,
+    });
     return getCatalogSummary(db, parsed.catalogPath);
   };
 
@@ -203,7 +147,7 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
       case "catalog.open":
         return handleOpenCatalog(params);
       case "close":
-        catalogs.close();
+        catalogs.closeAll();
         appDb.close();
         return { closed: true };
       default:
@@ -217,7 +161,7 @@ export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerH
   return {
     handle,
     dispose: () => {
-      catalogs.close();
+      catalogs.closeAll();
       if (appDb.open) {
         appDb.close();
       }

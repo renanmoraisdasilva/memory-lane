@@ -36,6 +36,7 @@ import type {
 import type { OtherFilesPage, OtherFilesParams } from "./other-files";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "./settings";
 import type { ScanIntensityParams, ScanStartParams, ScanState, ScanVolumeParams } from "./scan";
+import type { ReplicationApi } from "./replication/api";
 
 export interface MemoryLaneApi {
   getAppInfo(): Promise<IpcResult<AppInfo>>;
@@ -73,4 +74,5 @@ export interface MemoryLaneApi {
   runBackup(): Promise<IpcResult<BackupResult>>;
   revealLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
   openLibraryItem(params: LibraryItemTargetParams): Promise<IpcResult<void>>;
+  replication: ReplicationApi;
 }

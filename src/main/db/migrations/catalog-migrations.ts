@@ -4,6 +4,7 @@ import catalogLibrary from "./catalog/0003-library.sql?raw";
 import catalogDateOverrides from "./catalog/0004-date-overrides.sql?raw";
 import catalogValidation from "./catalog/0005-validation.sql?raw";
 import catalogFrameRate from "./catalog/0006-frame-rate.sql?raw";
+import catalogReplication from "./catalog/0007-replication.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -36,5 +37,10 @@ export const catalogMigrations: Migration[] = [
     version: 6,
     name: "video frame rate",
     sql: catalogFrameRate,
+  },
+  {
+    version: 7,
+    name: "replication destinations, coverage, runs, and promotion",
+    sql: catalogReplication,
   },
 ];

@@ -1,5 +1,6 @@
 import {
   CalendarClock,
+  DatabaseBackup,
   FileText,
   HardDrive,
   Image,
@@ -128,6 +129,10 @@ export function Sidebar({
           <ShieldCheck size={18} aria-hidden="true" />
           <span>Library health</span>
           {healthIssues > 0 ? <span className={styles.navBadge}>{healthIssues}</span> : null}
+        </NavLink>
+        <NavLink to="/backup" className={navClass}>
+          <DatabaseBackup size={18} aria-hidden="true" />
+          <span>Backup</span>
         </NavLink>
 
         <div className={styles.navDivider} />

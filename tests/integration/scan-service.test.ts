@@ -2,6 +2,9 @@ import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
+import { APP_ERROR_CODES } from "@shared/domain/errors";
+import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
+import { WorkloadCoordinator } from "../../src/main/modules/workloads/application/workload-coordinator";
 import { createScanHarness, waitForComplete } from "./scan-harness";
 
 function png(width: number, height: number): Buffer {
@@ -52,7 +55,7 @@ describe("scan service integration", () => {
 
       const summary = await harness.driveService.openCatalog(harness.drive.volumeId);
       expect(summary.fileCount).toBe(3);
-      expect(summary.schemaVersion).toBe(6);
+      expect(summary.schemaVersion).toBe(CATALOG_SCHEMA_VERSION);
 
       const drives = await harness.driveService.listDrives();
       expect(drives[0]?.indexedFiles).toBe(3);
@@ -142,6 +145,20 @@ describe("scan service integration", () => {
         db.close();
       }
     } finally {
+      await harness.dispose();
+    }
+  });
+
+  it("rejects a scan while a replication workload is active", async () => {
+    const workloads = new WorkloadCoordinator();
+    const lease = workloads.acquire("replication", "run-1");
+    const harness = await createScanHarness({ workloads });
+    try {
+      await expect(harness.scanService.startScan(harness.drive.volumeId)).rejects.toMatchObject({
+        code: APP_ERROR_CODES.WORKLOAD_CONFLICT,
+      });
+    } finally {
+      lease.release();
       await harness.dispose();
     }
   });

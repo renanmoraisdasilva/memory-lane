@@ -8,10 +8,16 @@ import { LibraryClientProvider } from "../features/library/library-client-contex
 import { LibraryViewMemoryProvider } from "../features/library/library-view-memory";
 import { PhaseOneClientProvider } from "../lib/client-context";
 import type { PhaseOneClient } from "../lib/phase-one-client";
+import {
+  createReplicationClient,
+  type ReplicationClient,
+} from "../features/replication/replication-client";
+import { ReplicationClientProvider } from "../features/replication/replication-client-context";
 
 export interface RenderOptions {
   client: PhaseOneClient;
   libraryClient?: LibraryClient;
+  replicationClient?: ReplicationClient;
   workspace?: WorkspaceSnapshot | null;
   initialEntries?: string[];
 }
@@ -30,11 +36,15 @@ export function renderWithProviders(ui: ReactElement, options: RenderOptions): R
     <QueryClientProvider client={createTestQueryClient()}>
       <PhaseOneClientProvider client={options.client}>
         <LibraryClientProvider client={options.libraryClient ?? createLibraryClient()}>
-          <WorkspaceProvider initialWorkspace={options.workspace ?? null}>
-            <LibraryViewMemoryProvider>
-              <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>{ui}</MemoryRouter>
-            </LibraryViewMemoryProvider>
-          </WorkspaceProvider>
+          <ReplicationClientProvider
+            client={options.replicationClient ?? createReplicationClient()}
+          >
+            <WorkspaceProvider initialWorkspace={options.workspace ?? null}>
+              <LibraryViewMemoryProvider>
+                <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>{ui}</MemoryRouter>
+              </LibraryViewMemoryProvider>
+            </WorkspaceProvider>
+          </ReplicationClientProvider>
         </LibraryClientProvider>
       </PhaseOneClientProvider>
     </QueryClientProvider>,

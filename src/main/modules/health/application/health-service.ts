@@ -12,6 +12,10 @@ import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
 import type { Logger } from "../../../logging/types";
 import type { FileHasher, FileMetadataExtractor } from "../../scanning/domain/scan-files";
+import type {
+  WorkloadCoordinator,
+  WorkloadLease,
+} from "../../workloads/application/workload-coordinator";
 import { ValidationChecker, type ValidationFile } from "./validation-checker";
 
 interface ActiveValidation {
@@ -28,6 +32,7 @@ export interface HealthServiceDependencies {
   hasher: FileHasher;
   metadata: FileMetadataExtractor;
   logger: Logger;
+  workloads?: WorkloadCoordinator;
   now?: () => Date;
 }
 
@@ -39,6 +44,7 @@ export class HealthService {
   private readonly nowDate: () => Date;
   private readonly checker: ValidationChecker;
   private active: ActiveValidation | null = null;
+  private workloadLease: WorkloadLease | null = null;
 
   constructor(private readonly dependencies: HealthServiceDependencies) {
     this.nowDate = dependencies.now ?? (() => new Date());
@@ -126,14 +132,21 @@ export class HealthService {
     if (this.active !== null) {
       throw new AppError(APP_ERROR_CODES.INVALID_REQUEST, "A validation run is already active");
     }
-    const state = await this.dependencies.db.request<ValidationState>("health.createValidation", {
-      levels,
-      now: this.now(),
-    });
-    if (state.sessionId === null) {
-      throw new AppError(APP_ERROR_CODES.INTERNAL, "Validation session was not created");
+    const lease = this.dependencies.workloads?.acquire("validation", "validation") ?? null;
+    let state: ValidationState;
+    try {
+      state = await this.dependencies.db.request<ValidationState>("health.createValidation", {
+        levels,
+        now: this.now(),
+      });
+      if (state.sessionId === null) {
+        throw new AppError(APP_ERROR_CODES.INTERNAL, "Validation session was not created");
+      }
+    } catch (error) {
+      lease?.release();
+      throw error;
     }
-    this.begin(state, state.sessionId);
+    this.begin(state, state.sessionId, lease);
     return state;
   }
 
@@ -167,11 +180,19 @@ export class HealthService {
         "There is no paused validation to resume",
       );
     }
-    this.begin(state, state.sessionId);
-    return this.dependencies.db.request<ValidationState>("health.resumeValidation", {
-      sessionId: state.sessionId,
-      now: this.now(),
-    });
+    const lease = this.dependencies.workloads?.acquire("validation", "validation") ?? null;
+    let resumed: ValidationState;
+    try {
+      resumed = await this.dependencies.db.request<ValidationState>("health.resumeValidation", {
+        sessionId: state.sessionId,
+        now: this.now(),
+      });
+    } catch (error) {
+      lease?.release();
+      throw error;
+    }
+    this.begin(resumed, state.sessionId, lease);
+    return resumed;
   }
 
   async shutdown(): Promise<void> {
@@ -193,7 +214,11 @@ export class HealthService {
     }
   }
 
-  private begin(state: ValidationState, sessionId: number): void {
+  private begin(
+    state: ValidationState,
+    sessionId: number,
+    workloadLease: WorkloadLease | null,
+  ): void {
     const active: ActiveValidation = {
       sessionId,
       levels: state.levels,
@@ -203,6 +228,7 @@ export class HealthService {
       loop: Promise.resolve(),
     };
     this.active = active;
+    this.workloadLease = workloadLease;
     active.loop = this.run(active)
       .catch(async (error: unknown) => {
         this.dependencies.logger.error("Validation run failed", error);
@@ -213,6 +239,8 @@ export class HealthService {
         });
       })
       .finally(() => {
+        this.workloadLease?.release();
+        this.workloadLease = null;
         if (this.active === active) {
           this.active = null;
         }

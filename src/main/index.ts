@@ -1,9 +1,14 @@
 import path from "node:path";
 import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import { DbWorkerClient } from "./clients/db-client";
+import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
 import { configureUserData } from "./bootstrap/user-data";
+import {
+  createReplicationServices,
+  type ReplicationServices,
+} from "./bootstrap/replication-services";
 import { registerIpcHandlers } from "./ipc/register-handlers";
 import { AppService } from "./modules/app/application/app-service";
 import { DriveService } from "./modules/drives/application/drive-service";
@@ -19,6 +24,7 @@ import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
 import { HealthService } from "./modules/health/application/health-service";
 import { SettingsService } from "./modules/settings/application/settings-service";
+import { WorkloadCoordinator } from "./modules/workloads/application/workload-coordinator";
 
 registerMediaScheme();
 
@@ -33,6 +39,7 @@ let dbClient: DbWorkerClient | null = null;
 let scanService: ScanService | null = null;
 let healthService: HealthService | null = null;
 let settingsService: SettingsService | null = null;
+let adoptionService: ReplicationServices["adoptionService"] | null = null;
 let previewService: PreviewConverter | null = null;
 let tray: Tray | null = null;
 let trayPending = false;
@@ -251,8 +258,15 @@ async function startServices(): Promise<void> {
     shellActions: createShellActions(),
     logger,
   });
-
   const metadata = createFileMetadataExtractor({ logger });
+  const workloads = new WorkloadCoordinator();
+  const replication = createReplicationServices({
+    db,
+    listDetected: listDetectedDrives,
+    workloads,
+    logger,
+  });
+  adoptionService = replication.adoptionService;
   const scan = new ScanService({
     db,
     listDetected: listDetectedDrives,
@@ -260,6 +274,7 @@ async function startServices(): Promise<void> {
     metadata,
     thumbnails,
     hasher: createFileHasher(),
+    workloads,
   });
   scanService = scan;
   const health = new HealthService({
@@ -267,6 +282,7 @@ async function startServices(): Promise<void> {
     hasher: createFileHasher(),
     metadata,
     logger,
+    workloads,
   });
   healthService = health;
 
@@ -274,7 +290,15 @@ async function startServices(): Promise<void> {
     db,
     listDetected: listDetectedDrives,
     logger,
-    onBeforeCatalogChange: () => scan.interruptActive(),
+    onBeforeCatalogChange: async () => {
+      if (workloads.isActive("replication")) {
+        throw new AppError(
+          APP_ERROR_CODES.WORKLOAD_CONFLICT,
+          "Finish or pause the backup before switching drives",
+        );
+      }
+      await scan.interruptActive();
+    },
   });
 
   registerIpcHandlers({
@@ -284,6 +308,9 @@ async function startServices(): Promise<void> {
     libraryService,
     healthService: health,
     settingsService: settings,
+    destinationService: replication.destinationService,
+    adoptionService: replication.adoptionService,
+    planService: replication.planService,
     logger,
   });
   registerMediaProtocol({ db, thumbnails, previews, logger });
@@ -293,6 +320,9 @@ async function startServices(): Promise<void> {
 
 async function shutdown(): Promise<void> {
   destroyTray();
+  if (adoptionService !== null) {
+    await adoptionService.shutdown();
+  }
   if (healthService !== null) {
     await healthService.shutdown();
   }

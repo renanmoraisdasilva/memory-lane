@@ -38,6 +38,18 @@ import type {
 } from "@shared/contracts/library";
 import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-files";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
+import { REPLICATION_CHANNELS } from "@shared/contracts/replication/channels";
+import type {
+  AdoptionState,
+  CoverageSummary,
+  DestinationCandidate,
+  DestinationDetail,
+  DestinationSummary,
+  RegisterDestinationParams,
+  ReplicationOverview,
+  ReplicationPlan,
+  UpdateDestinationParams,
+} from "@shared/contracts/replication/types";
 import type {
   ScanIntensityParams,
   ScanStartParams,
@@ -131,6 +143,52 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.revealLibraryItem, params) as Promise<IpcResult<void>>,
   openLibraryItem: (params: LibraryItemTargetParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.openLibraryItem, params) as Promise<IpcResult<void>>,
+  replication: {
+    getOverview: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getOverview) as Promise<
+        IpcResult<ReplicationOverview>
+      >,
+    listDestinationCandidates: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.listDestinationCandidates) as Promise<
+        IpcResult<DestinationCandidate[]>
+      >,
+    listDestinations: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.listDestinations) as Promise<
+        IpcResult<DestinationSummary[]>
+      >,
+    getDestination: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getDestination, { destinationId }) as Promise<
+        IpcResult<DestinationDetail>
+      >,
+    registerDestination: (params: RegisterDestinationParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.registerDestination, params) as Promise<
+        IpcResult<DestinationDetail>
+      >,
+    updateDestination: (params: UpdateDestinationParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.updateDestination, params) as Promise<
+        IpcResult<DestinationDetail>
+      >,
+    getAdoptionState: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getAdoptionState, { destinationId }) as Promise<
+        IpcResult<AdoptionState>
+      >,
+    startAdoption: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.startAdoption, { destinationId }) as Promise<
+        IpcResult<AdoptionState>
+      >,
+    pauseAdoption: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.pauseAdoption, { destinationId }) as Promise<
+        IpcResult<AdoptionState>
+      >,
+    resumeAdoption: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.resumeAdoption, { destinationId }) as Promise<
+        IpcResult<AdoptionState>
+      >,
+    getPlan: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getPlan) as Promise<IpcResult<ReplicationPlan>>,
+    getCoverage: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getCoverage) as Promise<IpcResult<CoverageSummary>>,
+  },
 };
 
 contextBridge.exposeInMainWorld("memoryLane", api);

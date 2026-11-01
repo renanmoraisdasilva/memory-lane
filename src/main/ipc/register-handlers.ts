@@ -1,4 +1,4 @@
-import { ipcMain, type IpcMainInvokeEvent } from "electron";
+import { ipcMain } from "electron";
 import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import {
   ConfirmDriveIdentityParamsSchema,
@@ -6,7 +6,6 @@ import {
   IPC_CHANNELS,
   OpenCatalogParamsSchema,
   type AppInfo,
-  type IpcResult,
 } from "@shared/contracts/ipc";
 import {
   DuplicateGroupsParamsSchema,
@@ -20,42 +19,40 @@ import {
   type MovedCandidatesPage,
   type ValidationState,
 } from "@shared/contracts/health";
-import {
-  LibraryClearDateParamsSchema,
-  LibraryItemParamsSchema,
-  LibraryItemTargetParamsSchema,
-  LibrarySetDateParamsSchema,
-  LibraryTimelineIndexParamsSchema,
-  LibraryTimelineParamsSchema,
-  LibraryUndatedParamsSchema,
-  type LibraryDateMutationResult,
-  type LibraryItemDetails,
-  type LibrarySummary,
-  type LibraryTimelineIndex,
-  type LibraryTimelinePage,
-  type LibraryUndatedPage,
-} from "@shared/contracts/library";
+import { LibraryItemTargetParamsSchema } from "@shared/contracts/library";
 import { OtherFilesParamsSchema, type OtherFilesPage } from "@shared/contracts/other-files";
+import { REPLICATION_CHANNELS } from "@shared/contracts/replication/channels";
+import {
+  AdoptionDestinationParamsSchema,
+  GetDestinationParamsSchema,
+  RegisterDestinationParamsSchema,
+  UpdateDestinationParamsSchema,
+  type AdoptionState,
+  type CoverageSummary,
+  type DestinationCandidate,
+  type DestinationDetail,
+  type DestinationSummary,
+  type ReplicationOverview,
+  type ReplicationPlan,
+} from "@shared/contracts/replication/types";
 import {
   type BackupResult,
   type CacheClearResult,
   type SettingsInfo,
 } from "@shared/contracts/settings";
-import {
-  ScanIntensityParamsSchema,
-  ScanStartParamsSchema,
-  ScanVolumeParamsSchema,
-  type ScanState,
-} from "@shared/contracts/scan";
-import { APP_ERROR_CODES, AppError, toAppErrorPayload } from "@shared/domain/errors";
 import type { AppService } from "../modules/app/application/app-service";
 import type { DriveService } from "../modules/drives/application/drive-service";
 import type { HealthService } from "../modules/health/application/health-service";
 import type { LibraryService } from "../modules/library/application/library-service";
+import type { DestinationService } from "../modules/replication/application/destination-service";
+import type { AdoptionService } from "../modules/replication/application/adoption-service";
+import type { PlanService } from "../modules/replication/application/plan-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { SettingsService } from "../modules/settings/application/settings-service";
 import type { Logger } from "../logging/types";
-import { isTrustedRendererUrl, rendererFileUrl } from "./trusted-sender";
+import { registerLibraryHandlers } from "./register-library-handlers";
+import { registerScanHandlers } from "./register-scan-handlers";
+import { respond } from "./respond";
 
 export interface IpcServices {
   appService: AppService;
@@ -64,31 +61,10 @@ export interface IpcServices {
   libraryService: LibraryService;
   healthService: HealthService;
   settingsService: SettingsService;
+  destinationService: DestinationService;
+  adoptionService: AdoptionService;
+  planService: PlanService;
   logger: Logger;
-}
-
-function assertTrustedSender(event: IpcMainInvokeEvent): void {
-  const url = event.senderFrame?.url ?? "";
-  if (!isTrustedRendererUrl(url, rendererFileUrl(), process.env.ELECTRON_RENDERER_URL)) {
-    throw new AppError(APP_ERROR_CODES.FORBIDDEN, "IPC request came from an untrusted sender");
-  }
-}
-
-async function respond<T>(
-  event: IpcMainInvokeEvent,
-  method: string,
-  logger: Logger,
-  operation: () => Promise<T> | T,
-): Promise<IpcResult<T>> {
-  try {
-    assertTrustedSender(event);
-    const data = await operation();
-    return { ok: true, data };
-  } catch (error) {
-    const payload = toAppErrorPayload(error);
-    logger.error(`${method} failed`, { code: payload.code, message: payload.message });
-    return { ok: false, error: payload };
-  }
 }
 
 export function registerIpcHandlers(services: IpcServices): void {
@@ -99,6 +75,9 @@ export function registerIpcHandlers(services: IpcServices): void {
     libraryService,
     healthService,
     settingsService,
+    destinationService,
+    adoptionService,
+    planService,
     logger,
   } = services;
 
@@ -128,84 +107,100 @@ export function registerIpcHandlers(services: IpcServices): void {
     ),
   );
 
-  ipcMain.handle(IPC_CHANNELS.getScanState, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.getScanState, logger, () =>
-      scanService.getState(ScanVolumeParamsSchema.parse(params).volumeId),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.startScan, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.startScan, logger, () => {
-      const parsed = ScanStartParamsSchema.parse(params);
-      return scanService.startScan(parsed.volumeId, parsed.intensity);
-    }),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.pauseScan, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.pauseScan, logger, () =>
-      scanService.pauseScan(ScanVolumeParamsSchema.parse(params).volumeId),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.resumeScan, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.resumeScan, logger, () =>
-      scanService.resumeScan(ScanVolumeParamsSchema.parse(params).volumeId),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.setScanIntensity, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.setScanIntensity, logger, () => {
-      const parsed = ScanIntensityParamsSchema.parse(params);
-      return scanService.setIntensity(parsed.volumeId, parsed.intensity);
-    }),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.getLibrarySummary, (event) =>
-    respond<LibrarySummary>(event, IPC_CHANNELS.getLibrarySummary, logger, () =>
-      libraryService.getSummary(),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.getLibraryTimeline, (event, params: unknown) =>
-    respond<LibraryTimelinePage>(event, IPC_CHANNELS.getLibraryTimeline, logger, () =>
-      libraryService.getTimeline(LibraryTimelineParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.getLibraryTimelineIndex, (event, params: unknown) =>
-    respond<LibraryTimelineIndex>(event, IPC_CHANNELS.getLibraryTimelineIndex, logger, () =>
-      libraryService.getTimelineIndex(LibraryTimelineIndexParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.getLibraryItem, (event, params: unknown) =>
-    respond<LibraryItemDetails>(event, IPC_CHANNELS.getLibraryItem, logger, () =>
-      libraryService.getItem(LibraryItemParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.getLibraryUndated, (event, params: unknown) =>
-    respond<LibraryUndatedPage>(event, IPC_CHANNELS.getLibraryUndated, logger, () =>
-      libraryService.getUndated(LibraryUndatedParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.setLibraryDate, (event, params: unknown) =>
-    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.setLibraryDate, logger, () =>
-      libraryService.setDate(LibrarySetDateParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(IPC_CHANNELS.clearLibraryDate, (event, params: unknown) =>
-    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.clearLibraryDate, logger, () =>
-      libraryService.clearDate(LibraryClearDateParamsSchema.parse(params)),
-    ),
-  );
-
+  registerScanHandlers(scanService, logger);
+  registerLibraryHandlers(libraryService, logger);
+  registerReplicationHandlers(destinationService, adoptionService, planService, logger);
   registerHealthHandlers(healthService, logger);
   registerSettingsHandlers(settingsService, logger);
   registerOtherFilesHandler(libraryService, logger);
   registerFileActionHandlers(libraryService, logger);
+}
+
+function registerReplicationHandlers(
+  destinationService: DestinationService,
+  adoptionService: AdoptionService,
+  planService: PlanService,
+  logger: Logger,
+): void {
+  ipcMain.handle(REPLICATION_CHANNELS.getOverview, (event) =>
+    respond<ReplicationOverview>(event, REPLICATION_CHANNELS.getOverview, logger, () =>
+      planService.getOverview(),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.getAdoptionState, (event, params: unknown) =>
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.getAdoptionState, logger, () => {
+      const parsed = AdoptionDestinationParamsSchema.parse(params);
+      return adoptionService.getState(parsed.destinationId);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.startAdoption, (event, params: unknown) =>
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.startAdoption, logger, () => {
+      const parsed = AdoptionDestinationParamsSchema.parse(params);
+      return adoptionService.start(parsed.destinationId);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.pauseAdoption, (event, params: unknown) =>
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.pauseAdoption, logger, () => {
+      const parsed = AdoptionDestinationParamsSchema.parse(params);
+      return adoptionService.pause(parsed.destinationId);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.resumeAdoption, (event, params: unknown) =>
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.resumeAdoption, logger, () => {
+      const parsed = AdoptionDestinationParamsSchema.parse(params);
+      return adoptionService.resume(parsed.destinationId);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.getPlan, (event) =>
+    respond<ReplicationPlan>(event, REPLICATION_CHANNELS.getPlan, logger, () =>
+      planService.getPlan(),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.getCoverage, (event) =>
+    respond<CoverageSummary>(event, REPLICATION_CHANNELS.getCoverage, logger, () =>
+      planService.getCoverage(),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.listDestinationCandidates, (event) =>
+    respond<DestinationCandidate[]>(
+      event,
+      REPLICATION_CHANNELS.listDestinationCandidates,
+      logger,
+      () => destinationService.listCandidates(),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.listDestinations, (event) =>
+    respond<DestinationSummary[]>(event, REPLICATION_CHANNELS.listDestinations, logger, () =>
+      destinationService.list(),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.getDestination, (event, params: unknown) =>
+    respond<DestinationDetail>(event, REPLICATION_CHANNELS.getDestination, logger, () => {
+      const parsed = GetDestinationParamsSchema.parse(params);
+      return destinationService.get(Number(parsed.destinationId));
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.registerDestination, (event, params: unknown) =>
+    respond<DestinationDetail>(event, REPLICATION_CHANNELS.registerDestination, logger, () =>
+      destinationService.register(RegisterDestinationParamsSchema.parse(params)),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.updateDestination, (event, params: unknown) =>
+    respond<DestinationDetail>(event, REPLICATION_CHANNELS.updateDestination, logger, () =>
+      destinationService.update(UpdateDestinationParamsSchema.parse(params)),
+    ),
+  );
 }
 
 function registerHealthHandlers(healthService: HealthService, logger: Logger): void {
