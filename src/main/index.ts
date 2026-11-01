@@ -1,5 +1,5 @@
 import path from "node:path";
-import { app, BrowserWindow, Menu, screen, Tray } from "electron";
+import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import { DbWorkerClient } from "./clients/db-client";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
@@ -38,6 +38,12 @@ let tray: Tray | null = null;
 let trayPending = false;
 let shuttingDown = false;
 
+function appIconPath(): string {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "icon.png")
+    : path.join(__dirname, "../../resources/icon.png");
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1180,
@@ -45,6 +51,7 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 640,
     show: false,
+    icon: appIconPath(),
     backgroundColor: "#0f0f11",
     title: "Memory Lane",
     autoHideMenuBar: true,
@@ -169,11 +176,14 @@ async function showTrayFallback(): Promise<void> {
   }
   trayPending = true;
   try {
-    const icon = await app.getFileIcon(app.getPath("exe"), { size: "small" });
+    const icon = nativeImage.createFromPath(appIconPath());
+    const trayIcon = icon.isEmpty()
+      ? await app.getFileIcon(app.getPath("exe"), { size: "small" })
+      : icon.resize({ width: 32, height: 32 });
     if (!canAttachTray()) {
       return;
     }
-    const next = new Tray(icon);
+    const next = new Tray(trayIcon);
     next.setToolTip("Memory Lane is minimized");
     next.setContextMenu(
       Menu.buildFromTemplate([

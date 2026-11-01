@@ -482,4 +482,6 @@ Status: implemented after Phase 6 automation, before the manual release pass.
 - Restore now pulls the window onto an active display if its saved bounds are
   off-screen, and a temporary tray icon appears while the window is minimized as
   a fallback when the Windows taskbar fails to restore it.
+- The Windows executable, installer, taskbar, window, and tray now use the
+  amber Memory Lane photo mark instead of Electron's default icon.
 

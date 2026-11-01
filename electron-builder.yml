@@ -11,6 +11,8 @@ extraResources:
     to: bin
     filter:
       - "**/*"
+  - from: resources/icon.png
+    to: icon.png
 asar: true
 asarUnpack:
   - node_modules/better-sqlite3/**
@@ -18,6 +20,7 @@ asarUnpack:
 npmRebuild: false
 compression: normal
 win:
+  icon: build/icon.ico
   target:
     - target: nsis
       arch: [x64]
@@ -31,6 +34,9 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Memory Lane
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
   artifactName: Memory-Lane-Setup-${version}-${arch}.${ext}
 portable:
   artifactName: Memory-Lane-${version}-${arch}.${ext}

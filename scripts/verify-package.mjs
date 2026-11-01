@@ -11,6 +11,7 @@ const setupExe = path.join(RELEASE_DIR, `Memory-Lane-Setup-${version}-x64.exe`);
 const portableExe = path.join(RELEASE_DIR, `Memory-Lane-${version}-x64.exe`);
 const setupBlockmap = `${setupExe}.blockmap`;
 const appAsar = path.join(RELEASE_DIR, "win-unpacked", "resources", "app.asar");
+const appIcon = path.join(RELEASE_DIR, "win-unpacked", "resources", "icon.png");
 const sqliteBinary = path.join(
   RELEASE_DIR,
   "win-unpacked",
@@ -39,6 +40,7 @@ const required = [
   ["Portable executable", portableExe],
   ["NSIS blockmap", setupBlockmap],
   ["Application archive", appAsar],
+  ["Application icon", appIcon],
   ["SQLite native binary", sqliteBinary],
   ["ExifTool binary", exifToolBinary],
 ];
