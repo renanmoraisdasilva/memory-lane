@@ -8,10 +8,11 @@ import {
   Settings,
   ShieldCheck,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { formatBytes } from "../../lib/format";
 import type { DriveSelectionItem } from "../drives/types";
 import { useHealthSummary } from "../health/use-health";
+import { libraryPath, parseLibraryDensity, parseLibraryFilter } from "../library/library-url";
 import { useLibrarySummary } from "../library/use-library";
 import { isScanRunning } from "../scan/types";
 import { useScanState } from "../scan/use-scan";
@@ -85,11 +86,16 @@ export function Sidebar({
   drive: DriveSelectionItem;
   onOpenDrawer: () => void;
 }): React.JSX.Element {
+  const [searchParams] = useSearchParams();
   const scan = useScanState(drive.volumeId);
   const library = useLibrarySummary();
   const health = useHealthSummary();
   const undatedCount = library.data?.undatedCount ?? 0;
   const healthIssues = healthIssueCount(health.data);
+  const memoryLanePath = libraryPath(
+    parseLibraryFilter(searchParams.get("filter")),
+    parseLibraryDensity(searchParams.get("density")),
+  );
 
   return (
     <aside className={styles.sidebar}>
@@ -105,7 +111,7 @@ export function Sidebar({
 
       <nav className={styles.sidebarNav} aria-label="Main navigation">
         <div className={styles.navLabel}>Library</div>
-        <NavLink to="/library" className={navClass}>
+        <NavLink to={memoryLanePath} className={navClass}>
           <Images size={18} aria-hidden="true" />
           <span>Memory Lane</span>
         </NavLink>

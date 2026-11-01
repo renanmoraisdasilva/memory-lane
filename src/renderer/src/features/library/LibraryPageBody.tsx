@@ -24,6 +24,7 @@ export function LibraryPageBody({
   gridRef,
   hasNextPage,
   isFetchingNextPage,
+  onScroll,
   onRetry,
   onRetryAll,
   onSwitchDrive,
@@ -44,6 +45,7 @@ export function LibraryPageBody({
   gridRef: RefObject<VirtualGridHandle | null>;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  onScroll: (offset: number) => void;
   onRetry: () => void;
   onRetryAll: () => void;
   onSwitchDrive: () => void;
@@ -76,6 +78,7 @@ export function LibraryPageBody({
       density={density}
       filter={filter}
       gridRef={gridRef}
+      onScroll={onScroll}
       onVisibleRangeChange={onVisibleRangeChange}
       onEndReached={onLoadMore}
       hasNextPage={hasNextPage}

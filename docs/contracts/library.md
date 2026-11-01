@@ -39,6 +39,11 @@ previous/next navigation and returns to the same filtered grid on Escape.
 - `cursor` is opaque, keyset-based, and cannot be combined with a year or month.
 - `total` is the count for the active filter, not just the current page.
 - Page size defaults to 200 and is capped at 500.
+- `filter` and `density` live in the URL. Returning from the viewer, including
+  through the sidebar, preserves them.
+- The renderer remembers the last year/month anchor and scroll offset per catalog
+  volume for the session, so opening an item and returning restores the same
+  place in the timeline.
 
 ## Dates
 

@@ -5,6 +5,7 @@ import { DriveSelectionPage } from "./features/drives/DriveSelectionPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { createLibraryClient, type LibraryClient } from "./features/library/library-client";
 import { LibraryClientProvider } from "./features/library/library-client-context";
+import { LibraryViewMemoryProvider } from "./features/library/library-view-memory";
 import { UndatedPage } from "./features/library/UndatedPage";
 import { ViewerShell } from "./features/library/ViewerShell";
 import { HealthPage } from "./features/health/HealthPage";
@@ -114,17 +115,19 @@ export function App({
     <PhaseOneClientProvider client={client ?? fallbackClient}>
       <LibraryClientProvider client={libraryClient ?? fallbackLibraryClient}>
         <WorkspaceProvider>
-          <Routes>
-            <Route path="/" element={<DriveGateRoute />} />
-            <Route path="/scan" element={<ScanRoute />} />
-            <Route path="/library" element={<LibraryRoute />} />
-            <Route path="/undated" element={<UndatedRoute />} />
-            <Route path="/health" element={<HealthRoute />} />
-            <Route path="/files" element={<OtherFilesRoute />} />
-            <Route path="/settings" element={<SettingsRoute />} />
-            <Route path="/library/item/:fileId" element={<ViewerRoute />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <LibraryViewMemoryProvider>
+            <Routes>
+              <Route path="/" element={<DriveGateRoute />} />
+              <Route path="/scan" element={<ScanRoute />} />
+              <Route path="/library" element={<LibraryRoute />} />
+              <Route path="/undated" element={<UndatedRoute />} />
+              <Route path="/health" element={<HealthRoute />} />
+              <Route path="/files" element={<OtherFilesRoute />} />
+              <Route path="/settings" element={<SettingsRoute />} />
+              <Route path="/library/item/:fileId" element={<ViewerRoute />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </LibraryViewMemoryProvider>
         </WorkspaceProvider>
       </LibraryClientProvider>
     </PhaseOneClientProvider>

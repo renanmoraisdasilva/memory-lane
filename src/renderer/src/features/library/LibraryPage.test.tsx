@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { createMockPhaseOneClient } from "../../lib/ipc-client.mock";
 import { createMockDrives, mockCatalogSummary, mockVolumeIds } from "../../lib/mock-fixtures";
@@ -33,6 +33,27 @@ function LocationProbe(): React.JSX.Element {
   return <output data-testid="location">{`${location.pathname}${location.search}`}</output>;
 }
 
+function ViewerProbe(): React.JSX.Element {
+  const navigate = useNavigate();
+  return (
+    <button type="button" onClick={() => void navigate(-1)}>
+      Back to library
+    </button>
+  );
+}
+
+function LibraryRouteHarness(): React.JSX.Element {
+  return (
+    <>
+      <Routes>
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/library/item/:fileId" element={<ViewerProbe />} />
+      </Routes>
+      <LocationProbe />
+    </>
+  );
+}
+
 function renderLibrary(
   libraryClient: LibraryClient = createLibraryFixtureClient(),
   initialEntries: string[] = ["/library"],
@@ -50,6 +71,19 @@ function renderLibrary(
       initialEntries,
     },
   );
+}
+
+function renderLibraryRoutes(
+  libraryClient: LibraryClient = createLibraryFixtureClient(),
+  initialEntries: string[] = ["/library"],
+): void {
+  const drive = readyDrive();
+  renderWithProviders(<LibraryRouteHarness />, {
+    client: createMockPhaseOneClient({ scenario: "catalog" }),
+    libraryClient,
+    workspace: { drive, catalog: mockCatalogSummary(drive) },
+    initialEntries,
+  });
 }
 
 afterEach(() => {
@@ -210,6 +244,39 @@ describe("LibraryPage", () => {
     });
     expect(within(missingTile).getByText("Missing")).toBeInTheDocument();
     expect(screen.getByText("03:24")).toBeInTheDocument();
+  });
+
+  it("restores the scroll position and filter after returning from the viewer", async () => {
+    renderLibraryRoutes(createLibraryFixtureClient(), ["/library?filter=photos"]);
+
+    const feed = await screen.findByRole("feed", { name: "Media timeline" });
+    feed.scrollTop = 640;
+    fireEvent.scroll(feed);
+
+    await userEvent.click(screen.getByRole("link", { name: "DSCF1042.RAF, photo" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Back to library" }));
+
+    const restoredFeed = await screen.findByRole("feed", { name: "Media timeline" });
+    await waitFor(() => {
+      expect(restoredFeed.scrollTop).toBe(640);
+    });
+    expect(screen.getByRole("button", { name: "Photos" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("restores the selected year after returning from the viewer", async () => {
+    renderLibraryRoutes();
+
+    await screen.findByRole("heading", { name: "Memory Lane" });
+    await userEvent.click(await screen.findByRole("button", { name: "2024" }));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "2024" })).toHaveAttribute("aria-pressed", "true");
+    });
+
+    await userEvent.click(screen.getByRole("link", { name: "DSC_4910.JPG, photo" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Back to library" }));
+
+    await screen.findByRole("heading", { name: "Memory Lane" });
+    expect(screen.getByRole("button", { name: "2024" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("only mounts a bounded number of tiles for a large fixture", async () => {

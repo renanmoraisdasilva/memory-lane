@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { WorkspaceProvider, type WorkspaceSnapshot } from "../app/workspace";
 import { createLibraryClient, type LibraryClient } from "../features/library/library-client";
 import { LibraryClientProvider } from "../features/library/library-client-context";
+import { LibraryViewMemoryProvider } from "../features/library/library-view-memory";
 import { PhaseOneClientProvider } from "../lib/client-context";
 import type { PhaseOneClient } from "../lib/phase-one-client";
 
@@ -30,7 +31,9 @@ export function renderWithProviders(ui: ReactElement, options: RenderOptions): R
       <PhaseOneClientProvider client={options.client}>
         <LibraryClientProvider client={options.libraryClient ?? createLibraryClient()}>
           <WorkspaceProvider initialWorkspace={options.workspace ?? null}>
-            <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>{ui}</MemoryRouter>
+            <LibraryViewMemoryProvider>
+              <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>{ui}</MemoryRouter>
+            </LibraryViewMemoryProvider>
           </WorkspaceProvider>
         </LibraryClientProvider>
       </PhaseOneClientProvider>

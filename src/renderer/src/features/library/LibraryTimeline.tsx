@@ -66,6 +66,7 @@ export function LibraryTimeline({
   density,
   filter,
   gridRef,
+  onScroll,
   onVisibleRangeChange,
   onEndReached,
   hasNextPage,
@@ -76,6 +77,7 @@ export function LibraryTimeline({
   density: LibraryDensity;
   filter: LibraryFilter;
   gridRef: RefObject<VirtualGridHandle | null>;
+  onScroll: (offset: number) => void;
   onVisibleRangeChange: (range: VisibleRange) => void;
   onEndReached: () => void;
   hasNextPage: boolean;
@@ -119,6 +121,7 @@ export function LibraryTimeline({
         ref={gridRef}
         rows={virtualRows}
         ariaLabel="Media timeline"
+        onScroll={onScroll}
         onVisibleRangeChange={onVisibleRangeChange}
         onEndReached={onEndReached}
       />

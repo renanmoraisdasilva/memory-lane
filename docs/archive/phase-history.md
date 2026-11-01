@@ -467,4 +467,6 @@ Status: implemented after Phase 6 automation, before the manual release pass.
 - Settings cache statistics read from `cache_entries` instead of walking the
   cache directory, keeping the page responsive for large caches.
 - App-wide dark scrollbar styling matches the rest of the UI.
+- Returning from the viewer restores the library filter, density, year/month
+  anchor, and scroll position instead of jumping back to the top.
 
