@@ -68,7 +68,8 @@ test("completes a full copy and promotes it to the source archive", async () => 
       .click();
     const drawer = page.getByRole("dialog", { name: "Add a backup destination" });
     await drawer.getByRole("button", { name: /Backup Full/ }).click();
-    await drawer.getByLabel("Goal").selectOption("full_copy");
+    await drawer.getByLabel("Goal").click();
+    await page.getByRole("option", { name: /Full copy/ }).click();
     await drawer.getByLabel("Safety reserve (GB)").fill("0");
     await drawer.getByRole("button", { name: "Add and adopt" }).click();
     await expect(page.getByRole("link").filter({ hasText: "Backup Full" })).toBeVisible({
@@ -80,7 +81,8 @@ test("completes a full copy and promotes it to the source archive", async () => 
     await expect(page.getByRole("heading", { name: "Backup plan" })).toBeVisible();
     await page.getByRole("button", { name: "Start backup" }).click();
     const startDialog = page.getByRole("dialog", { name: "Start backup" });
-    await startDialog.getByLabel("Run scope").selectOption("full_copy_only");
+    await startDialog.getByLabel("Run scope").click();
+    await page.getByRole("option", { name: "Full copy only" }).click();
     await startDialog.getByRole("button", { name: "Start backup" }).click();
     await expect(page.getByRole("heading", { name: "Backup run" })).toBeVisible();
     await expect(page.getByText("Completed", { exact: true })).toBeVisible({

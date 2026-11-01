@@ -27,7 +27,7 @@ implemented.
 - Slice 1: adoption, coverage, and planning — implemented.
 - Slice 2: partial execution and run lifecycle — implemented.
 - Slice 3: full copy and promotion — implemented.
-- Verification: 489 tests across 125 files, 10 Electron E2E flows, and coverage
+- Verification: 492 tests across 126 files, 10 Electron E2E flows, and coverage
   above the configured floors. The physical-drive replication release pass is
   still tracked in the roadmap and release checklist.
 

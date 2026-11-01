@@ -17,6 +17,7 @@ import type {
 import { Alert, Callout } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
 import { ProgressBar } from "../../components/ui/ProgressBar";
+import { Select } from "../../components/ui/Select";
 import { formatCount, formatDuration } from "../../lib/format";
 import { connectionLabel, connectionTone, formatSize, goalLabel, Stat } from "./components";
 import { DestinationAttentionCard, DestinationCoverageCard } from "./destination-cards";
@@ -277,15 +278,16 @@ function DestinationSettingsCard({
       <div className={styles.fieldGrid}>
         <div className={styles.field}>
           <label htmlFor="destination-goal-current">Goal</label>
-          <select
+          <Select
             id="destination-goal-current"
             value={goal}
             disabled={update.isPending || locked}
-            onChange={(event) => setGoal(event.target.value as DestinationGoal)}
-          >
-            <option value="extend_coverage">Partial coverage</option>
-            <option value="full_copy">Full copy</option>
-          </select>
+            onChange={setGoal}
+            options={[
+              { value: "extend_coverage", label: "Partial coverage" },
+              { value: "full_copy", label: "Full copy" },
+            ]}
+          />
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Allocation</span>

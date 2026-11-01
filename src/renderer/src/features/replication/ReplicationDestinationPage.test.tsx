@@ -43,7 +43,8 @@ describe("ReplicationDestinationPage", () => {
     expect(screen.getByText("Coverage map")).toBeVisible();
     expect(screen.getAllByText("Only on this drive").length).toBeGreaterThan(0);
 
-    await userEvent.selectOptions(screen.getByLabelText("Goal"), "full_copy");
+    await userEvent.click(screen.getByLabelText("Goal"));
+    await userEvent.click(screen.getByRole("option", { name: "Full copy" }));
     await userEvent.click(screen.getByRole("button", { name: "Save goal" }));
     await waitFor(() =>
       expect(client.updateDestination).toHaveBeenCalledWith({

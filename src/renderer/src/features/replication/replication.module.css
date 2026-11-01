@@ -313,6 +313,10 @@
   gap: 10px;
 }
 
+.fieldGridStacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .field {
   display: flex;
   flex-direction: column;

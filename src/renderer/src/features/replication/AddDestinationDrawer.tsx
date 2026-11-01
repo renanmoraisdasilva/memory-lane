@@ -9,6 +9,7 @@ import type {
 import { Alert } from "../../components/ui/Callout";
 import { Modal } from "../../components/ui/Modal";
 import { Pill } from "../../components/ui/Pill";
+import { Select } from "../../components/ui/Select";
 import { formatSize } from "./components";
 import { useDestinationCandidates, useRegisterDestination } from "./use-replication";
 import { useReplicationClient } from "./replication-client-context";
@@ -114,59 +115,17 @@ function CandidatePicker({
   );
 }
 
-function DestinationFields({
+type FieldUpdate = <K extends keyof FormState>(key: K, value: FormState[K]) => void;
+
+function AllocationInputs({
   form,
-  onChange,
+  update,
 }: {
   form: FormState;
-  onChange: (form: FormState) => void;
+  update: FieldUpdate;
 }): React.JSX.Element {
-  function update<K extends keyof FormState>(key: K, value: FormState[K]): void {
-    onChange({ ...form, [key]: value });
-  }
-
   return (
-    <div className={styles.fieldGrid}>
-      <div className={styles.field}>
-        <label htmlFor="destination-goal">Goal</label>
-        <select
-          id="destination-goal"
-          value={form.goal}
-          onChange={(event) => update("goal", event.target.value as DestinationGoal)}
-        >
-          <option value="extend_coverage">Partial coverage — fill gaps oldest first</option>
-          <option value="full_copy">Full copy — every source file</option>
-        </select>
-        <span className={styles.fieldHint}>
-          A full copy can later become the source archive. Partial drives share the gap fill.
-        </span>
-      </div>
-      <div className={styles.field}>
-        <label htmlFor="destination-layout">New copy location</label>
-        <select
-          id="destination-layout"
-          value={form.layout}
-          onChange={(event) => update("layout", event.target.value as FormState["layout"])}
-        >
-          <option value="dedicated">Dedicated Memory Lane folder</option>
-          <option value="mirror_source">Mirror the source folder layout</option>
-        </select>
-        <span className={styles.fieldHint}>Existing files stay exactly where they are.</span>
-      </div>
-      <div className={styles.field}>
-        <label htmlFor="destination-allocation">Space allocation</label>
-        <select
-          id="destination-allocation"
-          value={form.allocationMode}
-          onChange={(event) =>
-            update("allocationMode", event.target.value as FormState["allocationMode"])
-          }
-        >
-          <option value="all_safe">Use all safe space</option>
-          <option value="percent">Percentage of the drive</option>
-          <option value="fixed">Fixed size</option>
-        </select>
-      </div>
+    <>
       {form.allocationMode === "percent" ? (
         <div className={styles.field}>
           <label htmlFor="destination-percent">Allocation percent</label>
@@ -205,6 +164,73 @@ function DestinationFields({
           Kept free for the drive and its own files. Defaults to 2% with a 5 GB minimum.
         </span>
       </div>
+    </>
+  );
+}
+
+function DestinationFields({
+  form,
+  onChange,
+}: {
+  form: FormState;
+  onChange: (form: FormState) => void;
+}): React.JSX.Element {
+  function update<K extends keyof FormState>(key: K, value: FormState[K]): void {
+    onChange({ ...form, [key]: value });
+  }
+
+  return (
+    <div className={`${styles.fieldGrid} ${styles.fieldGridStacked}`}>
+      <div className={styles.field}>
+        <label htmlFor="destination-goal">Goal</label>
+        <Select
+          id="destination-goal"
+          value={form.goal}
+          describedBy="destination-goal-hint"
+          onChange={(value) => update("goal", value)}
+          options={[
+            {
+              value: "extend_coverage",
+              label: "Partial coverage",
+              description: "Fill gaps oldest first",
+            },
+            { value: "full_copy", label: "Full copy", description: "Every source file" },
+          ]}
+        />
+        <span className={styles.fieldHint} id="destination-goal-hint">
+          A full copy can later become the source archive. Partial drives share the gap fill.
+        </span>
+      </div>
+      <div className={styles.field}>
+        <label htmlFor="destination-layout">New copy location</label>
+        <Select
+          id="destination-layout"
+          value={form.layout}
+          describedBy="destination-layout-hint"
+          onChange={(value) => update("layout", value)}
+          options={[
+            { value: "dedicated", label: "Dedicated Memory Lane folder" },
+            { value: "mirror_source", label: "Mirror source layout" },
+          ]}
+        />
+        <span className={styles.fieldHint} id="destination-layout-hint">
+          Existing files stay exactly where they are.
+        </span>
+      </div>
+      <div className={styles.field}>
+        <label htmlFor="destination-allocation">Space allocation</label>
+        <Select
+          id="destination-allocation"
+          value={form.allocationMode}
+          onChange={(value) => update("allocationMode", value)}
+          options={[
+            { value: "all_safe", label: "Use all safe space" },
+            { value: "percent", label: "Percentage of the drive" },
+            { value: "fixed", label: "Fixed size" },
+          ]}
+        />
+      </div>
+      <AllocationInputs form={form} update={update} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import styles from "./ui.module.css";
+import { isSelectMenuOpen } from "./select-menu-state";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -63,7 +64,7 @@ export function Modal({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent): void {
-      if (event.key === "Escape" && dismissible) {
+      if (event.key === "Escape" && dismissible && !isSelectMenuOpen()) {
         event.preventDefault();
         onClose();
         return;

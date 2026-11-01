@@ -73,7 +73,8 @@ test("backs up a source to two partial destinations", async () => {
     const firstDrawer = page.getByRole("dialog", { name: "Add a backup destination" });
     await expect(firstDrawer).toBeVisible();
     await firstDrawer.getByRole("button", { name: /Backup A/ }).click();
-    await firstDrawer.getByLabel("Space allocation").selectOption("fixed");
+    await firstDrawer.getByLabel("Space allocation").click();
+    await page.getByRole("option", { name: "Fixed size" }).click();
     await firstDrawer.getByLabel("Allocation (GB)").fill("0.001");
     await firstDrawer.getByLabel("Safety reserve (GB)").fill("0");
     await firstDrawer.getByRole("button", { name: "Add and adopt" }).click();

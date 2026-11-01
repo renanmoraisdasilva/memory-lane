@@ -4,6 +4,7 @@ import { Play } from "lucide-react";
 import type { ReplicationPlan, ReplicationRunScope } from "@shared/contracts/replication/types";
 import { Alert, Callout } from "../../components/ui/Callout";
 import { Modal } from "../../components/ui/Modal";
+import { Select } from "../../components/ui/Select";
 import { formatCount } from "../../lib/format";
 import { formatSize } from "./components";
 import { useStartRun } from "./use-replication";
@@ -204,17 +205,15 @@ export function StartRunDialog({
       <div className={styles.fieldGrid}>
         <div className={styles.field}>
           <label htmlFor="run-scope">Run scope</label>
-          <select
+          <Select
             id="run-scope"
             value={scope}
-            onChange={(event) => setScope(event.target.value as ReplicationRunScope)}
-          >
-            {scopes.map((candidate) => (
-              <option value={candidate} key={candidate}>
-                {SCOPE_LABELS[candidate]}
-              </option>
-            ))}
-          </select>
+            onChange={setScope}
+            options={scopes.map((candidate) => ({
+              value: candidate,
+              label: SCOPE_LABELS[candidate],
+            }))}
+          />
         </div>
       </div>
       {scopes.length === 0 ? (

@@ -1,0 +1,105 @@
+.trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--line);
+  background: var(--panel-3);
+}
+
+.trigger:focus-visible,
+.trigger[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--amber);
+}
+
+.trigger:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 120ms ease;
+}
+
+.trigger[aria-expanded="true"] .chevron {
+  color: var(--amber);
+  transform: rotate(180deg);
+}
+
+.menu {
+  position: fixed;
+  z-index: 90;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid #343138;
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.option {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 11.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover,
+.optionActive {
+  background: var(--amber-soft);
+  color: var(--text);
+}
+
+.optionText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.optionDescription {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.check {
+  flex: 0 0 auto;
+  margin-left: auto;
+  margin-top: 1px;
+  color: var(--amber);
+}

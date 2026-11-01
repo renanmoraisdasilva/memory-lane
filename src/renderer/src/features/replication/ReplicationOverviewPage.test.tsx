@@ -39,8 +39,13 @@ describe("ReplicationOverviewPage", () => {
     expect(await screen.findByText("Connected drives")).toBeVisible();
 
     await userEvent.click(screen.getByRole("button", { name: /Backup A/ }));
+    await userEvent.click(screen.getByLabelText("Goal"));
+    await userEvent.click(screen.getByRole("option", { name: /Full copy/ }));
     await userEvent.click(screen.getByRole("button", { name: "Add and adopt" }));
     await waitFor(() => expect(client.registerDestination).toHaveBeenCalledTimes(1));
+    expect(client.registerDestination).toHaveBeenCalledWith(
+      expect.objectContaining({ goal: "full_copy" }),
+    );
     await waitFor(() => expect(client.startAdoption).toHaveBeenCalledWith("dest-1"));
   });
 

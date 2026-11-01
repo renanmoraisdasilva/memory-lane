@@ -2,6 +2,7 @@ import { AlertTriangle, CheckCircle2, RotateCcw, ShieldCheck } from "lucide-reac
 import type { PromotionOldSourceFate, PromotionState } from "@shared/contracts/replication/types";
 import { Alert, Callout } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
+import { Select } from "../../components/ui/Select";
 import { formatCount } from "../../lib/format";
 import { formatSize } from "./components";
 import styles from "./replication.module.css";
@@ -171,15 +172,16 @@ export function PromotionFatesStep({
       </header>
       <div className={styles.field}>
         <label htmlFor="old-source-fate">Previous source · {state.oldSource.label}</label>
-        <select
+        <Select
           id="old-source-fate"
           value={oldFate}
-          onChange={(event) => setOldFate(event.target.value as PromotionOldSourceFate)}
-        >
-          <option value="full_copy">Keep as a full-copy destination</option>
-          <option value="extend_coverage">Keep as a partial destination</option>
-          <option value="retire">Retire after promotion</option>
-        </select>
+          onChange={setOldFate}
+          options={[
+            { value: "full_copy", label: "Keep as a full-copy destination" },
+            { value: "extend_coverage", label: "Keep as a partial destination" },
+            { value: "retire", label: "Retire after promotion" },
+          ]}
+        />
         <span className={styles.fieldHint}>
           {state.oldSource.fitsFullCopy
             ? "The old drive still has room for a full copy."
