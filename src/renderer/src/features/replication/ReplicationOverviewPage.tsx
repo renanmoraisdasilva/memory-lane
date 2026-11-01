@@ -53,6 +53,13 @@ function OverviewCallouts({ overview }: { overview: ReplicationOverview }): Reac
   const extras = overview.destinations.some(
     (destination) => destination.attention.onlyOnDriveFiles > 0,
   );
+  const promotable = overview.destinations.find(
+    (destination) =>
+      destination.goal === "full_copy" &&
+      destination.fullCopyStatus === "complete" &&
+      destination.connection === "connected" &&
+      destination.attention.sourceMissingFiles === 0,
+  );
   return (
     <>
       {allOffline ? (
@@ -70,7 +77,10 @@ function OverviewCallouts({ overview }: { overview: ReplicationOverview }): Reac
           icon={<CheckCircle2 size={15} aria-hidden="true" />}
           title="A complete full copy is available"
         >
-          This drive holds every present source file and can become the next source archive.
+          This drive holds every present source file and can become the next source archive.{" "}
+          {promotable === undefined ? null : (
+            <Link to={`/backup/promote/${promotable.destinationId}`}>Review promotion</Link>
+          )}
         </Callout>
       ) : null}
       {extras ? (

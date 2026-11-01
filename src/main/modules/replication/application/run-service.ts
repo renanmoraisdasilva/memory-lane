@@ -10,11 +10,13 @@ import type {
   ReplicationRunRecord,
 } from "../../../db/repositories/replication-run-types";
 import type { WorkloadLease } from "../../workloads/application/workload-coordinator";
-import { controlFor, parseOrderSnapshot, snapshotFor } from "./run-inputs";
+import { parseOrderSnapshot } from "./run-inputs";
 import type { ReplicationExecution } from "./plan-service";
 import type { ActiveRun, RunControl } from "./run-control";
 import { activeRunFor, buildRunState, toRunSummary } from "./run-state";
-import { runPartialBackfill } from "./run-runner";
+import { runReplicationBackfill } from "./run-runner";
+import { controlFor, selectRunWork, snapshotFor, type SelectedRunWork } from "./run-selection";
+import { assertStartable } from "./run-start-policy";
 import {
   appendRunEvent,
   runErrorSummary,
@@ -32,12 +34,12 @@ export class RunService {
   private active: ActiveRun | null = null;
   private readonly nowDate: () => Date;
   private readonly sleep: (milliseconds: number) => Promise<void>;
-  private readonly executeRunner: typeof runPartialBackfill;
+  private readonly executeRunner: typeof runReplicationBackfill;
 
   constructor(private readonly dependencies: RunServiceDependencies) {
     this.nowDate = dependencies.now ?? (() => new Date());
     this.sleep = dependencies.sleep ?? defaultSleep;
-    this.executeRunner = dependencies.execute ?? runPartialBackfill;
+    this.executeRunner = dependencies.execute ?? runReplicationBackfill;
   }
 
   async getRunState(): Promise<ReplicationRunState | null> {
@@ -85,9 +87,9 @@ export class RunService {
       return buildRunState(activeRun, activeRunFor(this.activeFor(activeRun)));
     }
     const execution = await this.dependencies.planService.getExecutionPlan();
-    this.assertRunScope(params, execution);
-    const snapshot = snapshotFor(execution);
-    this.assertStartable(params, execution, snapshot.files);
+    const work = selectRunWork(execution, params.scope);
+    assertStartable(params, execution, work);
+    const snapshot = snapshotFor(work);
     const lease = this.dependencies.workloads.acquire("replication", "run");
     try {
       const now = this.now();
@@ -95,7 +97,7 @@ export class RunService {
         "replication.createRun",
         {
           scope: params.scope,
-          goal: "extend_coverage",
+          goal: work.goal,
           planRevision: 1,
           planHash: execution.plan.planHash,
           destinationSnapshot: snapshot.json,
@@ -106,9 +108,18 @@ export class RunService {
           now,
         } satisfies CreateRunInput,
       );
+      if (work.fullCopy !== null && execution.plan.fullCopy !== null) {
+        await this.dependencies.db.request("replication.updateFullCopyStatus", {
+          destinationId: work.fullCopy.destination.id,
+          status: "in_progress",
+          shortfallFiles: execution.plan.fullCopy.shortfallFiles,
+          shortfallBytes: execution.plan.fullCopy.shortfallBytes,
+          now,
+        });
+      }
       await this.appendEvent(run, "started", "Backup started");
       const control = controlFor(snapshot.entries, this.nowDate());
-      this.launch({ run, control, lease, execution, replaceStale: params.replaceStale });
+      this.launch({ run, control, lease, work, replaceStale: params.replaceStale });
       return buildRunState(run, control);
     } catch (error) {
       lease.release();
@@ -148,11 +159,12 @@ export class RunService {
     const lease = this.dependencies.workloads.acquire("replication", "run");
     try {
       const execution = await this.dependencies.planService.getExecutionPlan();
-      const current = await this.applyResumePlan(run, execution);
+      const work = selectRunWork(execution, run.scope);
+      const current = await this.applyResumePlan(run, execution, work);
       const running = await this.setStatus(current.id, "running", null);
       await this.appendEvent(running, "resumed", "Backup resumed");
       const control = controlFor(parseOrderSnapshot(running.destinationSnapshot), this.nowDate());
-      this.launch({ run: running, control, lease, execution, replaceStale: false });
+      this.launch({ run: running, control, lease, work, replaceStale: false });
       return buildRunState(running, control);
     } catch (error) {
       lease.release();
@@ -187,7 +199,13 @@ export class RunService {
       return null;
     }
     const execution = await this.dependencies.planService.getExecutionPlan();
-    const updated = await this.applyPlan(run, execution, "Plan updated after destination change");
+    const work = selectRunWork(execution, run.scope);
+    const updated = await this.applyPlan(
+      run,
+      execution,
+      work,
+      "Plan updated after destination change",
+    );
     return buildRunState(updated, null);
   }
 
@@ -237,60 +255,24 @@ export class RunService {
     await this.active.loop;
   }
 
-  private assertRunScope(params: StartRunParams, execution: ReplicationExecution): void {
-    if (
-      params.scope === "full_copy_only" ||
-      (params.scope === "all_connected" && execution.fullCopy !== null)
-    ) {
-      throw new AppError(
-        APP_ERROR_CODES.REPLICATION_STATE_INVALID,
-        "Full copy execution is not available in this release slice. Choose partial coverage only.",
-      );
-    }
-  }
-
-  private assertStartable(
-    params: StartRunParams,
-    execution: ReplicationExecution,
-    plannedFiles: number,
-  ): void {
-    if (plannedFiles === 0) {
-      throw new AppError(
-        APP_ERROR_CODES.REPLICATION_STATE_INVALID,
-        "There are no partial-coverage files to copy.",
-      );
-    }
-    if (params.planHash !== undefined && params.planHash !== execution.plan.planHash) {
-      throw new AppError(
-        APP_ERROR_CODES.REPLICATION_STATE_INVALID,
-        "The backup plan changed after review. Refresh the plan and start again.",
-      );
-    }
-    const blocking = execution.plan.warnings.some((warning) => warning.severity === "blocking");
-    if (blocking) {
-      throw new AppError(
-        APP_ERROR_CODES.REPLICATION_STATE_INVALID,
-        execution.plan.blockedReason ?? "The backup plan is blocked.",
-      );
-    }
-  }
-
   private async applyResumePlan(
     run: ReplicationRunRecord,
     execution: ReplicationExecution,
+    work: SelectedRunWork,
   ): Promise<ReplicationRunRecord> {
     if (execution.plan.planHash === run.planHash) {
       return run;
     }
-    return this.applyPlan(run, execution, "Plan refreshed on resume");
+    return this.applyPlan(run, execution, work, "Plan refreshed on resume");
   }
 
   private async applyPlan(
     run: ReplicationRunRecord,
     execution: ReplicationExecution,
+    work: SelectedRunWork,
     note: string,
   ): Promise<ReplicationRunRecord> {
-    const snapshot = snapshotFor(execution);
+    const snapshot = snapshotFor(work);
     const updated = await this.dependencies.db.request<ReplicationRunRecord>(
       "replication.updateRunPlan",
       {
@@ -313,7 +295,7 @@ export class RunService {
     run: ReplicationRunRecord;
     control: RunControl;
     lease: WorkloadLease;
-    execution: ReplicationExecution;
+    work: SelectedRunWork;
     replaceStale: boolean;
   }): void {
     const active: ActiveRun = {
@@ -325,7 +307,7 @@ export class RunService {
     this.active = active;
     active.loop = runSession(this.sessionDependencies(), {
       active,
-      execution: input.execution,
+      work: input.work,
       replaceStale: input.replaceStale,
       onFinished: (finished) => {
         if (this.active === finished) {
@@ -343,6 +325,7 @@ export class RunService {
       now: () => this.nowDate(),
       sleep: this.sleep,
       executeRunner: this.executeRunner,
+      refreshStatuses: () => this.dependencies.planService.refreshStatuses(),
     };
   }
 

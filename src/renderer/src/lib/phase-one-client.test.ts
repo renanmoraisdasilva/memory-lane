@@ -139,6 +139,10 @@ function createApi(): MemoryLaneApi {
       requestStop: libraryFailure,
       replan: vi.fn(async () => ok(null)),
       getRunEvents: libraryFailure,
+      getPromotion: libraryFailure,
+      verifyPromotion: libraryFailure,
+      applyPromotion: libraryFailure,
+      rollbackPromotion: libraryFailure,
     },
   };
 }

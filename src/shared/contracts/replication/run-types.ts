@@ -46,6 +46,7 @@ export type RunOrderState = z.infer<typeof RunOrderStateSchema>;
 export const RunOrderEntrySchema = z.object({
   destinationId: z.string().min(1),
   label: z.string().min(1),
+  kind: z.enum(["full_copy", "partial"]).default("partial"),
   priority: z.number().int().nonnegative(),
   state: RunOrderStateSchema,
   plannedFiles: z.number().int().nonnegative(),

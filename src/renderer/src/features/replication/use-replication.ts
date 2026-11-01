@@ -4,6 +4,11 @@ import type {
   ReplicationRunState,
   StartRunParams,
 } from "@shared/contracts/replication/types";
+import type {
+  ApplyPromotionParams,
+  RollbackPromotionParams,
+  VerifyPromotionParams,
+} from "@shared/contracts/replication/promotion-types";
 import { queryKeys } from "../../lib/query-keys";
 import { useReplicationClient } from "./replication-client-context";
 
@@ -77,6 +82,7 @@ export function useReplicationInvalidation() {
       queryClient.invalidateQueries({ queryKey: ["replication", "adoption"] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.replicationRun }),
       queryClient.invalidateQueries({ queryKey: ["replication", "run-events"] }),
+      queryClient.invalidateQueries({ queryKey: ["replication", "promotion"] }),
     ]);
   };
 }
@@ -142,6 +148,48 @@ export function useRunEvents(runId: number | null) {
     queryKey: queryKeys.replicationRunEvents(runId ?? 0),
     queryFn: () => client.getRunEvents({ runId: runId ?? 0, limit: 50 }),
     enabled: runId !== null,
+  });
+}
+
+export function usePromotion(destinationId: string) {
+  const client = useReplicationClient();
+  return useQuery({
+    queryKey: queryKeys.replicationPromotion(destinationId),
+    queryFn: () => client.getPromotion(destinationId),
+    enabled: destinationId.length > 0,
+  });
+}
+
+export function usePromotionVerify() {
+  const client = useReplicationClient();
+  const invalidate = useReplicationInvalidation();
+  return useMutation({
+    mutationFn: (params: VerifyPromotionParams) => client.verifyPromotion(params),
+    onSuccess: async () => {
+      await invalidate();
+    },
+  });
+}
+
+export function usePromotionApply() {
+  const client = useReplicationClient();
+  const invalidate = useReplicationInvalidation();
+  return useMutation({
+    mutationFn: (params: ApplyPromotionParams) => client.applyPromotion(params),
+    onSuccess: async () => {
+      await invalidate();
+    },
+  });
+}
+
+export function usePromotionRollback() {
+  const client = useReplicationClient();
+  const invalidate = useReplicationInvalidation();
+  return useMutation({
+    mutationFn: (params: RollbackPromotionParams) => client.rollbackPromotion(params),
+    onSuccess: async () => {
+      await invalidate();
+    },
   });
 }
 

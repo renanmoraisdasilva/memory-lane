@@ -41,9 +41,9 @@ flowchart LR
 
 Every write is scoped to app-managed locations. The quality gate scans the
 main process for filesystem write APIs and rejects anything outside the reviewed
-cache, lock, and backup allowlist. A future replication release adds registered
-destination roots to that boundary through a single reviewed writer; the source
-archive remains read-only.
+cache, lock, backup, and replication allowlist. Replication writes go through a
+registered-destination writer, and promotion writes only snapshots and catalog
+metadata. The source archive remains read-only.
 
 ## One scan, four stages
 
@@ -180,8 +180,9 @@ The IPC and media contracts are in
 - **Hardening**: 100k/200k performance coverage, simulated disconnect and
   unclean-restart drills, a backup-restore drill, tightened IPC/CSP controls, a
   read-only guard, SHA-256 package checksums, and an expanded packaged smoke.
-- **315 automated tests** across 69 files, 7 Electron E2E flows, and a packaged
-  app smoke covering scan, library, Other files, Settings, backup, and cache.
+- **469 automated tests** across 118 files, 9 Electron E2E flows, and a packaged
+  app smoke covering scan, library, Other files, Settings, backup, cache, and
+  replication promotion.
 
 Phase 6 automated hardening is complete. The manual release pass — clean Windows
 VM install/uninstall, physical USB disconnect, codec playback, 200k memory
@@ -307,9 +308,9 @@ These are post-v0.1 and are not part of current acceptance criteria:
 - **Places map** — local-only globe for items with valid GPS metadata.
 - **Non-memory images** — local-only classification of screenshots, receipts,
   and documents with review-only suggestions.
-- **Partial backups** — verified copies of the archive across smaller destination
-  drives, with cumulative coverage, full-copy promotion, and a single
-  destination-write boundary. See
+- **Partial and full backups** - verified copies across smaller destination
+  drives, cumulative partial coverage, complete full copies, and metadata-only
+  promotion to the source archive. See
   [`docs/product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md).
 - **Search and saved filters** — keyword search over names, paths, and metadata.
 - **Favorites and collections** — user organization that never modifies

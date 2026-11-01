@@ -16,7 +16,13 @@ const REQUEST_TIMEOUT_MS = 10_000;
 const BACKUP_TIMEOUT_MS = 120_000;
 
 function timeoutFor(method: DbMethod): number {
-  return method === "settings.backup" ? BACKUP_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
+  if (method === "settings.backup") {
+    return BACKUP_TIMEOUT_MS;
+  }
+  if (method.startsWith("promotion.")) {
+    return BACKUP_TIMEOUT_MS;
+  }
+  return REQUEST_TIMEOUT_MS;
 }
 
 export class DbWorkerClient implements DbClient {

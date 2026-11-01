@@ -220,10 +220,12 @@ export class DestinationService {
       localLibraryFiles: localLibrary.files,
       localLibraryBytes: localLibrary.bytes,
       promotionReady:
+        record.goal === "full_copy" &&
         record.fullCopyStatus === "complete" &&
         record.status === "active" &&
         detail.connection === "connected" &&
-        record.identityConfidence === "confirmed",
+        record.identityConfidence === "confirmed" &&
+        health.conflictFiles + health.staleFiles + health.missingFiles === 0,
     };
   }
 

@@ -40,6 +40,12 @@ import type { OtherFilesPage, OtherFilesParams } from "@shared/contracts/other-f
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import { REPLICATION_CHANNELS } from "@shared/contracts/replication/channels";
 import type {
+  ApplyPromotionParams,
+  PromotionState,
+  RollbackPromotionParams,
+  VerifyPromotionParams,
+} from "@shared/contracts/replication/promotion-types";
+import type {
   AdoptionState,
   CoverageSummary,
   DestinationCandidate,
@@ -215,6 +221,22 @@ const api: MemoryLaneApi = {
     getRunEvents: (params: RunEventsParams) =>
       ipcRenderer.invoke(REPLICATION_CHANNELS.getRunEvents, params) as Promise<
         IpcResult<RunEventsPage>
+      >,
+    getPromotion: (destinationId: string) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getPromotion, { destinationId }) as Promise<
+        IpcResult<PromotionState>
+      >,
+    verifyPromotion: (params: VerifyPromotionParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.verifyPromotion, params) as Promise<
+        IpcResult<PromotionState>
+      >,
+    applyPromotion: (params: ApplyPromotionParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.applyPromotion, params) as Promise<
+        IpcResult<PromotionState>
+      >,
+    rollbackPromotion: (params: RollbackPromotionParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.rollbackPromotion, params) as Promise<
+        IpcResult<PromotionState>
       >,
   },
 };

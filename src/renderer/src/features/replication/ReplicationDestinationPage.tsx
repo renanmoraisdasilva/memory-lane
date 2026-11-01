@@ -226,7 +226,8 @@ function DestinationCallouts({ detail }: { detail: DestinationDetail }): React.J
           icon={<CheckCircle2 size={15} aria-hidden="true" />}
           title="Ready to become the source archive"
         >
-          The full copy is complete and verified. Promotion arrives in the final replication slice.
+          The full copy is complete and verified.{" "}
+          <Link to={`/backup/promote/${detail.destinationId}`}>Review promotion</Link>
         </Callout>
       ) : null}
       {health === 0 ? null : (

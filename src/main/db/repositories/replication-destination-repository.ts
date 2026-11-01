@@ -48,6 +48,7 @@ const DestinationRowSchema = z.object({
   conflict_files: z.number().int().nonnegative(),
   stale_files: z.number().int().nonnegative(),
   missing_files: z.number().int().nonnegative(),
+  failed_files: z.number().int().nonnegative(),
 });
 
 export interface ReplicationDestinationRecord {
@@ -90,6 +91,7 @@ export interface ReplicationDestinationRecord {
   conflictFiles: number;
   staleFiles: number;
   missingFiles: number;
+  failedFiles: number;
 }
 
 const SELECT_DESTINATION = `
@@ -119,7 +121,9 @@ const SELECT_DESTINATION = `
     (SELECT COUNT(*) FROM replica_files rf
       WHERE rf.replica_id = d.id AND rf.status = 'stale') AS stale_files,
     (SELECT COUNT(*) FROM replica_files rf
-      WHERE rf.replica_id = d.id AND rf.status = 'missing') AS missing_files
+      WHERE rf.replica_id = d.id AND rf.status = 'missing') AS missing_files,
+    (SELECT COUNT(*) FROM replica_files rf
+      WHERE rf.replica_id = d.id AND rf.status = 'failed') AS failed_files
   FROM replica_destinations d
 `;
 
@@ -171,6 +175,7 @@ function parseRow(row: unknown): ReplicationDestinationRecord {
     conflictFiles: data.conflict_files,
     staleFiles: data.stale_files,
     missingFiles: data.missing_files,
+    failedFiles: data.failed_files,
   };
 }
 
@@ -320,4 +325,29 @@ export function updateDestination(
     destinationId,
   );
   return getDestination(db, destinationId);
+}
+
+export function updateFullCopyStatus(
+  db: Database.Database,
+  destinationId: number,
+  input: {
+    status: FullCopyStatus;
+    shortfallFiles: number;
+    shortfallBytes: number;
+    now: string;
+  },
+): void {
+  db.prepare(
+    `UPDATE replica_destinations
+     SET full_copy_status = ?, full_copy_shortfall_files = ?, full_copy_shortfall_bytes = ?,
+         last_full_copy_check_at = ?, updated_at = ?
+     WHERE id = ?`,
+  ).run(
+    input.status,
+    input.shortfallFiles,
+    input.shortfallBytes,
+    input.now,
+    input.now,
+    destinationId,
+  );
 }

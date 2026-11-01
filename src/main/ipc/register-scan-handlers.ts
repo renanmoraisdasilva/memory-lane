@@ -10,7 +10,11 @@ import type { Logger } from "../logging/types";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import { respond } from "./respond";
 
-export function registerScanHandlers(scanService: ScanService, logger: Logger): void {
+export function registerScanHandlers(
+  scanService: ScanService,
+  logger: Logger,
+  onSourceMutation?: () => Promise<void>,
+): void {
   ipcMain.handle(IPC_CHANNELS.getScanState, (event, params: unknown) =>
     respond<ScanState>(event, IPC_CHANNELS.getScanState, logger, () =>
       scanService.getState(ScanVolumeParamsSchema.parse(params).volumeId),
@@ -18,9 +22,11 @@ export function registerScanHandlers(scanService: ScanService, logger: Logger): 
   );
 
   ipcMain.handle(IPC_CHANNELS.startScan, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.startScan, logger, () => {
+    respond<ScanState>(event, IPC_CHANNELS.startScan, logger, async () => {
       const parsed = ScanStartParamsSchema.parse(params);
-      return scanService.startScan(parsed.volumeId, parsed.intensity);
+      const state = await scanService.startScan(parsed.volumeId, parsed.intensity);
+      await onSourceMutation?.();
+      return state;
     }),
   );
 
@@ -31,9 +37,11 @@ export function registerScanHandlers(scanService: ScanService, logger: Logger): 
   );
 
   ipcMain.handle(IPC_CHANNELS.resumeScan, (event, params: unknown) =>
-    respond<ScanState>(event, IPC_CHANNELS.resumeScan, logger, () =>
-      scanService.resumeScan(ScanVolumeParamsSchema.parse(params).volumeId),
-    ),
+    respond<ScanState>(event, IPC_CHANNELS.resumeScan, logger, async () => {
+      const state = await scanService.resumeScan(ScanVolumeParamsSchema.parse(params).volumeId);
+      await onSourceMutation?.();
+      return state;
+    }),
   );
 
   ipcMain.handle(IPC_CHANNELS.setScanIntensity, (event, params: unknown) =>

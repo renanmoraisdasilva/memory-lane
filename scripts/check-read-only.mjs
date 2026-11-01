@@ -8,6 +8,7 @@ const ALLOWED = new Set(
   [
     "src/main/bootstrap/user-data.ts",
     "src/main/db/db-worker-handler.ts",
+    "src/main/db/promotion-snapshot-files.ts",
     "src/main/db/settings-db-handlers.ts",
     "src/main/db/source-index-writer.ts",
     "src/main/modules/drives/application/drive-service.ts",

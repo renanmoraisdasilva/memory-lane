@@ -16,6 +16,7 @@ import { ReplicationOverviewPage } from "./features/replication/ReplicationOverv
 import { ReplicationPlanPage } from "./features/replication/ReplicationPlanPage";
 import { ReplicationDestinationPage } from "./features/replication/ReplicationDestinationPage";
 import { ReplicationRunPage } from "./features/replication/ReplicationRunPage";
+import { ReplicationPromotionPage } from "./features/replication/ReplicationPromotionPage";
 import {
   createReplicationClient,
   type ReplicationClient,
@@ -150,6 +151,18 @@ function BackupRunRoute(): React.JSX.Element {
   );
 }
 
+function BackupPromotionRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return (
+    <AppShell crumbs={["Backup", "Promotion"]}>
+      <ReplicationPromotionPage />
+    </AppShell>
+  );
+}
+
 function ViewerRoute(): React.JSX.Element {
   const { catalog, drive } = useWorkspace();
   if (catalog === null || drive === null) {
@@ -191,6 +204,7 @@ export function App({
                   element={<BackupDestinationRoute />}
                 />
                 <Route path="/backup/run" element={<BackupRunRoute />} />
+                <Route path="/backup/promote/:destinationId" element={<BackupPromotionRoute />} />
                 <Route path="/settings" element={<SettingsRoute />} />
                 <Route path="/library/item/:fileId" element={<ViewerRoute />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

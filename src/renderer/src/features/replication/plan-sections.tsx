@@ -50,8 +50,8 @@ export function PlanHeader({
             disabled={!canStart}
             title={
               canStart
-                ? "Start the partial backup"
-                : "Full copy execution is not available in this release slice."
+                ? "Start the backup"
+                : "Add a connected destination or resolve the blocking warnings first."
             }
             onClick={onStart}
           >
@@ -87,7 +87,7 @@ export function PlanPageBody({
         onStart={onStart}
         onOpenRun={onOpenRun}
         activeRun={activeRun}
-        canStart={plan.canStart && plan.partial !== null}
+        canStart={plan.canStart}
       />
       <div className={styles.statGrid}>
         <Stat label="Source files" value={formatCount(plan.sourceFiles)} />
@@ -127,8 +127,8 @@ export function PlanPageBody({
           </div>
           <div className={styles.footer}>
             <span className={styles.muted}>
-              Planning is read-only. Copy execution, pause/resume, and verification are available
-              for partial destinations.
+              Planning is read-only. Full copies run before partial destinations and are verified by
+              SHA-256. Existing files are never moved.
             </span>
             <span className={styles.muted}>Plan hash {plan.planHash.slice(0, 12)}</span>
           </div>

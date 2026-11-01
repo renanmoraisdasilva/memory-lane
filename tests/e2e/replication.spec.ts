@@ -112,7 +112,7 @@ test("backs up a source to two partial destinations", async () => {
     await expect(page.getByRole("heading", { name: /Backup A/ })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Backup B/ })).toBeVisible();
     await page.getByRole("button", { name: "Start backup" }).click();
-    const startDialog = page.getByRole("dialog", { name: "Start partial backup" });
+    const startDialog = page.getByRole("dialog", { name: "Start backup" });
     await startDialog.getByRole("button", { name: "Start backup" }).click();
 
     await expect(page.getByRole("heading", { name: "Backup run" })).toBeVisible();

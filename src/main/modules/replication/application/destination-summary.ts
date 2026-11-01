@@ -152,7 +152,13 @@ export function toDestinationDetail(
     conflictFiles: 0,
     staleFiles: 0,
     missingFiles: 0,
-    promotionReady: false,
+    promotionReady:
+      record.goal === "full_copy" &&
+      record.status === "active" &&
+      record.fullCopyStatus === "complete" &&
+      record.staleFiles + record.missingFiles + record.conflictFiles === 0 &&
+      drive !== undefined &&
+      record.identityConfidence === "confirmed",
     adoption: null,
   };
 }

@@ -88,14 +88,15 @@ async function runDestination(input: {
   }
 }
 
-export async function runPartialBackfill(
+export async function runReplicationBackfill(
   dependencies: RunRunnerDependencies,
   runner: RunRunnerInput,
 ): Promise<RunOutcome> {
   const drives = new Map<string, DetectedDrive>(
     (await dependencies.listDetected()).map((drive) => [drive.volumeId, drive]),
   );
-  for (const assignment of runner.execution.partial) {
+  const assignments = [...(runner.fullCopy === null ? [] : [runner.fullCopy]), ...runner.partial];
+  for (const assignment of assignments) {
     const outcome = await runDestination({ dependencies, runner, assignment, drives });
     if (outcome !== "complete") {
       return outcome;

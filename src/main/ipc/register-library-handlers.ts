@@ -18,7 +18,11 @@ import type { Logger } from "../logging/types";
 import type { LibraryService } from "../modules/library/application/library-service";
 import { respond } from "./respond";
 
-export function registerLibraryHandlers(libraryService: LibraryService, logger: Logger): void {
+export function registerLibraryHandlers(
+  libraryService: LibraryService,
+  logger: Logger,
+  onSourceMutation?: () => Promise<void>,
+): void {
   ipcMain.handle(IPC_CHANNELS.getLibrarySummary, (event) =>
     respond<LibrarySummary>(event, IPC_CHANNELS.getLibrarySummary, logger, () =>
       libraryService.getSummary(),
@@ -50,14 +54,18 @@ export function registerLibraryHandlers(libraryService: LibraryService, logger: 
   );
 
   ipcMain.handle(IPC_CHANNELS.setLibraryDate, (event, params: unknown) =>
-    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.setLibraryDate, logger, () =>
-      libraryService.setDate(LibrarySetDateParamsSchema.parse(params)),
-    ),
+    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.setLibraryDate, logger, async () => {
+      const result = await libraryService.setDate(LibrarySetDateParamsSchema.parse(params));
+      await onSourceMutation?.();
+      return result;
+    }),
   );
 
   ipcMain.handle(IPC_CHANNELS.clearLibraryDate, (event, params: unknown) =>
-    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.clearLibraryDate, logger, () =>
-      libraryService.clearDate(LibraryClearDateParamsSchema.parse(params)),
-    ),
+    respond<LibraryDateMutationResult>(event, IPC_CHANNELS.clearLibraryDate, logger, async () => {
+      const result = await libraryService.clearDate(LibraryClearDateParamsSchema.parse(params));
+      await onSourceMutation?.();
+      return result;
+    }),
   );
 }

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { VolumeIdSchema } from "../drives";
 import { ReplicationRunScopeSchema, RunSummarySchema } from "./run-types";
 export * from "./run-types";
+export * from "./promotion-types";
 
 export const DestinationGoalSchema = z.enum(["extend_coverage", "full_copy"]);
 export type DestinationGoal = z.infer<typeof DestinationGoalSchema>;

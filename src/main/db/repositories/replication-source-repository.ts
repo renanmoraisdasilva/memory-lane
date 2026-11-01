@@ -36,8 +36,17 @@ export function catalogRootPath(catalogPath: string): string {
   return path.dirname(path.dirname(catalogPath));
 }
 
-export function toSourceRelativePath(catalogPath: string, absolutePath: string): string {
-  const relative = path.relative(catalogRootPath(catalogPath), absolutePath);
+export function sourceRootPath(catalogPath: string, sourceRootRelative: string): string {
+  const root = catalogRootPath(catalogPath);
+  return sourceRootRelative.trim().length === 0 ? root : path.resolve(root, sourceRootRelative);
+}
+
+export function toSourceRelativePath(
+  catalogPath: string,
+  absolutePath: string,
+  sourceRootRelative = "",
+): string {
+  const relative = path.relative(sourceRootPath(catalogPath, sourceRootRelative), absolutePath);
   if (
     relative.length === 0 ||
     relative === ".." ||
@@ -54,10 +63,17 @@ export function toSourceRelativePath(catalogPath: string, absolutePath: string):
   return relative;
 }
 
+function readSourceRootRelative(db: Database.Database): string {
+  const row = db.prepare("SELECT source_root_relative FROM archive_identity WHERE id = 1").get() as
+    { source_root_relative?: string } | undefined;
+  return row?.source_root_relative ?? "";
+}
+
 export function listSourceFiles(
   db: Database.Database,
   catalogPath: string,
 ): ReplicationSourceFile[] {
+  const sourceRootRelative = readSourceRootRelative(db);
   const rows = db
     .prepare(
       `SELECT
@@ -82,7 +98,7 @@ export function listSourceFiles(
     return {
       id: data.id,
       absolutePath: data.path,
-      sourceRelativePath: toSourceRelativePath(catalogPath, data.path),
+      sourceRelativePath: toSourceRelativePath(catalogPath, data.path, sourceRootRelative),
       name: data.name,
       size: data.size,
       modifiedAtFs: data.modified_at_fs,

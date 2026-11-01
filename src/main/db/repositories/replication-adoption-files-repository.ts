@@ -205,6 +205,33 @@ export function saveAdoptionBatch(
   })();
 }
 
+export function setReplicaStatus(
+  db: Database.Database,
+  input: {
+    destinationRowId: number;
+    fileId: number;
+    status: "verified" | "stale" | "missing";
+    now: string;
+    errorMessage: string | null;
+  },
+): void {
+  db.prepare(
+    `UPDATE replica_files
+     SET status = ?, last_checked_at = ?, last_error = ?,
+         verified_at = CASE WHEN ? = 'verified' THEN ? ELSE verified_at END
+     WHERE replica_id = ? AND file_id = ?`,
+  ).run(
+    input.status,
+    input.now,
+    input.errorMessage,
+    input.status,
+    input.now,
+    input.destinationRowId,
+    input.fileId,
+  );
+  refreshAdoptionCounters(db, input.destinationRowId);
+}
+
 export function markUnseenReplicasMissing(db: Database.Database, input: MarkUnseenInput): void {
   const seenFiles = new Set(input.seenFileIds);
   const seenOrphans = new Set(input.seenOrphanPathKeys);

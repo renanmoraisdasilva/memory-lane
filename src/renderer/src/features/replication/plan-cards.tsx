@@ -80,6 +80,15 @@ export function FullCopyCard({ plan }: { plan: ReplicationPlan }): React.JSX.Ele
           Open destination
         </Link>
       </div>
+      {job.promotionReady ? (
+        <Callout
+          tone="green"
+          icon={<ShieldCheck size={15} aria-hidden="true" />}
+          title="This full copy can become the source"
+        >
+          <Link to={`/backup/promote/${job.destination.destinationId}`}>Review promotion</Link>
+        </Callout>
+      ) : null}
       <div className={styles.rowStats}>
         <div className={styles.rowStat}>
           <span>Source</span>

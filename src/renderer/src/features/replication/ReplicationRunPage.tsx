@@ -204,6 +204,7 @@ function RunOrder({ state }: { state: ReplicationRunState }): React.JSX.Element 
               <div>
                 <strong>{entry.label}</strong>
                 <span>
+                  {entry.kind === "full_copy" ? "Full copy" : "Partial"} ·{" "}
                   {formatCount(entry.plannedFiles)} files · {formatSize(entry.plannedBytes)}
                 </span>
               </div>

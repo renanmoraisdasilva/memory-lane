@@ -33,6 +33,7 @@ import type { LibraryService } from "../modules/library/application/library-serv
 import type { DestinationService } from "../modules/replication/application/destination-service";
 import type { AdoptionService } from "../modules/replication/application/adoption-service";
 import type { PlanService } from "../modules/replication/application/plan-service";
+import type { PromotionService } from "../modules/replication/application/promotion-service";
 import type { RunService } from "../modules/replication/application/run-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { SettingsService } from "../modules/settings/application/settings-service";
@@ -53,6 +54,7 @@ export interface IpcServices {
   adoptionService: AdoptionService;
   planService: PlanService;
   runService: RunService;
+  promotionService: PromotionService;
   logger: Logger;
 }
 
@@ -68,6 +70,7 @@ export function registerIpcHandlers(services: IpcServices): void {
     adoptionService,
     planService,
     runService,
+    promotionService,
     logger,
   } = services;
 
@@ -97,22 +100,27 @@ export function registerIpcHandlers(services: IpcServices): void {
     ),
   );
 
-  registerScanHandlers(scanService, logger);
-  registerLibraryHandlers(libraryService, logger);
+  registerScanHandlers(scanService, logger, () => promotionService.closeRollbackWindow());
+  registerLibraryHandlers(libraryService, logger, () => promotionService.closeRollbackWindow());
   registerReplicationHandlers({
     destinationService,
     adoptionService,
     planService,
     runService,
+    promotionService,
     logger,
   });
-  registerHealthHandlers(healthService, logger);
+  registerHealthHandlers(healthService, logger, () => promotionService.closeRollbackWindow());
   registerSettingsHandlers(settingsService, logger);
   registerOtherFilesHandler(libraryService, logger);
   registerFileActionHandlers(libraryService, logger);
 }
 
-function registerHealthHandlers(healthService: HealthService, logger: Logger): void {
+function registerHealthHandlers(
+  healthService: HealthService,
+  logger: Logger,
+  onSourceMutation?: () => Promise<void>,
+): void {
   ipcMain.handle(IPC_CHANNELS.getHealthSummary, (event) =>
     respond<HealthSummary>(event, IPC_CHANNELS.getHealthSummary, logger, () =>
       healthService.getSummary(),
@@ -158,9 +166,13 @@ function registerHealthHandlers(healthService: HealthService, logger: Logger): v
   );
 
   ipcMain.handle(IPC_CHANNELS.startValidation, (event, params: unknown) =>
-    respond<ValidationState>(event, IPC_CHANNELS.startValidation, logger, () =>
-      healthService.startValidation(ValidationStartParamsSchema.parse(params).levels),
-    ),
+    respond<ValidationState>(event, IPC_CHANNELS.startValidation, logger, async () => {
+      const state = await healthService.startValidation(
+        ValidationStartParamsSchema.parse(params).levels,
+      );
+      await onSourceMutation?.();
+      return state;
+    }),
   );
 
   ipcMain.handle(IPC_CHANNELS.pauseValidation, (event) =>
@@ -170,9 +182,11 @@ function registerHealthHandlers(healthService: HealthService, logger: Logger): v
   );
 
   ipcMain.handle(IPC_CHANNELS.resumeValidation, (event) =>
-    respond<ValidationState>(event, IPC_CHANNELS.resumeValidation, logger, () =>
-      healthService.resumeValidation(),
-    ),
+    respond<ValidationState>(event, IPC_CHANNELS.resumeValidation, logger, async () => {
+      const state = await healthService.resumeValidation();
+      await onSourceMutation?.();
+      return state;
+    }),
   );
 }
 

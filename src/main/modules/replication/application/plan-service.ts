@@ -11,6 +11,7 @@ import type { ReplicationDestinationRecord } from "../../../db/repositories/repl
 import type { ReplicationSourceFile } from "../../../db/repositories/replication-source-repository";
 import type { DetectedDrive } from "../../drives/domain/drive";
 import { computeCoverage, type CoverageResult } from "../domain/coverage";
+import { evaluateFullCopy } from "../domain/full-copy-status";
 import type { CoverageDestinationFacts, SourceFileFacts } from "../domain/replication-types";
 import { buildReplicationExecutionPlan, buildReplicationPlan } from "../domain/plan-builder";
 import type { PlanDestinationInput } from "../domain/plan-types";
@@ -103,6 +104,10 @@ export class PlanService {
     });
   }
 
+  async refreshStatuses(): Promise<void> {
+    await this.load();
+  }
+
   async getExecutionPlan(): Promise<ReplicationExecution> {
     const data = await this.load();
     const execution = buildReplicationExecutionPlan({
@@ -162,7 +167,14 @@ export class PlanService {
       coverageRows.map((row) => [row.destinationRowId, new Set(row.verifiedFileIds)]),
     );
     const files = sourceFacts(sources);
-    const summaries = records.map((record) =>
+    const refreshedRecords = await this.refreshFullCopyStatuses({
+      files,
+      records,
+      coverageById,
+      drivesByVolume,
+      firstPriority,
+    });
+    const summaries = refreshedRecords.map((record) =>
       toDestinationSummary(
         record,
         drivesByVolume.get(record.volumeId as DetectedDrive["volumeId"]),
@@ -171,7 +183,7 @@ export class PlanService {
     );
     const coverageDestinations: CoverageDestinationFacts[] = [];
     const planDestinations: PlanDestinationInput[] = [];
-    records.forEach((record, index) => {
+    refreshedRecords.forEach((record, index) => {
       const summary = summaries[index];
       if (summary === undefined) {
         return;
@@ -198,7 +210,7 @@ export class PlanService {
       identity,
       sourceFiles: files,
       sources,
-      records,
+      records: refreshedRecords,
       coverage,
       planDestinations,
       overviewDestinations: summaries,
@@ -209,5 +221,80 @@ export class PlanService {
           summary.connection !== "lost",
       ),
     };
+  }
+
+  private async refreshFullCopyStatuses(input: {
+    files: SourceFileFacts[];
+    records: ReplicationDestinationRecord[];
+    coverageById: Map<number, Set<number>>;
+    drivesByVolume: Map<string, DetectedDrive>;
+    firstPriority: number | null;
+  }): Promise<ReplicationDestinationRecord[]> {
+    const now = new Date().toISOString();
+    const updates: Promise<unknown>[] = [];
+    const refreshed = input.records.map((record) => {
+      if (record.goal !== "full_copy") {
+        if (record.fullCopyStatus === "not_applicable") {
+          return record;
+        }
+        updates.push(
+          this.dependencies.db.request("replication.updateFullCopyStatus", {
+            destinationId: record.id,
+            status: "not_applicable",
+            shortfallFiles: 0,
+            shortfallBytes: 0,
+            now,
+          }),
+        );
+        return {
+          ...record,
+          fullCopyStatus: "not_applicable" as const,
+          fullCopyShortfallFiles: 0,
+          fullCopyShortfallBytes: 0,
+        };
+      }
+      if (record.status !== "active") {
+        return record;
+      }
+      const summary = toDestinationSummary(
+        record,
+        input.drivesByVolume.get(record.volumeId),
+        input.firstPriority,
+      );
+      const evaluation = evaluateFullCopy({
+        sourceFiles: input.files,
+        verifiedFileIds: input.coverageById.get(record.id) ?? new Set<number>(),
+        availableBytes: summary.availableBytes,
+        staleFiles: record.staleFiles,
+        missingFiles: record.missingFiles,
+        conflictFiles: record.conflictFiles,
+      });
+      if (
+        record.fullCopyStatus === evaluation.status &&
+        record.fullCopyShortfallFiles === evaluation.shortfallFiles &&
+        record.fullCopyShortfallBytes === evaluation.shortfallBytes
+      ) {
+        return record;
+      }
+      updates.push(
+        this.dependencies.db.request("replication.updateFullCopyStatus", {
+          destinationId: record.id,
+          status: evaluation.status,
+          shortfallFiles: evaluation.shortfallFiles,
+          shortfallBytes: evaluation.shortfallBytes,
+          now,
+        }),
+      );
+      return {
+        ...record,
+        fullCopyStatus: evaluation.status,
+        fullCopyShortfallFiles: evaluation.shortfallFiles,
+        fullCopyShortfallBytes: evaluation.shortfallBytes,
+      };
+    });
+    if (updates.length > 0) {
+      await Promise.all(updates);
+    }
+    return refreshed;
   }
 }

@@ -48,6 +48,7 @@ const record: ReplicationDestinationRecord = {
   conflictFiles: 0,
   staleFiles: 0,
   missingFiles: 0,
+  failedFiles: 0,
 };
 
 const drive: DetectedDrive = {

@@ -12,6 +12,9 @@ import type {
   RunEventsPage,
 } from "@shared/contracts/replication/types";
 import type { ReplicationClient } from "../features/replication/replication-client";
+import { promotionState } from "./replication-promotion-fixtures";
+
+export { promotionState };
 
 const volumeId = toVolumeId("volume-destination");
 
@@ -288,6 +291,7 @@ export const runningRun: ReplicationRunState = {
     {
       destinationId: "dest-1",
       label: "Backup A",
+      kind: "partial",
       priority: 0,
       state: "active",
       plannedFiles: 50,
@@ -358,6 +362,31 @@ export function createReplicationFixtureClient(
     requestStop: vi.fn(() => Promise.resolve(runningRun)),
     replan: vi.fn(() => Promise.resolve(pausedRun)),
     getRunEvents: vi.fn(() => Promise.resolve(runEvents)),
+    getPromotion: vi.fn(() => Promise.resolve(promotionState)),
+    verifyPromotion: vi.fn(() =>
+      Promise.resolve({ ...promotionState, status: "verified" as const, verified: true }),
+    ),
+    applyPromotion: vi.fn(() =>
+      Promise.resolve({
+        ...promotionState,
+        status: "completed" as const,
+        verified: true,
+        completedAt: "2026-11-01T12:05:00.000Z",
+        canPromote: false,
+        canRollback: true,
+        rollbackBlockedReason: null,
+      }),
+    ),
+    rollbackPromotion: vi.fn(() =>
+      Promise.resolve({
+        ...promotionState,
+        status: "rolled_back" as const,
+        rolledBackAt: "2026-11-01T12:06:00.000Z",
+        canPromote: false,
+        canRollback: false,
+        blockedReason: "The promotion was rolled back.",
+      }),
+    ),
     ...overrides,
   };
 }

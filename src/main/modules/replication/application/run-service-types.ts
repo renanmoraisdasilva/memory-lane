@@ -3,7 +3,7 @@ import type { Logger } from "../../../logging/types";
 import type { DetectedDrive } from "../../drives/domain/drive";
 import type { WorkloadCoordinator } from "../../workloads/application/workload-coordinator";
 import type { PlanService } from "./plan-service";
-import type { runPartialBackfill } from "./run-runner";
+import type { runReplicationBackfill } from "./run-runner";
 
 export interface RunServiceDependencies {
   db: DbClient;
@@ -13,7 +13,7 @@ export interface RunServiceDependencies {
   logger: Logger;
   now?: () => Date;
   sleep?: (milliseconds: number) => Promise<void>;
-  execute?: typeof runPartialBackfill;
+  execute?: typeof runReplicationBackfill;
 }
 
 export function defaultSleep(milliseconds: number): Promise<void> {

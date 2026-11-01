@@ -178,7 +178,7 @@ describe("backup run controls", () => {
       await expect(harness.runService.requestStop()).rejects.toThrow();
       await expect(
         harness.runService.start({ scope: "full_copy_only", replaceStale: false }),
-      ).rejects.toThrow(/Full copy execution/);
+      ).rejects.toThrow(/no full-copy destination/);
       await expect(
         harness.runService.start({
           scope: "partial_only",

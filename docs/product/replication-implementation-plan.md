@@ -1,6 +1,6 @@
 # Replication implementation plan
 
-Status: proposed. Design and behavior live in
+Status: implemented in Slices 1-3. Design and behavior live in
 [`partial-backups.md`](partial-backups.md). Contracts live in
 [`../contracts/replication.md`](../contracts/replication.md). The cross-cutting
 architecture decision is

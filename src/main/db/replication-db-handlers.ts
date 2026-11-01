@@ -14,12 +14,15 @@ import {
   listDestinations,
   nextDestinationPriority,
   updateDestination,
+  updateFullCopyStatus,
 } from "./repositories/replication-destination-repository";
 import { createReplicationAdoptionDbHandlers } from "./replication-adoption-db-handlers";
+import { setReplicaStatus } from "./repositories/replication-adoption-files-repository";
 import { createReplicationCoverageDbHandlers } from "./replication-coverage-db-handlers";
 import { createReplicationSourceDbHandlers } from "./replication-source-db-handlers";
 import { createReplicationDestinationLibraryDbHandlers } from "./replication-destination-library-db-handlers";
 import { createReplicationRunDbHandlers } from "./replication-run-db-handlers";
+import { createReplicationPromotionDbHandlers } from "./replication-promotion-db-handlers";
 import { createDestinationLibraryMediaDbHandlers } from "./destination-library-media-db-handlers";
 import type {
   ReplicationDbHandlerMap,
@@ -30,6 +33,8 @@ import {
   ReplicationDestinationKeyParamsSchema,
   ReplicationRegisterDestinationDbParamsSchema,
   ReplicationUpdateDestinationDbParamsSchema,
+  ReplicationUpdateFullCopyStatusDbParamsSchema,
+  ReplicationSetReplicaStatusDbParamsSchema,
   ReplicationVolumeParamsSchema,
   type ReplicationDbMethod,
 } from "./replication-worker-protocol";
@@ -137,6 +142,27 @@ function destinationHandlers(options: ReplicationDbHandlerOptions): ReplicationD
       return updateDestination(options.getCatalog(), parsed.destinationId, update);
     },
     "replication.registerDestination": (params) => handleRegisterDestination(options, params),
+    "replication.updateFullCopyStatus": (params) => {
+      const parsed = ReplicationUpdateFullCopyStatusDbParamsSchema.parse(params);
+      updateFullCopyStatus(options.getCatalog(), parsed.destinationId, {
+        status: parsed.status,
+        shortfallFiles: parsed.shortfallFiles,
+        shortfallBytes: parsed.shortfallBytes,
+        now: parsed.now,
+      });
+      return { updated: true };
+    },
+    "replication.setReplicaStatus": (params) => {
+      const parsed = ReplicationSetReplicaStatusDbParamsSchema.parse(params);
+      setReplicaStatus(options.getCatalog(), {
+        destinationRowId: parsed.destinationId,
+        fileId: parsed.fileId,
+        status: parsed.status,
+        now: parsed.now,
+        errorMessage: parsed.errorMessage,
+      });
+      return { updated: true };
+    },
   };
 }
 
@@ -150,6 +176,7 @@ export function createReplicationDbHandlers(
     ...createReplicationDestinationLibraryDbHandlers(options),
     ...createReplicationCoverageDbHandlers(options),
     ...createReplicationRunDbHandlers(options),
+    ...createReplicationPromotionDbHandlers(options),
     ...createDestinationLibraryMediaDbHandlers(options),
   };
 

@@ -13,6 +13,12 @@ import type {
   StartRunParams,
   UpdateDestinationParams,
 } from "@shared/contracts/replication/types";
+import type {
+  ApplyPromotionParams,
+  PromotionState,
+  RollbackPromotionParams,
+  VerifyPromotionParams,
+} from "@shared/contracts/replication/promotion-types";
 import { api } from "../../lib/ipc-client";
 
 export interface ReplicationClient {
@@ -35,6 +41,10 @@ export interface ReplicationClient {
   requestStop(): Promise<ReplicationRunState>;
   replan(): Promise<ReplicationRunState | null>;
   getRunEvents(params: RunEventsParams): Promise<RunEventsPage>;
+  getPromotion(destinationId: string): Promise<PromotionState>;
+  verifyPromotion(params: VerifyPromotionParams): Promise<PromotionState>;
+  applyPromotion(params: ApplyPromotionParams): Promise<PromotionState>;
+  rollbackPromotion(params: RollbackPromotionParams): Promise<PromotionState>;
 }
 
 export function createReplicationClient(): ReplicationClient {
@@ -58,5 +68,9 @@ export function createReplicationClient(): ReplicationClient {
     requestStop: () => api.replication.requestStop(),
     replan: () => api.replication.replan(),
     getRunEvents: (params) => api.replication.getRunEvents(params),
+    getPromotion: (destinationId) => api.replication.getPromotion(destinationId),
+    verifyPromotion: (params) => api.replication.verifyPromotion(params),
+    applyPromotion: (params) => api.replication.applyPromotion(params),
+    rollbackPromotion: (params) => api.replication.rollbackPromotion(params),
   };
 }

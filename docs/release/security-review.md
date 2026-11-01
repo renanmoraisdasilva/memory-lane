@@ -52,12 +52,12 @@ The read-only guard allowlist is intentionally small:
 No module is allowed to write, rename, truncate, or delete an original archive
 file.
 
-## Replication extension (planned)
+## Replication extension
 
 Adoption-first replication extends the write surface to registered destination
 drives. It does not relax the source-archive guarantee.
 
-- A destination write goes through one allowlisted adapter,
+- A destination copy goes through one allowlisted adapter,
   `replication/infrastructure/destination-writer.ts`.
 - The adapter rejects the source root, overlapping roots, unregistered roots,
   `..` escapes, and symlink/reparse-point escapes.
@@ -67,8 +67,14 @@ drives. It does not relax the source-archive guarantee.
 - Source files remain open read-only. No replication IPC accepts a source path
   for writing.
 - Destination media URLs use destination IDs, not paths.
-- The security review and read-only guard tests must be updated before the
-  replication slice that first writes to a destination.
+- Full copies are verified with SHA-256 before they can be promoted.
+- Promotion is metadata-only. It writes pre-promotion snapshots, merges catalog
+  metadata, demotes the old source, and can be rolled back only before the first
+  change to the new source.
+- Promotion snapshots and the rollback window marker are written only by the
+  allowlisted `db/promotion-snapshot-files.ts` adapter.
+- The security review and read-only guard cover the destination writer and the
+  promotion snapshot adapter.
 
 ## Changes made in Phase 6
 

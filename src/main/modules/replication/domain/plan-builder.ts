@@ -88,6 +88,8 @@ function buildFullCopy(
       completeAfterRun,
       promotionReady:
         completeAfterRun &&
+        destination.summary.fullCopyStatus === "complete" &&
+        destination.staleFiles + destination.missingFiles + destination.conflictFiles === 0 &&
         destination.summary.connection === "connected" &&
         destination.summary.identityConfidence === "confirmed",
     },
@@ -205,18 +207,20 @@ function buildPartial(
   };
 }
 
-function scopesFor(input: PlanInput): ReplicationRunScope[] {
-  const active = activeDestinations(input.destinations);
-  const hasFull = active.some((destination) => destination.summary.goal === "full_copy");
-  const hasPartial = active.some((destination) => destination.summary.goal === "extend_coverage");
+function scopesFor(
+  fullCopy: ReplicationPlan["fullCopy"],
+  partial: ReplicationPlan["partial"],
+): ReplicationRunScope[] {
+  const fullWork = fullCopy !== null && fullCopy.newFiles > 0;
+  const partialWork = partial !== null && partial.rows.some((row) => row.newFiles > 0);
   const scopes: ReplicationRunScope[] = [];
-  if (hasFull || hasPartial) {
+  if (fullWork || partialWork) {
     scopes.push("all_connected");
   }
-  if (hasFull) {
+  if (fullWork) {
     scopes.push("full_copy_only");
   }
-  if (hasPartial) {
+  if (partialWork) {
     scopes.push("partial_only");
   }
   return scopes;
@@ -310,7 +314,7 @@ export function buildReplicationExecutionPlan(input: PlanInput): ReplicationExec
   };
   const warnings = buildWarnings(input, partialResult.remainder);
   const blocked = warnings.find((warning) => warning.severity === "blocking");
-  const executionScopes = scopesFor(input);
+  const executionScopes = scopesFor(fullCopy, partialResult.job);
 
   return {
     plan: {

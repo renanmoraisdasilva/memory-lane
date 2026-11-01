@@ -18,4 +18,8 @@ export const REPLICATION_CHANNELS = {
   requestStop: "replication:request-stop",
   replan: "replication:replan",
   getRunEvents: "replication:get-run-events",
+  getPromotion: "replication:get-promotion",
+  verifyPromotion: "replication:verify-promotion",
+  applyPromotion: "replication:apply-promotion",
+  rollbackPromotion: "replication:rollback-promotion",
 } as const;

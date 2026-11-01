@@ -16,6 +16,7 @@ export const REPLICATION_DB_METHODS = [
   "replication.getSourceIdentity",
   "replication.registerDestination",
   "replication.updateDestination",
+  "replication.updateFullCopyStatus",
   "replication.listSourceFiles",
   "replication.saveSourceHash",
   "replication.getAdoption",
@@ -46,6 +47,13 @@ export const REPLICATION_DB_METHODS = [
   "replication.listRunEvents",
   "replication.markInterruptedRuns",
   "replication.saveDestinationLibraryFile",
+  "replication.setReplicaStatus",
+  "promotion.getLatest",
+  "promotion.listReplicaFiles",
+  "promotion.record",
+  "promotion.apply",
+  "promotion.rollback",
+  "promotion.closeWindow",
   "destinationLibrary.getContext",
   "destinationLibrary.resolveMedia",
   "destinationLibrary.resolveThumbnail",
@@ -101,6 +109,14 @@ export const ReplicationUpdateDestinationDbParamsSchema = z.object({
   priority: z.number().int().nonnegative().optional(),
   layout: z.enum(["dedicated", "mirror_source"]).optional(),
   status: z.enum(["active", "retired", "lost"]).optional(),
+});
+
+export const ReplicationUpdateFullCopyStatusDbParamsSchema = z.object({
+  destinationId: z.number().int().positive(),
+  status: z.enum(["not_applicable", "in_progress", "complete", "incomplete"]),
+  shortfallFiles: z.number().int().nonnegative(),
+  shortfallBytes: z.number().int().nonnegative(),
+  now: z.string().min(1),
 });
 
 export const ReplicationSourceHashDbParamsSchema = z.object({
@@ -336,3 +352,13 @@ export const DestinationLibrarySaveCacheParamsSchema = z.object({
   status: z.enum(["ready", "failed"]),
   now: z.string().min(1),
 });
+
+export const ReplicationSetReplicaStatusDbParamsSchema = z.object({
+  destinationId: z.number().int().positive(),
+  fileId: z.number().int().positive(),
+  status: z.enum(["verified", "stale", "missing"]),
+  now: z.string().min(1),
+  errorMessage: z.string().nullable(),
+});
+
+export * from "./promotion-worker-protocol";

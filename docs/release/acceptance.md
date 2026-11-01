@@ -22,6 +22,22 @@ Status: automated criteria complete; manual release pass pending.
 | 16 | Disconnect during a real scan is safe | Simulated disconnect test | Physical USB pending |
 | 17 | Clean Windows VM release pass | `release-checklist.md` | Pending |
 
+## Replication acceptance (post-v0.1)
+
+| # | Criterion | Evidence | Status |
+| --- | --- | --- | --- |
+| R1 | Partial runs copy only planned uncovered files and report the remainder | Plan, run integration, replication E2E | Automated |
+| R2 | A full copy with enough capacity completes and is promotable | Full-copy integration, promotion E2E | Automated |
+| R3 | A full copy with insufficient capacity is incomplete and never spills into partial destinations | Full-copy shortfall integration | Automated |
+| R4 | Promotion requires a complete, connected, confirmed full copy and no active work | Promotion policy, integration, E2E | Automated |
+| R5 | Promotion preserves `catalog_id`, dates, overrides, duplicates, and coverage | Promotion merge repository tests | Automated |
+| R6 | Promotion leaves destination-only files out of the source and keeps them `local_only` | Promotion merge tests, review step | Automated |
+| R7 | Rollback works before the first change and is refused after | Promotion integration and service tests | Automated |
+| R8 | Source archives remain read-only and source switching is blocked during runs | Read-only guard, run controls, E2E | Automated |
+| R9 | Physical USB promotion and rollback drills | Manual release pass | Pending |
+
+Replication rows have their own sign-off and are not part of the v0.1 rows above.
+
 ## Sign-off rule
 
 v0.1 is accepted only when every row above is either automated-green or marked

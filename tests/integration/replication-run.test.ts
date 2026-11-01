@@ -116,7 +116,7 @@ describe("replication run", () => {
 
       await expect(
         runService.start({ scope: "partial_only", replaceStale: false }),
-      ).rejects.toThrow(/no partial-coverage files/);
+      ).rejects.toThrow(/no uncovered files/);
     } finally {
       await runService.shutdown();
       await harness.dispose();

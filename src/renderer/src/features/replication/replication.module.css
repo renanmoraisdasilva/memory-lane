@@ -524,6 +524,26 @@
   margin-top: 2px;
 }
 
+.stepBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.step {
+  padding: 5px 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.stepActive {
+  border-color: var(--amber);
+  color: var(--text);
+  background: var(--panel-2);
+}
+
 .note {
   margin: 0;
   color: var(--muted);

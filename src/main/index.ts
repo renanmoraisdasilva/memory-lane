@@ -304,10 +304,7 @@ async function startServices(): Promise<void> {
     libraryService,
     healthService: health,
     settingsService: settings,
-    destinationService: replication.destinationService,
-    adoptionService: replication.adoptionService,
-    planService: replication.planService,
-    runService: replication.runService,
+    ...replication,
     logger,
   });
   registerMediaProtocol({ db, listDetected: listDetectedDrives, thumbnails, previews, logger });

@@ -37,7 +37,7 @@ describe("ReplicationPlanPage", () => {
     const client = createReplicationFixtureClient();
     renderPlan(client);
     await userEvent.click(await screen.findByRole("button", { name: "Start backup" }));
-    const dialog = await screen.findByRole("dialog", { name: "Start partial backup" });
+    const dialog = await screen.findByRole("dialog", { name: "Start backup" });
     await userEvent.click(within(dialog).getByRole("button", { name: "Start backup" }));
     await waitFor(() =>
       expect(client.startRun).toHaveBeenCalledWith({

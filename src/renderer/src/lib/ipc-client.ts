@@ -42,6 +42,12 @@ import type {
   StartRunParams,
   UpdateDestinationParams,
 } from "@shared/contracts/replication/types";
+import type {
+  ApplyPromotionParams,
+  PromotionState,
+  RollbackPromotionParams,
+  VerifyPromotionParams,
+} from "@shared/contracts/replication/promotion-types";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { AppError, APP_ERROR_CODES } from "@shared/domain/errors";
@@ -153,5 +159,13 @@ export const api = {
     replan: (): Promise<ReplicationRunState | null> => unwrap(getApi().replication.replan()),
     getRunEvents: (params: RunEventsParams): Promise<RunEventsPage> =>
       unwrap(getApi().replication.getRunEvents(params)),
+    getPromotion: (destinationId: string): Promise<PromotionState> =>
+      unwrap(getApi().replication.getPromotion(destinationId)),
+    verifyPromotion: (params: VerifyPromotionParams): Promise<PromotionState> =>
+      unwrap(getApi().replication.verifyPromotion(params)),
+    applyPromotion: (params: ApplyPromotionParams): Promise<PromotionState> =>
+      unwrap(getApi().replication.applyPromotion(params)),
+    rollbackPromotion: (params: RollbackPromotionParams): Promise<PromotionState> =>
+      unwrap(getApi().replication.rollbackPromotion(params)),
   },
 };

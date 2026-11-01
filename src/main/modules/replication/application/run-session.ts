@@ -5,8 +5,8 @@ import type { ReplicationRunRecord } from "../../../db/repositories/replication-
 import { resolveRelativePath } from "../../../platform/destination-path-policy";
 import type { DetectedDrive } from "../../drives/domain/drive";
 import type { ActiveRun } from "./run-control";
-import type { ReplicationExecution } from "./plan-service";
-import type { runPartialBackfill } from "./run-runner";
+import type { runReplicationBackfill } from "./run-runner";
+import type { SelectedRunWork } from "./run-selection";
 
 export interface RunSessionDependencies {
   db: DbClient;
@@ -14,7 +14,8 @@ export interface RunSessionDependencies {
   logger: Logger;
   now: () => Date;
   sleep: (milliseconds: number) => Promise<void>;
-  executeRunner: typeof runPartialBackfill;
+  executeRunner: typeof runReplicationBackfill;
+  refreshStatuses: () => Promise<void>;
 }
 
 function errorText(error: unknown): string {
@@ -59,12 +60,13 @@ export async function appendRunEvent(
 
 async function refreshSourceIndexes(
   dependencies: RunSessionDependencies,
-  execution: ReplicationExecution,
+  work: SelectedRunWork,
 ): Promise<void> {
   const drives = new Map<string, DetectedDrive>(
     (await dependencies.listDetected()).map((drive) => [drive.volumeId, drive]),
   );
-  for (const assignment of execution.partial) {
+  const assignments = [...(work.fullCopy === null ? [] : [work.fullCopy]), ...work.partial];
+  for (const assignment of assignments) {
     const drive = drives.get(assignment.destination.volumeId);
     if (drive === undefined) {
       continue;
@@ -90,7 +92,7 @@ async function refreshSourceIndexes(
 async function finishOutcome(
   dependencies: RunSessionDependencies,
   active: ActiveRun,
-  execution: ReplicationExecution,
+  work: SelectedRunWork,
   outcome: string,
 ): Promise<void> {
   if (outcome === "paused") {
@@ -106,7 +108,7 @@ async function finishOutcome(
   if (outcome === "stopped") {
     const run = await setRunStatus(dependencies, runId, "stopped", summary);
     await appendRunEvent(dependencies, run, "stopped", "Backup stopped");
-    await refreshSourceIndexes(dependencies, execution);
+    await refreshSourceIndexes(dependencies, work);
     return;
   }
   if (outcome === "failed") {
@@ -116,14 +118,24 @@ async function finishOutcome(
   }
   const run = await setRunStatus(dependencies, runId, "completed", summary);
   await appendRunEvent(dependencies, run, "completed", "Backup completed");
-  await refreshSourceIndexes(dependencies, execution);
+  await refreshSourceIndexes(dependencies, work);
 }
 
 export interface RunSessionInput {
   active: ActiveRun;
-  execution: ReplicationExecution;
+  work: SelectedRunWork;
   replaceStale: boolean;
   onFinished: (active: ActiveRun) => void;
+}
+
+async function refreshDestinations(dependencies: RunSessionDependencies): Promise<void> {
+  try {
+    await dependencies.refreshStatuses();
+  } catch (error) {
+    dependencies.logger.warn("Destination status refresh failed after run", {
+      message: errorText(error),
+    });
+  }
 }
 
 export async function runSession(
@@ -141,14 +153,20 @@ export async function runSession(
         sleep: dependencies.sleep,
         control: active.control,
       },
-      { runId: active.runId, execution: input.execution, replaceStale: input.replaceStale },
+      {
+        runId: active.runId,
+        fullCopy: input.work.fullCopy,
+        partial: input.work.partial,
+        replaceStale: input.replaceStale,
+      },
     );
-    await finishOutcome(dependencies, active, input.execution, outcome);
+    await finishOutcome(dependencies, active, input.work, outcome);
   } catch (error) {
     dependencies.logger.error("Backup run failed", error);
     const failed = await setRunStatus(dependencies, active.runId, "failed", errorText(error));
     await appendRunEvent(dependencies, failed, "failed", errorText(error));
   } finally {
+    await refreshDestinations(dependencies);
     active.lease.release();
     input.onFinished(active);
   }

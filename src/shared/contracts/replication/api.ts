@@ -14,6 +14,12 @@ import type {
   StartRunParams,
   UpdateDestinationParams,
 } from "./types";
+import type {
+  ApplyPromotionParams,
+  PromotionState,
+  RollbackPromotionParams,
+  VerifyPromotionParams,
+} from "./promotion-types";
 
 export interface ReplicationApi {
   getOverview(): Promise<IpcResult<ReplicationOverview>>;
@@ -35,4 +41,8 @@ export interface ReplicationApi {
   requestStop(): Promise<IpcResult<ReplicationRunState>>;
   replan(): Promise<IpcResult<ReplicationRunState | null>>;
   getRunEvents(params: RunEventsParams): Promise<IpcResult<RunEventsPage>>;
+  getPromotion(destinationId: string): Promise<IpcResult<PromotionState>>;
+  verifyPromotion(params: VerifyPromotionParams): Promise<IpcResult<PromotionState>>;
+  applyPromotion(params: ApplyPromotionParams): Promise<IpcResult<PromotionState>>;
+  rollbackPromotion(params: RollbackPromotionParams): Promise<IpcResult<PromotionState>>;
 }

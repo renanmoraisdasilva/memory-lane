@@ -4,6 +4,7 @@ import type { DetectedDrive } from "../modules/drives/domain/drive";
 import { AdoptionService } from "../modules/replication/application/adoption-service";
 import { DestinationService } from "../modules/replication/application/destination-service";
 import { PlanService } from "../modules/replication/application/plan-service";
+import { PromotionService } from "../modules/replication/application/promotion-service";
 import { RunService } from "../modules/replication/application/run-service";
 import { createDestinationReader } from "../modules/replication/infrastructure/destination-reader";
 import { createFileHasher } from "../modules/scanning/infrastructure/file-hasher";
@@ -14,6 +15,7 @@ export interface ReplicationServices {
   adoptionService: AdoptionService;
   planService: PlanService;
   runService: RunService;
+  promotionService: PromotionService;
 }
 
 export function createReplicationServices(input: {
@@ -43,6 +45,15 @@ export function createReplicationServices(input: {
       listDetected: input.listDetected,
       planService,
       workloads: input.workloads,
+      logger: input.logger,
+    }),
+    promotionService: new PromotionService({
+      db: input.db,
+      listDetected: input.listDetected,
+      planService,
+      workloads: input.workloads,
+      reader: createDestinationReader(),
+      hasher: createFileHasher(),
       logger: input.logger,
     }),
   };

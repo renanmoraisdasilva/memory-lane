@@ -17,10 +17,17 @@ import {
   type ReplicationRunState,
   type RunEventsPage,
 } from "@shared/contracts/replication/types";
+import {
+  ApplyPromotionParamsSchema,
+  RollbackPromotionParamsSchema,
+  VerifyPromotionParamsSchema,
+  type PromotionState,
+} from "@shared/contracts/replication/promotion-types";
 import type { Logger } from "../logging/types";
 import type { AdoptionService } from "../modules/replication/application/adoption-service";
 import type { DestinationService } from "../modules/replication/application/destination-service";
 import type { PlanService } from "../modules/replication/application/plan-service";
+import type { PromotionService } from "../modules/replication/application/promotion-service";
 import type { RunService } from "../modules/replication/application/run-service";
 import { respond } from "./respond";
 
@@ -29,12 +36,21 @@ export interface ReplicationIpcServices {
   adoptionService: AdoptionService;
   planService: PlanService;
   runService: RunService;
+  promotionService: PromotionService;
   logger: Logger;
 }
 
-type RunServices = Pick<ReplicationIpcServices, "planService" | "runService" | "logger">;
+type RunServices = Pick<
+  ReplicationIpcServices,
+  "planService" | "runService" | "promotionService" | "logger"
+>;
 
-function registerRunStateHandlers({ planService, runService, logger }: RunServices): void {
+function registerRunStateHandlers({
+  planService,
+  runService,
+  promotionService,
+  logger,
+}: RunServices): void {
   ipcMain.handle(REPLICATION_CHANNELS.getOverview, (event) =>
     respond<ReplicationOverview>(event, REPLICATION_CHANNELS.getOverview, logger, async () => {
       const [overview, run] = await Promise.all([
@@ -64,9 +80,11 @@ function registerRunStateHandlers({ planService, runService, logger }: RunServic
   );
 
   ipcMain.handle(REPLICATION_CHANNELS.startRun, (event, params: unknown) =>
-    respond<ReplicationRunState>(event, REPLICATION_CHANNELS.startRun, logger, () =>
-      runService.start(StartRunParamsSchema.parse(params)),
-    ),
+    respond<ReplicationRunState>(event, REPLICATION_CHANNELS.startRun, logger, async () => {
+      const state = await runService.start(StartRunParamsSchema.parse(params));
+      await promotionService.closeRollbackWindow();
+      return state;
+    }),
   );
 
   ipcMain.handle(REPLICATION_CHANNELS.pauseRun, (event) =>
@@ -99,17 +117,45 @@ function registerRunStateHandlers({ planService, runService, logger }: RunServic
       return runService.getEvents(parsed.runId, parsed.cursor ?? null, parsed.limit ?? 50);
     }),
   );
+
+  ipcMain.handle(REPLICATION_CHANNELS.getPromotion, (event, params: unknown) =>
+    respond<PromotionState>(event, REPLICATION_CHANNELS.getPromotion, logger, () => {
+      const parsed = GetDestinationParamsSchema.parse(params);
+      return promotionService.getState(parsed.destinationId);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.verifyPromotion, (event, params: unknown) =>
+    respond<PromotionState>(event, REPLICATION_CHANNELS.verifyPromotion, logger, () => {
+      const parsed = VerifyPromotionParamsSchema.parse(params);
+      return promotionService.verify(parsed.destinationId, parsed.deep);
+    }),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.applyPromotion, (event, params: unknown) =>
+    respond<PromotionState>(event, REPLICATION_CHANNELS.applyPromotion, logger, () =>
+      promotionService.apply(ApplyPromotionParamsSchema.parse(params)),
+    ),
+  );
+
+  ipcMain.handle(REPLICATION_CHANNELS.rollbackPromotion, (event, params: unknown) =>
+    respond<PromotionState>(event, REPLICATION_CHANNELS.rollbackPromotion, logger, () => {
+      const parsed = RollbackPromotionParamsSchema.parse(params);
+      return promotionService.rollback(parsed.promotionId, parsed.destinationId);
+    }),
+  );
 }
 
 type DestinationServices = Pick<
   ReplicationIpcServices,
-  "destinationService" | "adoptionService" | "runService" | "logger"
+  "destinationService" | "adoptionService" | "runService" | "promotionService" | "logger"
 >;
 
 function registerDestinationHandlers({
   destinationService,
   adoptionService,
   runService,
+  promotionService,
   logger,
 }: DestinationServices): void {
   ipcMain.handle(REPLICATION_CHANNELS.getAdoptionState, (event, params: unknown) =>
@@ -120,9 +166,11 @@ function registerDestinationHandlers({
   );
 
   ipcMain.handle(REPLICATION_CHANNELS.startAdoption, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.startAdoption, logger, () => {
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.startAdoption, logger, async () => {
       const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.start(parsed.destinationId);
+      const state = await adoptionService.start(parsed.destinationId);
+      await promotionService.closeRollbackWindow();
+      return state;
     }),
   );
 
@@ -134,9 +182,11 @@ function registerDestinationHandlers({
   );
 
   ipcMain.handle(REPLICATION_CHANNELS.resumeAdoption, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.resumeAdoption, logger, () => {
+    respond<AdoptionState>(event, REPLICATION_CHANNELS.resumeAdoption, logger, async () => {
       const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.resume(parsed.destinationId);
+      const state = await adoptionService.resume(parsed.destinationId);
+      await promotionService.closeRollbackWindow();
+      return state;
     }),
   );
 
@@ -171,6 +221,7 @@ function registerDestinationHandlers({
         const destination = await destinationService.register(
           RegisterDestinationParamsSchema.parse(params),
         );
+        await promotionService.closeRollbackWindow();
         await runService.onDestinationAdded();
         return destination;
       },
@@ -182,6 +233,7 @@ function registerDestinationHandlers({
       const destination = await destinationService.update(
         UpdateDestinationParamsSchema.parse(params),
       );
+      await promotionService.closeRollbackWindow();
       await runService.replanIfPaused();
       return destination;
     }),
