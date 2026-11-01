@@ -4,6 +4,7 @@ import type { DetectedDrive } from "../modules/drives/domain/drive";
 import { AdoptionService } from "../modules/replication/application/adoption-service";
 import { DestinationService } from "../modules/replication/application/destination-service";
 import { PlanService } from "../modules/replication/application/plan-service";
+import { RunService } from "../modules/replication/application/run-service";
 import { createDestinationReader } from "../modules/replication/infrastructure/destination-reader";
 import { createFileHasher } from "../modules/scanning/infrastructure/file-hasher";
 import type { WorkloadCoordinator } from "../modules/workloads/application/workload-coordinator";
@@ -12,6 +13,7 @@ export interface ReplicationServices {
   destinationService: DestinationService;
   adoptionService: AdoptionService;
   planService: PlanService;
+  runService: RunService;
 }
 
 export function createReplicationServices(input: {
@@ -20,6 +22,7 @@ export function createReplicationServices(input: {
   workloads: WorkloadCoordinator;
   logger: Logger;
 }): ReplicationServices {
+  const planService = new PlanService({ db: input.db, listDetected: input.listDetected });
   return {
     destinationService: new DestinationService({
       db: input.db,
@@ -34,6 +37,13 @@ export function createReplicationServices(input: {
       workloads: input.workloads,
       logger: input.logger,
     }),
-    planService: new PlanService({ db: input.db, listDetected: input.listDetected }),
+    planService,
+    runService: new RunService({
+      db: input.db,
+      listDetected: input.listDetected,
+      planService,
+      workloads: input.workloads,
+      logger: input.logger,
+    }),
   };
 }

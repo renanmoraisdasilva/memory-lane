@@ -4,7 +4,7 @@ import type { DetectedDrive } from "../domain/drive";
 
 const mocks = vi.hoisted(() => ({
   listWindowsDrives: vi.fn(),
-  getDevelopmentDrive: vi.fn(),
+  getDevelopmentDrives: vi.fn(),
 }));
 
 vi.mock("../infrastructure/volume-identity", () => ({
@@ -12,7 +12,7 @@ vi.mock("../infrastructure/volume-identity", () => ({
 }));
 
 vi.mock("../infrastructure/development-drive", () => ({
-  getDevelopmentDrive: mocks.getDevelopmentDrive,
+  getDevelopmentDrives: mocks.getDevelopmentDrives,
 }));
 
 import { listDetectedDrives } from "./list-detected-drives";
@@ -35,7 +35,7 @@ function drive(label: string, volumeId: string): DetectedDrive {
 describe("listDetectedDrives", () => {
   it("returns Windows drives", async () => {
     mocks.listWindowsDrives.mockResolvedValue([drive("Windows drive", "v1")]);
-    mocks.getDevelopmentDrive.mockReturnValue(null);
+    mocks.getDevelopmentDrives.mockReturnValue([]);
 
     const result = await listDetectedDrives();
 
@@ -44,7 +44,7 @@ describe("listDetectedDrives", () => {
 
   it("appends a development drive", async () => {
     mocks.listWindowsDrives.mockResolvedValue([drive("Windows drive", "v1")]);
-    mocks.getDevelopmentDrive.mockReturnValue(drive("Development drive", "v2"));
+    mocks.getDevelopmentDrives.mockReturnValue([drive("Development drive", "v2")]);
 
     const result = await listDetectedDrives();
 

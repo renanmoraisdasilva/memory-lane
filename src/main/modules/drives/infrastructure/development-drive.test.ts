@@ -3,7 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { AppError } from "@shared/domain/errors";
-import { createDevelopmentDrive, getDevelopmentDrive } from "./development-drive";
+import {
+  createDevelopmentDrive,
+  getDevelopmentDrive,
+  getDevelopmentDrives,
+} from "./development-drive";
 
 const temporaryDirectories: string[] = [];
 
@@ -15,6 +19,8 @@ async function createTempDirectory(): Promise<string> {
 
 afterEach(async () => {
   delete process.env.MEMORY_LANE_DEV_DRIVE;
+  delete process.env.MEMORY_LANE_DEV_DRIVES;
+  delete process.env.MEMORY_LANE_DEV_DRIVE_LABEL;
   await Promise.all(
     temporaryDirectories
       .splice(0)
@@ -48,5 +54,19 @@ describe("development drive", () => {
 
   it("returns null without an environment path", () => {
     expect(getDevelopmentDrive()).toBeNull();
+  });
+
+  it("reads multiple development drives and labels", async () => {
+    const source = await createTempDirectory();
+    const destination = await createTempDirectory();
+    process.env.MEMORY_LANE_DEV_DRIVES = JSON.stringify([
+      { path: source, label: "Source drive", serial: "source-serial" },
+      { path: destination, label: "Backup A", serial: "backup-serial" },
+    ]);
+
+    const drives = getDevelopmentDrives();
+    expect(drives.map((drive) => drive.label)).toEqual(["Source drive", "Backup A"]);
+    expect(drives[0]?.serialNumber).toBe("source-serial");
+    expect(drives[0]?.volumeId).not.toBe(drives[1]?.volumeId);
   });
 });

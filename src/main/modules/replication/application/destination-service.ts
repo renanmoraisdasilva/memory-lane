@@ -155,6 +155,14 @@ export class DestinationService {
     );
   }
 
+  async getByDestinationId(destinationId: string): Promise<DestinationDetail> {
+    const record = await this.findExistingByKey(destinationId);
+    if (record === null) {
+      throw new AppError(APP_ERROR_CODES.DESTINATION_NOT_FOUND, "Destination was not found");
+    }
+    return this.get(record.id);
+  }
+
   async get(destinationId: number): Promise<DestinationDetail> {
     const [record, records, drives] = await Promise.all([
       this.dependencies.db.request<ReplicationDestinationRecord>("replication.getDestination", {

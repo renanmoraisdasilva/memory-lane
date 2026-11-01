@@ -16,7 +16,7 @@ import {
   ReplicationUpsertDestinationLibraryDbParamsSchema,
 } from "./replication-worker-protocol";
 
-function openDestinationCatalog(
+export function openDestinationCatalog(
   options: ReplicationDbHandlerOptions,
   destinationRowId: number,
   root: string,
@@ -68,6 +68,22 @@ export function createReplicationDestinationLibraryDbHandlers(
         parsed.destinationId,
         parsed.destinationRoot,
       );
+      return getDestinationLibraryStats(destinationDb);
+    },
+    "replication.saveDestinationLibraryFile": (params) => {
+      const parsed = ReplicationUpsertDestinationLibraryDbParamsSchema.parse(params);
+      const destinationDb = openDestinationCatalog(
+        options,
+        parsed.destinationId,
+        parsed.destinationRoot,
+      );
+      upsertDestinationLibraryFiles(destinationDb, {
+        destinationRoot: parsed.destinationRoot,
+        files: parsed.files,
+        runStartedAt: parsed.runStartedAt,
+        now: parsed.now,
+        markMissingBefore: null,
+      });
       return getDestinationLibraryStats(destinationDb);
     },
   };

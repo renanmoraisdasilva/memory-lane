@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { AdoptionStatusSchema, DestinationGoalSchema } from "@shared/contracts/replication/types";
+import {
+  AdoptionStatusSchema,
+  DestinationGoalSchema,
+  ReplicationRunScopeSchema,
+  ReplicationRunStatusSchema,
+  RunEventTypeSchema,
+} from "@shared/contracts/replication/types";
 import { VolumeIdSchema } from "@shared/contracts/drives";
 
 export const REPLICATION_DB_METHODS = [
@@ -28,6 +34,24 @@ export const REPLICATION_DB_METHODS = [
   "replication.writeSourceIndex",
   "replication.upsertDestinationLibrary",
   "replication.getDestinationLibraryStats",
+  "replication.getLatestRun",
+  "replication.getActiveRun",
+  "replication.getRun",
+  "replication.createRun",
+  "replication.setRunStatus",
+  "replication.updateRunPlan",
+  "replication.saveRunFileResult",
+  "replication.getExistingReplica",
+  "replication.appendRunEvent",
+  "replication.listRunEvents",
+  "replication.markInterruptedRuns",
+  "replication.saveDestinationLibraryFile",
+  "destinationLibrary.getContext",
+  "destinationLibrary.resolveMedia",
+  "destinationLibrary.resolveThumbnail",
+  "destinationLibrary.saveThumbnail",
+  "destinationLibrary.resolvePreview",
+  "destinationLibrary.savePreview",
 ] as const;
 
 export type ReplicationDbMethod = (typeof REPLICATION_DB_METHODS)[number];
@@ -201,4 +225,114 @@ export const ReplicationUpsertDestinationLibraryDbParamsSchema = z.object({
 export const ReplicationDestinationLibraryParamsSchema = z.object({
   destinationId: z.number().int().positive(),
   destinationRoot: z.string().min(1),
+});
+
+export const ReplicationRunIdParamsSchema = z.object({
+  runId: z.number().int().positive(),
+});
+
+export const ReplicationCreateRunDbParamsSchema = z.object({
+  scope: ReplicationRunScopeSchema,
+  goal: z.enum(["extend_coverage", "full_copy", "both"]),
+  planRevision: z.number().int().positive(),
+  planHash: z.string().min(1),
+  destinationSnapshot: z.string().min(1),
+  plannedFiles: z.number().int().nonnegative(),
+  plannedBytes: z.number().int().nonnegative(),
+  remainderFiles: z.number().int().nonnegative(),
+  remainderBytes: z.number().int().nonnegative(),
+  now: z.string().min(1),
+});
+
+export const ReplicationRunStatusDbParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  status: ReplicationRunStatusSchema,
+  now: z.string().min(1),
+  errorMessage: z.string().nullable(),
+});
+
+export const ReplicationUpdateRunPlanDbParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  planRevision: z.number().int().positive(),
+  planHash: z.string().min(1),
+  destinationSnapshot: z.string().min(1),
+  plannedFiles: z.number().int().nonnegative(),
+  plannedBytes: z.number().int().nonnegative(),
+  remainderFiles: z.number().int().nonnegative(),
+  remainderBytes: z.number().int().nonnegative(),
+  now: z.string().min(1),
+});
+
+export const ReplicationRunFileStatusSchema = z.enum([
+  "copied",
+  "verified",
+  "stale",
+  "conflict",
+  "failed",
+]);
+
+export const ReplicationRunFileResultDbParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  destinationRowId: z.number().int().positive(),
+  fileId: z.number().int().positive(),
+  relativePath: z.string().min(1),
+  relativePathKey: z.string().min(1),
+  sourceRelativePath: z.string().min(1),
+  sourceRelativePathKey: z.string().min(1),
+  sizeBytes: z.number().int().nonnegative(),
+  sha256: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/)
+    .nullable(),
+  status: ReplicationRunFileStatusSchema,
+  sourceSizeAtVerify: z.number().int().nonnegative().nullable(),
+  sourceModifiedAtFsAtVerify: z.string().nullable(),
+  destinationSizeAtVerify: z.number().int().nonnegative().nullable(),
+  destinationModifiedAtFsAtVerify: z.string().nullable(),
+  lastCheckedAt: z.string().min(1),
+  lastError: z.string().nullable(),
+});
+
+export const ReplicationExistingReplicaParamsSchema = z.object({
+  destinationRowId: z.number().int().positive(),
+  fileId: z.number().int().positive(),
+});
+
+export const ReplicationAppendRunEventDbParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  type: RunEventTypeSchema,
+  at: z.string().min(1),
+  planRevision: z.number().int().positive().nullable(),
+  note: z.string().nullable(),
+});
+
+export const ReplicationListRunEventsDbParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  cursor: z.number().int().positive().nullable(),
+  limit: z.number().int().positive().max(200),
+});
+
+export const ReplicationMarkInterruptedRunsDbParamsSchema = z.object({
+  now: z.string().min(1),
+});
+
+export const DestinationLibraryMediaParamsSchema = z.object({
+  destinationId: z.number().int().positive(),
+  destinationRoot: z.string().min(1),
+  fileId: z.number().int().positive(),
+});
+
+export const DestinationLibraryContextParamsSchema = z.object({
+  destinationId: z.number().int().positive(),
+  destinationRoot: z.string().min(1),
+});
+
+export const DestinationLibrarySaveCacheParamsSchema = z.object({
+  destinationId: z.number().int().positive(),
+  destinationRoot: z.string().min(1),
+  fileId: z.number().int().positive(),
+  path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  status: z.enum(["ready", "failed"]),
+  now: z.string().min(1),
 });

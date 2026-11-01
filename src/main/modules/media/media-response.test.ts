@@ -26,16 +26,43 @@ afterEach(async () => {
 });
 
 describe("media URL parsing", () => {
-  it("accepts thumbnail and media URLs", () => {
-    expect(parseMediaUrl("ml-media://thumbnail/42")).toEqual({ kind: "thumbnail", fileId: 42 });
-    expect(parseMediaUrl("ml-media://media/7")).toEqual({ kind: "media", fileId: 7 });
+  it("accepts source thumbnail and media URLs", () => {
+    expect(parseMediaUrl("ml-media://thumbnail/42")).toEqual({
+      scope: "source",
+      kind: "thumbnail",
+      fileId: 42,
+    });
+    expect(parseMediaUrl("ml-media://media/7")).toEqual({
+      scope: "source",
+      kind: "media",
+      fileId: 7,
+    });
   });
 
-  it("rejects other schemes, hosts, and ids", () => {
+  it("accepts destination-scoped URLs by id", () => {
+    expect(parseMediaUrl("ml-media://destination/dest-1/thumbnail/42")).toEqual({
+      scope: "destination",
+      destinationId: "dest-1",
+      kind: "thumbnail",
+      fileId: 42,
+    });
+    expect(parseMediaUrl("ml-media://destination/dest-1/media/7")).toEqual({
+      scope: "destination",
+      destinationId: "dest-1",
+      kind: "media",
+      fileId: 7,
+    });
+  });
+
+  it("rejects other schemes, hosts, ids, and path injection", () => {
     expect(parseMediaUrl("https://thumbnail/42")).toBeNull();
     expect(parseMediaUrl("ml-media://other/42")).toBeNull();
     expect(parseMediaUrl("ml-media://thumbnail/0")).toBeNull();
     expect(parseMediaUrl("ml-media://thumbnail/4/extra")).toBeNull();
+    expect(parseMediaUrl("ml-media://destination/../media/4")).toBeNull();
+    expect(parseMediaUrl("ml-media://destination/dest/other/4")).toBeNull();
+    expect(parseMediaUrl("ml-media://destination/dest/media/0")).toBeNull();
+    expect(parseMediaUrl("ml-media://destination/dest/media")).toBeNull();
   });
 });
 

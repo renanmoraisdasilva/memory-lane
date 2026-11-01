@@ -24,6 +24,7 @@ import {
   useAdoptionControl,
   useAdoptionState,
   useReplicationDestination,
+  useRunState,
   useUpdateDestination,
 } from "./use-replication";
 import styles from "./replication.module.css";
@@ -126,9 +127,11 @@ function AdoptionActions({
 function AdoptionCard({
   destinationId,
   connected,
+  locked,
 }: {
   destinationId: string;
   connected: boolean;
+  locked: boolean;
 }): React.JSX.Element {
   const adoption = useAdoptionState(destinationId);
   const controls = useAdoptionControl(destinationId);
@@ -169,10 +172,13 @@ function AdoptionCard({
       {state.errorMessage === null ? null : <Alert>{state.errorMessage}</Alert>}
       {error === null ? null : <Alert>{error.message}</Alert>}
       <div className={styles.inlineActions}>
-        <AdoptionActions state={state} connected={connected} controls={controls} />
+        <AdoptionActions state={state} connected={connected && !locked} controls={controls} />
         {connected ? null : (
           <span className={styles.muted}>Connect the drive to continue adoption.</span>
         )}
+        {locked ? (
+          <span className={styles.muted}>Pause the backup before starting adoption.</span>
+        ) : null}
       </div>
     </section>
   );
@@ -238,7 +244,23 @@ function DestinationCallouts({ detail }: { detail: DestinationDetail }): React.J
   );
 }
 
-function DestinationSettingsCard({ detail }: { detail: DestinationDetail }): React.JSX.Element {
+function allocationLabel(detail: DestinationDetail): string {
+  if (detail.allocationMode === "all_safe") {
+    return "Use all safe space";
+  }
+  if (detail.allocationMode === "percent") {
+    return `${String(detail.allocationPercent ?? 0)}% of the drive`;
+  }
+  return formatSize(detail.allocationBytes ?? 0);
+}
+
+function DestinationSettingsCard({
+  detail,
+  locked,
+}: {
+  detail: DestinationDetail;
+  locked: boolean;
+}): React.JSX.Element {
   const update = useUpdateDestination();
   const [goal, setGoal] = useState<DestinationGoal>(detail.goal);
   return (
@@ -257,7 +279,7 @@ function DestinationSettingsCard({ detail }: { detail: DestinationDetail }): Rea
           <select
             id="destination-goal-current"
             value={goal}
-            disabled={update.isPending}
+            disabled={update.isPending || locked}
             onChange={(event) => setGoal(event.target.value as DestinationGoal)}
           >
             <option value="extend_coverage">Partial coverage</option>
@@ -266,13 +288,7 @@ function DestinationSettingsCard({ detail }: { detail: DestinationDetail }): Rea
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Allocation</span>
-          <span className={styles.fieldValue}>
-            {detail.allocationMode === "all_safe"
-              ? "Use all safe space"
-              : detail.allocationMode === "percent"
-                ? `${String(detail.allocationPercent ?? 0)}% of the drive`
-                : formatSize(detail.allocationBytes ?? 0)}
-          </span>
+          <span className={styles.fieldValue}>{allocationLabel(detail)}</span>
         </div>
         <div className={styles.field}>
           <span className={styles.fieldLabel}>Copies live under</span>
@@ -292,7 +308,7 @@ function DestinationSettingsCard({ detail }: { detail: DestinationDetail }): Rea
         <button
           className={styles.secondaryButton}
           type="button"
-          disabled={update.isPending || goal === detail.goal}
+          disabled={update.isPending || locked || goal === detail.goal}
           onClick={() => update.mutate({ destinationId: detail.destinationId, goal })}
         >
           Save goal
@@ -305,7 +321,9 @@ function DestinationSettingsCard({ detail }: { detail: DestinationDetail }): Rea
 export function ReplicationDestinationPage(): React.JSX.Element {
   const { destinationId = "" } = useParams();
   const destination = useReplicationDestination(destinationId);
+  const run = useRunState();
   const detail = destination.data;
+  const locked = run.data?.status === "running" || run.data?.status === "stopping";
 
   if (destination.isPending) {
     return (
@@ -329,6 +347,15 @@ export function ReplicationDestinationPage(): React.JSX.Element {
     <div className={styles.page}>
       <DestinationHeader detail={detail} />
       <DestinationCallouts detail={detail} />
+      {locked ? (
+        <Callout
+          tone="amber"
+          icon={<AlertTriangle size={15} aria-hidden="true" />}
+          title="Backup is running"
+        >
+          Destination and adoption edits are locked until the backup runs or is paused.
+        </Callout>
+      ) : null}
       <div className={styles.statGrid}>
         <Stat label="Verified files" value={formatCount(detail.verifiedFiles)} />
         <Stat label="Verified bytes" value={formatSize(detail.verifiedBytes)} />
@@ -338,11 +365,15 @@ export function ReplicationDestinationPage(): React.JSX.Element {
         <Stat label="Reserve" value={formatSize(detail.reserveBytes)} />
       </div>
       <div className={styles.grid}>
-        <AdoptionCard destinationId={destinationId} connected={detail.connection === "connected"} />
+        <AdoptionCard
+          destinationId={destinationId}
+          connected={detail.connection === "connected"}
+          locked={locked}
+        />
         <DestinationCoverageCard detail={detail} />
       </div>
       <div className={styles.grid}>
-        <DestinationSettingsCard detail={detail} />
+        <DestinationSettingsCard detail={detail} locked={locked} />
         <DestinationAttentionCard detail={detail} />
       </div>
       <div className={styles.footer}>

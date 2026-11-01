@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AdoptionState } from "@shared/contracts/replication/types";
+import type {
+  AdoptionState,
+  ReplicationRunState,
+  StartRunParams,
+} from "@shared/contracts/replication/types";
 import { queryKeys } from "../../lib/query-keys";
 import { useReplicationClient } from "./replication-client-context";
 
@@ -71,6 +75,8 @@ export function useReplicationInvalidation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.replicationDestinations }),
       queryClient.invalidateQueries({ queryKey: ["replication", "destination"] }),
       queryClient.invalidateQueries({ queryKey: ["replication", "adoption"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.replicationRun }),
+      queryClient.invalidateQueries({ queryKey: ["replication", "run-events"] }),
     ]);
   };
 }
@@ -105,5 +111,59 @@ export function useAdoptionControl(destinationId: string) {
     start: useMutation({ mutationFn: () => client.startAdoption(destinationId), onSuccess }),
     pause: useMutation({ mutationFn: () => client.pauseAdoption(destinationId), onSuccess }),
     resume: useMutation({ mutationFn: () => client.resumeAdoption(destinationId), onSuccess }),
+  };
+}
+
+function runPollInterval(state: ReplicationRunState | null | undefined): number | false {
+  if (state === undefined || state === null) {
+    return false;
+  }
+  if (state.status === "running" || state.status === "stopping") {
+    return 1_000;
+  }
+  if (state.status === "paused") {
+    return 2_000;
+  }
+  return false;
+}
+
+export function useRunState() {
+  const client = useReplicationClient();
+  return useQuery({
+    queryKey: queryKeys.replicationRun,
+    queryFn: () => client.getRunState(),
+    refetchInterval: (query) => runPollInterval(query.state.data),
+  });
+}
+
+export function useRunEvents(runId: number | null) {
+  const client = useReplicationClient();
+  return useQuery({
+    queryKey: queryKeys.replicationRunEvents(runId ?? 0),
+    queryFn: () => client.getRunEvents({ runId: runId ?? 0, limit: 50 }),
+    enabled: runId !== null,
+  });
+}
+
+export function useStartRun() {
+  const client = useReplicationClient();
+  const invalidate = useReplicationInvalidation();
+  return useMutation({
+    mutationFn: (params: StartRunParams) => client.startRun(params),
+    onSuccess: invalidate,
+  });
+}
+
+export function useRunControl() {
+  const client = useReplicationClient();
+  const invalidate = useReplicationInvalidation();
+  const onSuccess = async (): Promise<void> => {
+    await invalidate();
+  };
+  return {
+    pause: useMutation({ mutationFn: () => client.pauseRun(), onSuccess }),
+    resume: useMutation({ mutationFn: () => client.resumeRun(), onSuccess }),
+    stop: useMutation({ mutationFn: () => client.requestStop(), onSuccess }),
+    replan: useMutation({ mutationFn: () => client.replan(), onSuccess }),
   };
 }

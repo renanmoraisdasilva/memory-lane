@@ -2,8 +2,60 @@ import { createReadStream } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 
+export type MediaKind = "thumbnail" | "media";
+
 export type MediaUrlTarget =
-  { kind: "thumbnail"; fileId: number } | { kind: "media"; fileId: number };
+  | { scope: "source"; kind: MediaKind; fileId: number }
+  | {
+      scope: "destination";
+      destinationId: string;
+      kind: MediaKind;
+      fileId: number;
+    };
+
+function parseFileId(value: string | undefined): number | null {
+  if (value === undefined) {
+    return null;
+  }
+  const fileId = Number(value);
+  return Number.isSafeInteger(fileId) && fileId > 0 ? fileId : null;
+}
+
+function sourceTarget(parsed: URL): MediaUrlTarget | null {
+  if (parsed.hostname !== "thumbnail" && parsed.hostname !== "media") {
+    return null;
+  }
+  const match = /^\/(\d+)$/.exec(parsed.pathname);
+  const fileId = parseFileId(match?.[1]);
+  if (fileId === null) {
+    return null;
+  }
+  return {
+    scope: "source",
+    kind: parsed.hostname === "thumbnail" ? "thumbnail" : "media",
+    fileId,
+  };
+}
+
+function destinationTarget(parsed: URL): MediaUrlTarget | null {
+  if (parsed.hostname !== "destination") {
+    return null;
+  }
+  const match = /^\/([^/]+)\/(thumbnail|media)\/(\d+)$/.exec(parsed.pathname);
+  if (match === null || match[1] === undefined) {
+    return null;
+  }
+  const fileId = parseFileId(match[3]);
+  if (fileId === null) {
+    return null;
+  }
+  return {
+    scope: "destination",
+    destinationId: decodeURIComponent(match[1]),
+    kind: match[2] === "thumbnail" ? "thumbnail" : "media",
+    fileId,
+  };
+}
 
 export function parseMediaUrl(url: string): MediaUrlTarget | null {
   let parsed: URL;
@@ -15,18 +67,7 @@ export function parseMediaUrl(url: string): MediaUrlTarget | null {
   if (parsed.protocol !== "ml-media:") {
     return null;
   }
-  if (parsed.hostname !== "thumbnail" && parsed.hostname !== "media") {
-    return null;
-  }
-  const match = /^\/(\d+)$/.exec(parsed.pathname);
-  if (match === null || match[1] === undefined) {
-    return null;
-  }
-  const fileId = Number(match[1]);
-  if (!Number.isSafeInteger(fileId) || fileId <= 0) {
-    return null;
-  }
-  return { kind: parsed.hostname === "thumbnail" ? "thumbnail" : "media", fileId };
+  return sourceTarget(parsed) ?? destinationTarget(parsed);
 }
 
 export type RangeResult = { start: number; end: number } | null | "invalid";

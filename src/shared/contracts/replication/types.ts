@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { VolumeIdSchema } from "../drives";
+import { ReplicationRunScopeSchema, RunSummarySchema } from "./run-types";
+export * from "./run-types";
 
 export const DestinationGoalSchema = z.enum(["extend_coverage", "full_copy"]);
 export type DestinationGoal = z.infer<typeof DestinationGoalSchema>;
@@ -20,24 +22,6 @@ export type FullCopyStatus = z.infer<typeof FullCopyStatusSchema>;
 
 export const IdentityConfidenceSchema = z.enum(["confirmed", "probable", "needs_confirmation"]);
 export type IdentityConfidence = z.infer<typeof IdentityConfidenceSchema>;
-
-export const ReplicationRunStatusSchema = z.enum([
-  "planned",
-  "running",
-  "paused",
-  "stopping",
-  "completed",
-  "stopped",
-  "failed",
-  "interrupted",
-]);
-
-export const ReplicationRunScopeSchema = z.enum([
-  "all_connected",
-  "full_copy_only",
-  "partial_only",
-]);
-export type ReplicationRunScope = z.infer<typeof ReplicationRunScopeSchema>;
 
 export const AdoptionStatusSchema = z.enum([
   "idle",
@@ -242,26 +226,6 @@ export const ReplicationPlanSchema = z.object({
   blockedReason: z.string().nullable(),
 });
 export type ReplicationPlan = z.infer<typeof ReplicationPlanSchema>;
-
-export const RunSummarySchema = z.object({
-  id: z.number().int().positive(),
-  status: ReplicationRunStatusSchema,
-  scope: ReplicationRunScopeSchema,
-  planRevision: z.number().int().positive(),
-  currentDestinationLabel: z.string().nullable(),
-  currentFile: z.string().nullable(),
-  percent: z.number().min(0).max(100),
-  verifiedFiles: z.number().int().nonnegative(),
-  verifiedBytes: z.number().int().nonnegative(),
-  plannedFiles: z.number().int().nonnegative(),
-  plannedBytes: z.number().int().nonnegative(),
-  etaSeconds: z.number().int().nonnegative().nullable(),
-  canPause: z.boolean(),
-  canResume: z.boolean(),
-  canStop: z.boolean(),
-  canEditPlan: z.boolean(),
-  lockedReason: z.string().nullable(),
-});
 
 export const ReplicationOverviewSchema = z.object({
   source: z.object({

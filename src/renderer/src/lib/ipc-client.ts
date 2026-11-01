@@ -36,6 +36,10 @@ import type {
   RegisterDestinationParams,
   ReplicationOverview,
   ReplicationPlan,
+  ReplicationRunState,
+  RunEventsPage,
+  RunEventsParams,
+  StartRunParams,
   UpdateDestinationParams,
 } from "@shared/contracts/replication/types";
 import type { BackupResult, CacheClearResult, SettingsInfo } from "@shared/contracts/settings";
@@ -139,5 +143,15 @@ export const api = {
       unwrap(getApi().replication.resumeAdoption(destinationId)),
     getPlan: (): Promise<ReplicationPlan> => unwrap(getApi().replication.getPlan()),
     getCoverage: (): Promise<CoverageSummary> => unwrap(getApi().replication.getCoverage()),
+    getRunState: (): Promise<ReplicationRunState | null> =>
+      unwrap(getApi().replication.getRunState()),
+    startRun: (params: StartRunParams): Promise<ReplicationRunState> =>
+      unwrap(getApi().replication.startRun(params)),
+    pauseRun: (): Promise<ReplicationRunState> => unwrap(getApi().replication.pauseRun()),
+    resumeRun: (): Promise<ReplicationRunState> => unwrap(getApi().replication.resumeRun()),
+    requestStop: (): Promise<ReplicationRunState> => unwrap(getApi().replication.requestStop()),
+    replan: (): Promise<ReplicationRunState | null> => unwrap(getApi().replication.replan()),
+    getRunEvents: (params: RunEventsParams): Promise<RunEventsPage> =>
+      unwrap(getApi().replication.getRunEvents(params)),
   },
 };

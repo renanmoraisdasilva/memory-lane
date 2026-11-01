@@ -8,6 +8,8 @@ import type {
   DestinationSummary,
   ReplicationOverview,
   ReplicationPlan,
+  ReplicationRunState,
+  RunEventsPage,
 } from "@shared/contracts/replication/types";
 import type { ReplicationClient } from "../features/replication/replication-client";
 
@@ -252,6 +254,87 @@ const candidates: DestinationCandidate[] = [
   },
 ];
 
+export const runningRun: ReplicationRunState = {
+  id: 1,
+  status: "running",
+  scope: "partial_only",
+  planRevision: 1,
+  planHash: "abcdef1234567890",
+  startedAt: "2026-11-01T12:00:00.000Z",
+  finishedAt: null,
+  pausedAt: null,
+  resumedAt: null,
+  stopRequestedAt: null,
+  lastHeartbeatAt: "2026-11-01T12:01:00.000Z",
+  currentDestinationId: "dest-1",
+  currentDestinationLabel: "Backup A",
+  currentFile: "photos\\a.jpg",
+  plannedFiles: 50,
+  plannedBytes: 240_000_000,
+  copiedFiles: 10,
+  copiedBytes: 48_000_000,
+  verifiedFiles: 10,
+  verifiedBytes: 48_000_000,
+  failedFiles: 0,
+  failedBytes: 0,
+  staleFiles: 0,
+  staleBytes: 0,
+  remainderFiles: 0,
+  remainderBytes: 0,
+  percent: 20,
+  speedBytesPerSecond: 10_000_000,
+  etaSeconds: 19,
+  order: [
+    {
+      destinationId: "dest-1",
+      label: "Backup A",
+      priority: 0,
+      state: "active",
+      plannedFiles: 50,
+      plannedBytes: 240_000_000,
+    },
+  ],
+  errors: [],
+  capabilities: {
+    canPause: true,
+    canResume: false,
+    canStop: true,
+    canEditPlan: false,
+    canAddDestination: true,
+    canPromote: false,
+    canSwitchSource: false,
+    lockedReason: "Backup is running.",
+  },
+  errorMessage: null,
+};
+
+export const pausedRun: ReplicationRunState = {
+  ...runningRun,
+  status: "paused",
+  pausedAt: "2026-11-01T12:01:00.000Z",
+  capabilities: {
+    ...runningRun.capabilities,
+    canPause: false,
+    canResume: true,
+    canEditPlan: true,
+    lockedReason: "Backup is paused.",
+  },
+};
+
+export const runEvents: RunEventsPage = {
+  events: [
+    {
+      id: 1,
+      runId: 1,
+      at: "2026-11-01T12:00:00.000Z",
+      type: "started",
+      planRevision: 1,
+      note: "Backup started",
+    },
+  ],
+  nextCursor: null,
+};
+
 export function createReplicationFixtureClient(
   overrides: Partial<ReplicationClient> = {},
 ): ReplicationClient {
@@ -268,6 +351,13 @@ export function createReplicationFixtureClient(
     resumeAdoption: vi.fn(() => Promise.resolve(completeAdoption)),
     getPlan: vi.fn(() => Promise.resolve(replicationPlan)),
     getCoverage: vi.fn(() => Promise.resolve(replicationCoverage)),
+    getRunState: vi.fn(() => Promise.resolve(null)),
+    startRun: vi.fn(() => Promise.resolve(runningRun)),
+    pauseRun: vi.fn(() => Promise.resolve(pausedRun)),
+    resumeRun: vi.fn(() => Promise.resolve(runningRun)),
+    requestStop: vi.fn(() => Promise.resolve(runningRun)),
+    replan: vi.fn(() => Promise.resolve(pausedRun)),
+    getRunEvents: vi.fn(() => Promise.resolve(runEvents)),
     ...overrides,
   };
 }

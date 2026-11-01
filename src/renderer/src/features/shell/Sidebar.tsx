@@ -17,6 +17,7 @@ import { libraryPath, parseLibraryDensity, parseLibraryFilter } from "../library
 import { useLibrarySummary } from "../library/use-library";
 import { isScanRunning } from "../scan/types";
 import { useScanState } from "../scan/use-scan";
+import { useRunState } from "../replication/use-replication";
 import styles from "./AppShell.module.css";
 
 function usedPercent(drive: DriveSelectionItem): number | null {
@@ -35,6 +36,10 @@ function navClass({ isActive }: { isActive: boolean }): string {
 
 function healthIssueCount(data: ReturnType<typeof useHealthSummary>["data"]): number {
   return (data?.missingFiles ?? 0) + (data?.movedCandidates ?? 0);
+}
+
+function isActiveBackup(status: string | undefined): boolean {
+  return status === "running" || status === "paused" || status === "stopping";
 }
 
 function SidebarDriveCard({
@@ -91,6 +96,7 @@ export function Sidebar({
   const scan = useScanState(drive.volumeId);
   const library = useLibrarySummary();
   const health = useHealthSummary();
+  const run = useRunState();
   const undatedCount = library.data?.undatedCount ?? 0;
   const healthIssues = healthIssueCount(health.data);
   const memoryLanePath = libraryPath(
@@ -133,6 +139,9 @@ export function Sidebar({
         <NavLink to="/backup" className={navClass}>
           <DatabaseBackup size={18} aria-hidden="true" />
           <span>Backup</span>
+          {isActiveBackup(run.data?.status) ? (
+            <span className={styles.navPulse} title="Backup run active" />
+          ) : null}
         </NavLink>
 
         <div className={styles.navDivider} />

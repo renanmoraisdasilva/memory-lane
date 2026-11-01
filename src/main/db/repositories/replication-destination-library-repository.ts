@@ -33,6 +33,7 @@ export interface UpsertDestinationLibraryInput {
   files: DestinationLibraryFileInput[];
   runStartedAt: string;
   now: string;
+  markMissingBefore?: string | null;
 }
 
 export function upsertDestinationLibraryFiles(
@@ -107,6 +108,8 @@ export function upsertDestinationLibraryFiles(
         upsertDate.run(row.id, file.resolvedDate);
       }
     }
-    markMissing.run(now, runStartedAt);
+    if (input.markMissingBefore !== null) {
+      markMissing.run(now, input.markMissingBefore ?? runStartedAt);
+    }
   })();
 }

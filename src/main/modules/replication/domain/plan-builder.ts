@@ -12,6 +12,7 @@ import {
   bytesOf,
   type PlanDestinationInput,
   type PlanInput,
+  type ReplicationExecutionPlan,
 } from "./plan-types";
 import { buildWarnings } from "./plan-warnings";
 import type { SourceFileFacts } from "./replication-types";
@@ -46,44 +47,51 @@ function rangeFor(files: SourceFileFacts[]): { start: string | null; end: string
   };
 }
 
+interface FullCopyResult {
+  job: NonNullable<ReplicationPlan["fullCopy"]>;
+  files: SourceFileFacts[];
+}
+
 function buildFullCopy(
   sourceFiles: SourceFileFacts[],
   destination: PlanDestinationInput | null,
-): ReplicationPlan["fullCopy"] {
+): FullCopyResult | null {
   if (destination === null) {
     return null;
   }
   const newFiles = sourceFiles.filter((file) => !destination.verifiedFileIds.has(file.id));
   const newBytes = bytesOf(newFiles);
   let remaining = destination.summary.availableBytes;
-  let assignedBytes = 0;
-  let assignedFiles = 0;
+  const assignedFiles: SourceFileFacts[] = [];
   for (const file of newFiles) {
     if (file.size > remaining) {
       continue;
     }
     remaining -= file.size;
-    assignedBytes += file.size;
-    assignedFiles += 1;
+    assignedFiles.push(file);
   }
+  const assignedBytes = bytesOf(assignedFiles);
   const shortfallBytes = newBytes - assignedBytes;
-  const shortfallFiles = newFiles.length - assignedFiles;
+  const shortfallFiles = newFiles.length - assignedFiles.length;
   const completeAfterRun = shortfallBytes === 0;
   return {
-    kind: "full_copy",
-    destination: destination.summary,
-    sourceFiles: sourceFiles.length,
-    sourceBytes: bytesOf(sourceFiles),
-    newFiles: newFiles.length,
-    newBytes,
-    shortfallFiles,
-    shortfallBytes,
-    freeAfterBytes: remaining,
-    completeAfterRun,
-    promotionReady:
-      completeAfterRun &&
-      destination.summary.connection === "connected" &&
-      destination.summary.identityConfidence === "confirmed",
+    job: {
+      kind: "full_copy",
+      destination: destination.summary,
+      sourceFiles: sourceFiles.length,
+      sourceBytes: bytesOf(sourceFiles),
+      newFiles: newFiles.length,
+      newBytes,
+      shortfallFiles,
+      shortfallBytes,
+      freeAfterBytes: remaining,
+      completeAfterRun,
+      promotionReady:
+        completeAfterRun &&
+        destination.summary.connection === "connected" &&
+        destination.summary.identityConfidence === "confirmed",
+    },
+    files: assignedFiles,
   };
 }
 
@@ -135,10 +143,17 @@ function buildPartial(
   assignedIds: Set<number>;
   remainder: SourceFileFacts[];
   rows: PartialRowDraft[];
+  filesByDestination: Map<number, SourceFileFacts[]>;
 } {
   const ordered = [...destinations].sort(byPriority);
   if (ordered.length === 0) {
-    return { job: null, assignedIds: new Set(), remainder: candidates, rows: [] };
+    return {
+      job: null,
+      assignedIds: new Set(),
+      remainder: candidates,
+      rows: [],
+      filesByDestination: new Map(),
+    };
   }
 
   const rows: PartialRowDraft[] = ordered.map((destination) => ({
@@ -171,6 +186,13 @@ function buildPartial(
   }
 
   const assignedIds = new Set(assigned.flat().map((file) => file.id));
+  const filesByDestination = new Map<number, SourceFileFacts[]>();
+  for (const [index, files] of assigned.entries()) {
+    const row = rows[index];
+    if (row !== undefined) {
+      filesByDestination.set(row.destination.id, files);
+    }
+  }
   return {
     job: {
       kind: "partial",
@@ -179,6 +201,7 @@ function buildPartial(
     assignedIds,
     remainder,
     rows,
+    filesByDestination,
   };
 }
 
@@ -199,7 +222,22 @@ function scopesFor(input: PlanInput): ReplicationRunScope[] {
   return scopes;
 }
 
-function planHash(input: PlanInput): string {
+function assignedIdsByDestination(
+  files: Map<number, SourceFileFacts[]>,
+): Array<[number, number[]]> {
+  return [...files.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([destinationId, assigned]) => [
+      destinationId,
+      assigned.map((file) => file.id).sort((left, right) => left - right),
+    ]);
+}
+
+function planHash(
+  input: PlanInput,
+  partialFiles: Map<number, SourceFileFacts[]>,
+  fullCopyFiles: SourceFileFacts[],
+): string {
   const canonical = JSON.stringify({
     source: [...input.sourceFiles]
       .sort((left, right) => left.id - right.id)
@@ -211,10 +249,10 @@ function planHash(input: PlanInput): string {
         destination.summary.destinationId,
         destination.summary.goal,
         destination.summary.priority,
-        destination.summary.connection,
-        destination.summary.availableBytes,
         [...destination.verifiedFileIds].sort((left, right) => left - right),
       ]),
+    assignments: assignedIdsByDestination(partialFiles),
+    fullCopy: fullCopyFiles.map((file) => file.id).sort((left, right) => left - right),
   });
   return input.hash(canonical);
 }
@@ -252,7 +290,7 @@ function startDateFor(files: SourceFileFacts[]): string | null {
   return files.find((file) => file.resolvedDate !== null)?.resolvedDate ?? null;
 }
 
-export function buildReplicationPlan(input: PlanInput): ReplicationPlan {
+export function buildReplicationExecutionPlan(input: PlanInput): ReplicationExecutionPlan {
   const sourceFiles = sortSourceChronology(input.sourceFiles);
   const active = activeDestinations(input.destinations);
   const fullDestinations = active
@@ -261,7 +299,8 @@ export function buildReplicationPlan(input: PlanInput): ReplicationPlan {
   const partialDestinations = active.filter(
     (destination) => destination.summary.goal === "extend_coverage",
   );
-  const fullCopy = buildFullCopy(sourceFiles, fullDestinations[0] ?? null);
+  const fullCopyResult = buildFullCopy(sourceFiles, fullDestinations[0] ?? null);
+  const fullCopy = fullCopyResult?.job ?? null;
   const candidates = sourceFiles.filter((file) => !input.coverage.unionIds.has(file.id));
   const partialResult = buildPartial(sourceFiles, candidates, partialDestinations);
   const remainder: PlanRemainder = {
@@ -274,21 +313,30 @@ export function buildReplicationPlan(input: PlanInput): ReplicationPlan {
   const executionScopes = scopesFor(input);
 
   return {
-    sourceFiles: sourceFiles.length,
-    sourceBytes: bytesOf(sourceFiles),
-    undatedFiles: sourceFiles.filter((file) => file.resolvedDate === null).length,
-    fullCopy,
-    partial: partialResult.job,
-    remainder,
-    coverage: buildCoverage(sourceFiles, input.coverage, fullCopy, partialResult.assignedIds),
-    warnings,
-    executionScopes,
-    planHash: planHash(input),
-    canStart:
-      blocked === undefined &&
-      sourceFiles.length > 0 &&
-      active.length > 0 &&
-      executionScopes.length > 0,
-    blockedReason: blocked?.message ?? null,
+    plan: {
+      sourceFiles: sourceFiles.length,
+      sourceBytes: bytesOf(sourceFiles),
+      undatedFiles: sourceFiles.filter((file) => file.resolvedDate === null).length,
+      fullCopy,
+      partial: partialResult.job,
+      remainder,
+      coverage: buildCoverage(sourceFiles, input.coverage, fullCopy, partialResult.assignedIds),
+      warnings,
+      executionScopes,
+      planHash: planHash(input, partialResult.filesByDestination, fullCopyResult?.files ?? []),
+      canStart: [
+        blocked === undefined,
+        sourceFiles.length > 0,
+        active.length > 0,
+        executionScopes.length > 0,
+      ].every(Boolean),
+      blockedReason: blocked?.message ?? null,
+    },
+    fullCopyFiles: fullCopyResult?.files ?? [],
+    partialFiles: partialResult.filesByDestination,
   };
+}
+
+export function buildReplicationPlan(input: PlanInput): ReplicationPlan {
+  return buildReplicationExecutionPlan(input).plan;
 }

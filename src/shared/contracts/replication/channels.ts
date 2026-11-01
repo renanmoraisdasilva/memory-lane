@@ -11,4 +11,11 @@ export const REPLICATION_CHANNELS = {
   resumeAdoption: "replication:resume-adoption",
   getPlan: "replication:get-plan",
   getCoverage: "replication:get-coverage",
+  getRunState: "replication:get-run-state",
+  startRun: "replication:start-run",
+  pauseRun: "replication:pause-run",
+  resumeRun: "replication:resume-run",
+  requestStop: "replication:request-stop",
+  replan: "replication:replan",
+  getRunEvents: "replication:get-run-events",
 } as const;

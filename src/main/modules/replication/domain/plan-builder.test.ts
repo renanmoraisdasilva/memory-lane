@@ -213,4 +213,12 @@ describe("replication plan builder", () => {
     expect(first.planHash).toBe(second.planHash);
     expect(changed.planHash).not.toBe(first.planHash);
   });
+
+  it("ignores free-space drift when the assigned files do not change", () => {
+    const exact = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 200)]));
+    const roomy = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 900)]));
+    expect(exact.partial?.rows[0]?.newFiles).toBe(5);
+    expect(roomy.partial?.rows[0]?.newFiles).toBe(5);
+    expect(roomy.planHash).toBe(exact.planHash);
+  });
 });

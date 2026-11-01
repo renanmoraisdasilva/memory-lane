@@ -7,6 +7,10 @@ import type {
   RegisterDestinationParams,
   ReplicationOverview,
   ReplicationPlan,
+  ReplicationRunState,
+  RunEventsPage,
+  RunEventsParams,
+  StartRunParams,
   UpdateDestinationParams,
 } from "@shared/contracts/replication/types";
 import { api } from "../../lib/ipc-client";
@@ -24,6 +28,13 @@ export interface ReplicationClient {
   resumeAdoption(destinationId: string): Promise<AdoptionState>;
   getPlan(): Promise<ReplicationPlan>;
   getCoverage(): Promise<CoverageSummary>;
+  getRunState(): Promise<ReplicationRunState | null>;
+  startRun(params: StartRunParams): Promise<ReplicationRunState>;
+  pauseRun(): Promise<ReplicationRunState>;
+  resumeRun(): Promise<ReplicationRunState>;
+  requestStop(): Promise<ReplicationRunState>;
+  replan(): Promise<ReplicationRunState | null>;
+  getRunEvents(params: RunEventsParams): Promise<RunEventsPage>;
 }
 
 export function createReplicationClient(): ReplicationClient {
@@ -40,5 +51,12 @@ export function createReplicationClient(): ReplicationClient {
     resumeAdoption: (destinationId) => api.replication.resumeAdoption(destinationId),
     getPlan: () => api.replication.getPlan(),
     getCoverage: () => api.replication.getCoverage(),
+    getRunState: () => api.replication.getRunState(),
+    startRun: (params) => api.replication.startRun(params),
+    pauseRun: () => api.replication.pauseRun(),
+    resumeRun: () => api.replication.resumeRun(),
+    requestStop: () => api.replication.requestStop(),
+    replan: () => api.replication.replan(),
+    getRunEvents: (params) => api.replication.getRunEvents(params),
   };
 }

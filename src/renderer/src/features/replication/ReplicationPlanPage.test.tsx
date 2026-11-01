@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMockPhaseOneClient } from "../../lib/ipc-client.mock";
 import { createReplicationFixtureClient, replicationPlan } from "../../test/replication-fixtures";
@@ -29,7 +30,22 @@ describe("ReplicationPlanPage", () => {
     expect(screen.getByText("Remainder")).toBeVisible();
     expect(screen.getByText(/4 files have no reliable date/)).toBeVisible();
     expect(screen.getByText(/Plan hash abcdef123456/)).toBeVisible();
-    expect(screen.getByRole("button", { name: "Start backup" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start backup" })).toBeEnabled();
+  });
+
+  it("starts a partial backup after confirmation", async () => {
+    const client = createReplicationFixtureClient();
+    renderPlan(client);
+    await userEvent.click(await screen.findByRole("button", { name: "Start backup" }));
+    const dialog = await screen.findByRole("dialog", { name: "Start partial backup" });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Start backup" }));
+    await waitFor(() =>
+      expect(client.startRun).toHaveBeenCalledWith({
+        scope: "partial_only",
+        planHash: replicationPlan.planHash,
+        replaceStale: false,
+      }),
+    );
   });
 
   it("shows the add-destination empty state when no jobs exist", async () => {

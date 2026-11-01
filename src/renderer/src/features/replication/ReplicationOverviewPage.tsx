@@ -146,6 +146,18 @@ export function ReplicationOverviewPage(): React.JSX.Element {
           value={`${String(active.length)} active · ${String(data.destinations.length)} total`}
         />
       </div>
+      {data.run === null ? null : (
+        <Callout
+          tone="amber"
+          icon={<AlertTriangle size={15} aria-hidden="true" />}
+          title={`Backup ${data.run.status}`}
+        >
+          {data.run.currentDestinationLabel === null
+            ? "Open the backup run to resume or stop it."
+            : `Copying to ${data.run.currentDestinationLabel}. Open the backup run to pause or stop it.`}{" "}
+          <Link to="/backup/run">Open backup run</Link>
+        </Callout>
+      )}
       {data.destinations.length === 0 ? (
         <EmptyState
           icon={<DatabaseBackup size={22} aria-hidden="true" />}

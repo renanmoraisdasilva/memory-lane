@@ -1,6 +1,7 @@
 import { ChevronRight, ShieldCheck } from "lucide-react";
 import type { VolumeId } from "@shared/contracts/drives";
 import { ScanChip } from "./ScanChip";
+import { ReplicationChip } from "./ReplicationChip";
 import styles from "./AppShell.module.css";
 
 export function TopBar({
@@ -24,6 +25,7 @@ export function TopBar({
         })}
       </nav>
       <div className={styles.topbarRight}>
+        <ReplicationChip />
         <ScanChip volumeId={volumeId} />
         <span className={styles.readonlyPill}>
           <ShieldCheck size={13} aria-hidden="true" />

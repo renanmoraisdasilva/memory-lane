@@ -21,20 +21,6 @@ import {
 } from "@shared/contracts/health";
 import { LibraryItemTargetParamsSchema } from "@shared/contracts/library";
 import { OtherFilesParamsSchema, type OtherFilesPage } from "@shared/contracts/other-files";
-import { REPLICATION_CHANNELS } from "@shared/contracts/replication/channels";
-import {
-  AdoptionDestinationParamsSchema,
-  GetDestinationParamsSchema,
-  RegisterDestinationParamsSchema,
-  UpdateDestinationParamsSchema,
-  type AdoptionState,
-  type CoverageSummary,
-  type DestinationCandidate,
-  type DestinationDetail,
-  type DestinationSummary,
-  type ReplicationOverview,
-  type ReplicationPlan,
-} from "@shared/contracts/replication/types";
 import {
   type BackupResult,
   type CacheClearResult,
@@ -47,10 +33,12 @@ import type { LibraryService } from "../modules/library/application/library-serv
 import type { DestinationService } from "../modules/replication/application/destination-service";
 import type { AdoptionService } from "../modules/replication/application/adoption-service";
 import type { PlanService } from "../modules/replication/application/plan-service";
+import type { RunService } from "../modules/replication/application/run-service";
 import type { ScanService } from "../modules/scanning/application/scan-service";
 import type { SettingsService } from "../modules/settings/application/settings-service";
 import type { Logger } from "../logging/types";
 import { registerLibraryHandlers } from "./register-library-handlers";
+import { registerReplicationHandlers } from "./register-replication-handlers";
 import { registerScanHandlers } from "./register-scan-handlers";
 import { respond } from "./respond";
 
@@ -64,6 +52,7 @@ export interface IpcServices {
   destinationService: DestinationService;
   adoptionService: AdoptionService;
   planService: PlanService;
+  runService: RunService;
   logger: Logger;
 }
 
@@ -78,6 +67,7 @@ export function registerIpcHandlers(services: IpcServices): void {
     destinationService,
     adoptionService,
     planService,
+    runService,
     logger,
   } = services;
 
@@ -109,98 +99,17 @@ export function registerIpcHandlers(services: IpcServices): void {
 
   registerScanHandlers(scanService, logger);
   registerLibraryHandlers(libraryService, logger);
-  registerReplicationHandlers(destinationService, adoptionService, planService, logger);
+  registerReplicationHandlers({
+    destinationService,
+    adoptionService,
+    planService,
+    runService,
+    logger,
+  });
   registerHealthHandlers(healthService, logger);
   registerSettingsHandlers(settingsService, logger);
   registerOtherFilesHandler(libraryService, logger);
   registerFileActionHandlers(libraryService, logger);
-}
-
-function registerReplicationHandlers(
-  destinationService: DestinationService,
-  adoptionService: AdoptionService,
-  planService: PlanService,
-  logger: Logger,
-): void {
-  ipcMain.handle(REPLICATION_CHANNELS.getOverview, (event) =>
-    respond<ReplicationOverview>(event, REPLICATION_CHANNELS.getOverview, logger, () =>
-      planService.getOverview(),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.getAdoptionState, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.getAdoptionState, logger, () => {
-      const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.getState(parsed.destinationId);
-    }),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.startAdoption, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.startAdoption, logger, () => {
-      const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.start(parsed.destinationId);
-    }),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.pauseAdoption, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.pauseAdoption, logger, () => {
-      const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.pause(parsed.destinationId);
-    }),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.resumeAdoption, (event, params: unknown) =>
-    respond<AdoptionState>(event, REPLICATION_CHANNELS.resumeAdoption, logger, () => {
-      const parsed = AdoptionDestinationParamsSchema.parse(params);
-      return adoptionService.resume(parsed.destinationId);
-    }),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.getPlan, (event) =>
-    respond<ReplicationPlan>(event, REPLICATION_CHANNELS.getPlan, logger, () =>
-      planService.getPlan(),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.getCoverage, (event) =>
-    respond<CoverageSummary>(event, REPLICATION_CHANNELS.getCoverage, logger, () =>
-      planService.getCoverage(),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.listDestinationCandidates, (event) =>
-    respond<DestinationCandidate[]>(
-      event,
-      REPLICATION_CHANNELS.listDestinationCandidates,
-      logger,
-      () => destinationService.listCandidates(),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.listDestinations, (event) =>
-    respond<DestinationSummary[]>(event, REPLICATION_CHANNELS.listDestinations, logger, () =>
-      destinationService.list(),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.getDestination, (event, params: unknown) =>
-    respond<DestinationDetail>(event, REPLICATION_CHANNELS.getDestination, logger, () => {
-      const parsed = GetDestinationParamsSchema.parse(params);
-      return destinationService.get(Number(parsed.destinationId));
-    }),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.registerDestination, (event, params: unknown) =>
-    respond<DestinationDetail>(event, REPLICATION_CHANNELS.registerDestination, logger, () =>
-      destinationService.register(RegisterDestinationParamsSchema.parse(params)),
-    ),
-  );
-
-  ipcMain.handle(REPLICATION_CHANNELS.updateDestination, (event, params: unknown) =>
-    respond<DestinationDetail>(event, REPLICATION_CHANNELS.updateDestination, logger, () =>
-      destinationService.update(UpdateDestinationParamsSchema.parse(params)),
-    ),
-  );
 }
 
 function registerHealthHandlers(healthService: HealthService, logger: Logger): void {

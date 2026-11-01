@@ -132,6 +132,13 @@ function createApi(): MemoryLaneApi {
       resumeAdoption: libraryFailure,
       getPlan: libraryFailure,
       getCoverage: libraryFailure,
+      getRunState: vi.fn(async () => ok(null)),
+      startRun: libraryFailure,
+      pauseRun: libraryFailure,
+      resumeRun: libraryFailure,
+      requestStop: libraryFailure,
+      replan: vi.fn(async () => ok(null)),
+      getRunEvents: libraryFailure,
     },
   };
 }

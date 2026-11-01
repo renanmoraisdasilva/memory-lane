@@ -1,10 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { DetectedDrive } from "../domain/drive";
 import { computeVolumeId } from "../infrastructure/volume-identity";
 
-export function createDevelopmentDrive(rootPath: string): DetectedDrive {
+const DevelopmentDriveConfigSchema = z.object({
+  path: z.string().min(1),
+  label: z.string().min(1).optional(),
+  serial: z.string().min(1).optional(),
+});
+
+export type DevelopmentDriveConfig = z.infer<typeof DevelopmentDriveConfigSchema>;
+
+export function createDevelopmentDrive(
+  rootPath: string,
+  config: Partial<DevelopmentDriveConfig> = {},
+): DetectedDrive {
   const resolved = path.resolve(rootPath);
   let stats: fs.Stats;
   try {
@@ -33,17 +45,19 @@ export function createDevelopmentDrive(rootPath: string): DetectedDrive {
     // Capacity is optional for a development drive.
   }
 
-  const label = process.env.MEMORY_LANE_DEV_DRIVE_LABEL?.trim() || "Development drive";
+  const label =
+    config.label ?? process.env.MEMORY_LANE_DEV_DRIVE_LABEL?.trim() ?? "Development drive";
+  const serial = config.serial ?? "development";
   const fileSystem = "local";
 
   return {
     volumeId: computeVolumeId({
-      serialNumber: "development",
+      serialNumber: serial,
       label,
       fileSystem,
       totalBytes,
     }),
-    serialNumber: "development",
+    serialNumber: serial,
     label,
     fileSystem,
     letter: null,
@@ -61,4 +75,26 @@ export function getDevelopmentDrive(): DetectedDrive | null {
     return null;
   }
   return createDevelopmentDrive(configuredPath);
+}
+
+export function getDevelopmentDrives(): DetectedDrive[] {
+  const drives: DetectedDrive[] = [];
+  const multi = process.env.MEMORY_LANE_DEV_DRIVES?.trim();
+  if (multi) {
+    try {
+      const parsed = z.array(DevelopmentDriveConfigSchema).safeParse(JSON.parse(multi));
+      if (parsed.success) {
+        for (const config of parsed.data) {
+          drives.push(createDevelopmentDrive(config.path, config));
+        }
+      }
+    } catch {
+      // Invalid multi-drive configuration falls back to the single drive.
+    }
+  }
+  if (drives.length > 0) {
+    return drives;
+  }
+  const single = getDevelopmentDrive();
+  return single === null ? [] : [single];
 }

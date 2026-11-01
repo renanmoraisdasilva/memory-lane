@@ -122,4 +122,83 @@ describe("destination service", () => {
       await harness.dispose();
     }
   });
+
+  it("lists candidates and updates destination settings", async () => {
+    const harness = await createScanHarness();
+    const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-destination-"));
+    roots.push(destinationRoot);
+    const drive = destinationDrive(destinationRoot);
+    let detected = [harness.drive, drive];
+    const service = new DestinationService({
+      db: harness.db,
+      listDetected: async () => detected,
+      logger: {
+        info: () => undefined,
+        warn: () => undefined,
+        error: () => undefined,
+        debug: () => undefined,
+      },
+    });
+    try {
+      const detail = await service.register({
+        volumeId: drive.volumeId,
+        rootRelative: "",
+        goal: "extend_coverage",
+        layout: "dedicated",
+        allocationMode: "percent",
+        allocationPercent: 50,
+        allocationBytes: null,
+        reserveBytes: 1024,
+      });
+      const candidates = await service.listCandidates();
+      expect(candidates.find((candidate) => candidate.isActiveSource)?.blockedReason).toContain(
+        "active source",
+      );
+      const destinationCandidate = candidates.find(
+        (candidate) => candidate.volumeId === drive.volumeId,
+      );
+      expect(destinationCandidate?.hasMarker).toBe(true);
+      expect(destinationCandidate?.markerCatalogId).not.toBeNull();
+
+      const updated = await service.update({
+        destinationId: detail.destinationId,
+        goal: "full_copy",
+        allocationMode: "fixed",
+        allocationBytes: 4096,
+        reserveBytes: 2048,
+        layout: "mirror_source",
+      });
+      expect(updated).toMatchObject({
+        goal: "full_copy",
+        allocationMode: "fixed",
+        allocationBytes: 4096,
+        reserveBytes: 2048,
+        layout: "mirror_source",
+      });
+
+      detected = [harness.drive];
+      const offline = await service.list();
+      expect(offline[0]).toMatchObject({ connection: "offline", mount: null });
+      expect((await service.get(detail.id)).adoption?.status).toBe("idle");
+      expect((await service.getByDestinationId(detail.destinationId)).id).toBe(detail.id);
+      await expect(service.getByDestinationId("missing")).rejects.toBeInstanceOf(AppError);
+      await expect(
+        service.update({ destinationId: "missing", goal: "extend_coverage" }),
+      ).rejects.toBeInstanceOf(AppError);
+      await expect(
+        service.register({
+          volumeId: toVolumeId("missing-volume"),
+          rootRelative: "",
+          goal: "extend_coverage",
+          layout: "dedicated",
+          allocationMode: "all_safe",
+          allocationPercent: null,
+          allocationBytes: null,
+          reserveBytes: 0,
+        }),
+      ).rejects.toBeInstanceOf(AppError);
+    } finally {
+      await harness.dispose();
+    }
+  });
 });

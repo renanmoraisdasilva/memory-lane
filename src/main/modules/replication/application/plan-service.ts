@@ -12,17 +12,30 @@ import type { ReplicationSourceFile } from "../../../db/repositories/replication
 import type { DetectedDrive } from "../../drives/domain/drive";
 import { computeCoverage, type CoverageResult } from "../domain/coverage";
 import type { CoverageDestinationFacts, SourceFileFacts } from "../domain/replication-types";
-import { buildReplicationPlan } from "../domain/plan-builder";
+import { buildReplicationExecutionPlan, buildReplicationPlan } from "../domain/plan-builder";
 import type { PlanDestinationInput } from "../domain/plan-types";
 import { firstPartialPriority, toDestinationSummary } from "./destination-summary";
 
 interface PlanData {
   identity: ArchiveIdentity;
   sourceFiles: SourceFileFacts[];
+  sources: ReplicationSourceFile[];
+  records: ReplicationDestinationRecord[];
   coverage: CoverageResult;
   planDestinations: PlanDestinationInput[];
   overviewDestinations: ReplicationOverview["destinations"];
   hasFullCopy: boolean;
+}
+
+export interface ExecutionDestination {
+  destination: ReplicationDestinationRecord;
+  files: ReplicationSourceFile[];
+}
+
+export interface ReplicationExecution {
+  plan: ReplicationPlan;
+  partial: ExecutionDestination[];
+  fullCopy: ExecutionDestination | null;
 }
 
 interface CoveragePayload {
@@ -90,6 +103,48 @@ export class PlanService {
     });
   }
 
+  async getExecutionPlan(): Promise<ReplicationExecution> {
+    const data = await this.load();
+    const execution = buildReplicationExecutionPlan({
+      sourceFiles: data.sourceFiles,
+      destinations: data.planDestinations,
+      coverage: data.coverage,
+      hash: sha256,
+    });
+    const sourcesById = new Map(data.sources.map((file) => [file.id, file]));
+    const recordsById = new Map(data.records.map((record) => [record.id, record]));
+    const toAssignment = (
+      destinationId: number,
+      files: SourceFileFacts[],
+    ): ExecutionDestination | null => {
+      const destination = recordsById.get(destinationId);
+      if (destination === undefined) {
+        return null;
+      }
+      return {
+        destination,
+        files: files
+          .map((file) => sourcesById.get(file.id))
+          .filter((file): file is ReplicationSourceFile => file !== undefined),
+      };
+    };
+    const partial: ExecutionDestination[] = [];
+    for (const [destinationId, files] of execution.partialFiles) {
+      const assignment = toAssignment(destinationId, files);
+      if (assignment !== null) {
+        partial.push(assignment);
+      }
+    }
+    const fullCopyDestination = data.records.find(
+      (record) => record.destinationId === execution.plan.fullCopy?.destination.destinationId,
+    );
+    const fullCopy =
+      fullCopyDestination === undefined
+        ? null
+        : toAssignment(fullCopyDestination.id, execution.fullCopyFiles);
+    return { plan: execution.plan, partial, fullCopy };
+  }
+
   private async load(): Promise<PlanData> {
     const [records, drives, identity, sources, coverageRows] = await Promise.all([
       this.dependencies.db.request<ReplicationDestinationRecord[]>(
@@ -142,6 +197,8 @@ export class PlanService {
     return {
       identity,
       sourceFiles: files,
+      sources,
+      records,
       coverage,
       planDestinations,
       overviewDestinations: summaries,

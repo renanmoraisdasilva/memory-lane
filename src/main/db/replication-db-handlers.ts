@@ -19,6 +19,8 @@ import { createReplicationAdoptionDbHandlers } from "./replication-adoption-db-h
 import { createReplicationCoverageDbHandlers } from "./replication-coverage-db-handlers";
 import { createReplicationSourceDbHandlers } from "./replication-source-db-handlers";
 import { createReplicationDestinationLibraryDbHandlers } from "./replication-destination-library-db-handlers";
+import { createReplicationRunDbHandlers } from "./replication-run-db-handlers";
+import { createDestinationLibraryMediaDbHandlers } from "./destination-library-media-db-handlers";
 import type {
   ReplicationDbHandlerMap,
   ReplicationDbHandlerOptions,
@@ -147,6 +149,8 @@ export function createReplicationDbHandlers(
     ...createReplicationSourceDbHandlers(options),
     ...createReplicationDestinationLibraryDbHandlers(options),
     ...createReplicationCoverageDbHandlers(options),
+    ...createReplicationRunDbHandlers(options),
+    ...createDestinationLibraryMediaDbHandlers(options),
   };
 
   return {

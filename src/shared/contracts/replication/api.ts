@@ -8,6 +8,10 @@ import type {
   RegisterDestinationParams,
   ReplicationOverview,
   ReplicationPlan,
+  ReplicationRunState,
+  RunEventsPage,
+  RunEventsParams,
+  StartRunParams,
   UpdateDestinationParams,
 } from "./types";
 
@@ -24,4 +28,11 @@ export interface ReplicationApi {
   resumeAdoption(destinationId: string): Promise<IpcResult<AdoptionState>>;
   getPlan(): Promise<IpcResult<ReplicationPlan>>;
   getCoverage(): Promise<IpcResult<CoverageSummary>>;
+  getRunState(): Promise<IpcResult<ReplicationRunState | null>>;
+  startRun(params: StartRunParams): Promise<IpcResult<ReplicationRunState>>;
+  pauseRun(): Promise<IpcResult<ReplicationRunState>>;
+  resumeRun(): Promise<IpcResult<ReplicationRunState>>;
+  requestStop(): Promise<IpcResult<ReplicationRunState>>;
+  replan(): Promise<IpcResult<ReplicationRunState | null>>;
+  getRunEvents(params: RunEventsParams): Promise<IpcResult<RunEventsPage>>;
 }

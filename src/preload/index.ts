@@ -48,6 +48,10 @@ import type {
   RegisterDestinationParams,
   ReplicationOverview,
   ReplicationPlan,
+  ReplicationRunState,
+  RunEventsPage,
+  RunEventsParams,
+  StartRunParams,
   UpdateDestinationParams,
 } from "@shared/contracts/replication/types";
 import type {
@@ -188,6 +192,30 @@ const api: MemoryLaneApi = {
       ipcRenderer.invoke(REPLICATION_CHANNELS.getPlan) as Promise<IpcResult<ReplicationPlan>>,
     getCoverage: () =>
       ipcRenderer.invoke(REPLICATION_CHANNELS.getCoverage) as Promise<IpcResult<CoverageSummary>>,
+    getRunState: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getRunState) as Promise<
+        IpcResult<ReplicationRunState | null>
+      >,
+    startRun: (params: StartRunParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.startRun, params) as Promise<
+        IpcResult<ReplicationRunState>
+      >,
+    pauseRun: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.pauseRun) as Promise<IpcResult<ReplicationRunState>>,
+    resumeRun: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.resumeRun) as Promise<IpcResult<ReplicationRunState>>,
+    requestStop: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.requestStop) as Promise<
+        IpcResult<ReplicationRunState>
+      >,
+    replan: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.replan) as Promise<
+        IpcResult<ReplicationRunState | null>
+      >,
+    getRunEvents: (params: RunEventsParams) =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getRunEvents, params) as Promise<
+        IpcResult<RunEventsPage>
+      >,
   },
 };
 

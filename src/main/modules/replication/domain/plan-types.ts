@@ -1,4 +1,4 @@
-import type { DestinationSummary } from "@shared/contracts/replication/types";
+import type { DestinationSummary, ReplicationPlan } from "@shared/contracts/replication/types";
 import type { CoverageResult } from "./coverage";
 import type { ReplicaStatusCounts, SourceFileFacts } from "./replication-types";
 
@@ -12,6 +12,12 @@ export interface PlanInput {
   destinations: PlanDestinationInput[];
   coverage: CoverageResult;
   hash: (value: string) => string;
+}
+
+export interface ReplicationExecutionPlan {
+  plan: ReplicationPlan;
+  fullCopyFiles: SourceFileFacts[];
+  partialFiles: Map<number, SourceFileFacts[]>;
 }
 
 export function isActiveDestination(summary: DestinationSummary): boolean {

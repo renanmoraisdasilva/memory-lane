@@ -15,6 +15,7 @@ import { ScanPage } from "./features/scan/ScanPage";
 import { ReplicationOverviewPage } from "./features/replication/ReplicationOverviewPage";
 import { ReplicationPlanPage } from "./features/replication/ReplicationPlanPage";
 import { ReplicationDestinationPage } from "./features/replication/ReplicationDestinationPage";
+import { ReplicationRunPage } from "./features/replication/ReplicationRunPage";
 import {
   createReplicationClient,
   type ReplicationClient,
@@ -137,6 +138,18 @@ function BackupDestinationRoute(): React.JSX.Element {
   );
 }
 
+function BackupRunRoute(): React.JSX.Element {
+  const { catalog, drive } = useWorkspace();
+  if (catalog === null || drive === null) {
+    return <Navigate to="/" replace />;
+  }
+  return (
+    <AppShell crumbs={["Backup", "Run"]}>
+      <ReplicationRunPage />
+    </AppShell>
+  );
+}
+
 function ViewerRoute(): React.JSX.Element {
   const { catalog, drive } = useWorkspace();
   if (catalog === null || drive === null) {
@@ -177,6 +190,7 @@ export function App({
                   path="/backup/destinations/:destinationId"
                   element={<BackupDestinationRoute />}
                 />
+                <Route path="/backup/run" element={<BackupRunRoute />} />
                 <Route path="/settings" element={<SettingsRoute />} />
                 <Route path="/library/item/:fileId" element={<ViewerRoute />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

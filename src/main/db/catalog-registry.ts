@@ -9,6 +9,7 @@ import { catalogMigrations } from "./migrations/catalog-migrations";
 import { ensureDriveIdentity } from "./repositories/catalog-repository";
 import { recoverInterruptedScans } from "./repositories/scan-session-repository";
 import { markInterruptedAdoptions } from "./repositories/replication-adoption-repository";
+import { markInterruptedRuns } from "./repositories/replication-run-repository";
 import { acquireCatalogLock } from "../platform/catalog-lock";
 
 interface CatalogSession {
@@ -78,7 +79,9 @@ function openSession(input: {
     ensureDriveIdentity(db, input.identity, input.schemaVersion);
     if (!input.create) {
       recoverInterruptedScans(db);
-      markInterruptedAdoptions(db, new Date().toISOString());
+      const now = new Date().toISOString();
+      markInterruptedAdoptions(db, now);
+      markInterruptedRuns(db, now);
     }
   } catch (error) {
     db.close();
