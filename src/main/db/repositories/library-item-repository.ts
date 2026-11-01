@@ -41,7 +41,7 @@ const OrderRowSchema = z.object({
   next_id: z.number().int().positive().nullable(),
 });
 
-const ThumbnailRowSchema = z.object({
+const CacheEntryRowSchema = z.object({
   id: z.number().int().positive(),
   path: z.string().min(1),
   state: z.enum(["present", "missing"]),
@@ -58,13 +58,16 @@ export interface ResolvedMedia {
   mediaClass: "image" | "video" | "other";
 }
 
-export interface ResolvedThumbnail {
+export interface ResolvedCacheEntry {
   fileId: number;
   sourcePath: string;
   state: "present" | "missing";
   cachePath: string | null;
   status: "pending" | "ready" | "failed";
 }
+
+export type ResolvedThumbnail = ResolvedCacheEntry;
+export type ResolvedPreview = ResolvedCacheEntry;
 
 export interface LibraryContext {
   volumeId: string;
@@ -73,13 +76,16 @@ export interface LibraryContext {
   cachePath: string;
 }
 
-export interface SaveThumbnailInput {
+export interface SaveCacheEntryInput {
   fileId: number;
   path: string;
   bytes: number;
   status: "ready" | "failed";
   now: string;
 }
+
+export type SaveThumbnailInput = SaveCacheEntryInput;
+export type SavePreviewInput = SaveCacheEntryInput;
 
 function parseMedia(row: unknown): ResolvedMedia {
   const parsed = MediaRowSchema.safeParse(row);
@@ -191,17 +197,21 @@ export function resolveCatalogFile(db: Database.Database, fileId: number): Resol
   return row === undefined ? null : parseMedia(row);
 }
 
-export function resolveThumbnail(db: Database.Database, fileId: number): ResolvedThumbnail | null {
+function resolveCacheEntry(
+  db: Database.Database,
+  fileId: number,
+  kind: "thumbnail" | "preview",
+): ResolvedCacheEntry | null {
   const row = db
     .prepare(
       `SELECT f.id, f.path, f.state, c.path AS cache_path, c.status
        FROM files f
-       LEFT JOIN cache_entries c ON c.file_id = f.id AND c.kind = 'thumbnail'
+       LEFT JOIN cache_entries c ON c.file_id = f.id AND c.kind = ?
        WHERE f.id = ? AND f.media_class IN ('image', 'video')`,
     )
-    .get(fileId);
+    .get(kind, fileId);
 
-  const parsed = ThumbnailRowSchema.safeParse(row);
+  const parsed = CacheEntryRowSchema.safeParse(row);
   if (!parsed.success) {
     return null;
   }
@@ -214,16 +224,36 @@ export function resolveThumbnail(db: Database.Database, fileId: number): Resolve
   };
 }
 
-export function saveThumbnail(db: Database.Database, input: SaveThumbnailInput): void {
+function saveCacheEntry(
+  db: Database.Database,
+  kind: "thumbnail" | "preview",
+  input: SaveCacheEntryInput,
+): void {
   db.prepare(
     `INSERT INTO cache_entries (file_id, kind, path, bytes, generated_at, status)
-     VALUES (?, 'thumbnail', ?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(file_id, kind) DO UPDATE SET
        path = excluded.path,
        bytes = excluded.bytes,
        generated_at = excluded.generated_at,
        status = excluded.status`,
-  ).run(input.fileId, input.path, input.bytes, input.now, input.status);
+  ).run(input.fileId, kind, input.path, input.bytes, input.now, input.status);
+}
+
+export function resolveThumbnail(db: Database.Database, fileId: number): ResolvedThumbnail | null {
+  return resolveCacheEntry(db, fileId, "thumbnail");
+}
+
+export function resolvePreview(db: Database.Database, fileId: number): ResolvedPreview | null {
+  return resolveCacheEntry(db, fileId, "preview");
+}
+
+export function saveThumbnail(db: Database.Database, input: SaveThumbnailInput): void {
+  saveCacheEntry(db, "thumbnail", input);
+}
+
+export function savePreview(db: Database.Database, input: SavePreviewInput): void {
+  saveCacheEntry(db, "preview", input);
 }
 
 export function getLibraryContext(db: Database.Database, catalogPath: string): LibraryContext {

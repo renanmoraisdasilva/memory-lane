@@ -25,7 +25,8 @@ Status: implemented in Phase 5. Types live in
 - Clearing removes the cache directory and all `cache_entries` rows.
 - Cache clearing never changes `catalog.db`, date overrides, metadata, or any
   original file.
-- Thumbnails regenerate lazily through the normal media request path.
+- Thumbnails and HEIC/HEIF previews regenerate lazily through the normal media
+  request path.
 
 ## Backups
 
@@ -59,7 +60,8 @@ No restore action exists in the UI.
 
 Phase 5 reuses the existing `backup_history` and
 `registered_drives.last_backup_at` fields from app schema version 2. No catalog
-migration is added; catalog schema remains version 5.
+migration is added; catalog schema is version 6 after the video-frame-rate and
+preview work.
 
 ## Tests
 

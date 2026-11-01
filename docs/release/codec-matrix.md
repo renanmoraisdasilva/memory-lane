@@ -19,7 +19,7 @@ The original file is never modified.
 | `webp` | image | Windows shell / Electron | Supported | Open externally |
 | `avif` | image | Windows shell / Electron | Expected on current Chromium | Open externally |
 | `tif`, `tiff` | image | Windows shell only | Not generally rendered by Chromium | Open externally |
-| `heic`, `heif` | image | Windows HEIF extension if installed | Not generally rendered by Chromium | Open externally |
+| `heic`, `heif` | image | Windows HEIF extension if installed | On-demand JPEG preview generated in a worker and cached | Open externally |
 | `cr2`, `cr3`, `nef`, `arw`, `dng`, `orf`, `rw2`, `raf`, `srw`, `pef` | image | Windows RAW codec if installed | Not rendered by Chromium | Open externally |
 
 ## Video
@@ -53,5 +53,14 @@ On a clean Windows release VM:
 4. Confirm every failed case still shows the catalog metadata and the
    **Open externally** action.
 5. Record the results in the release checklist.
+
+For HEIC/HEIF, run the packaged-app check against a real iPhone photo:
+
+```bash
+npm run validate:heic -- "C:\path\to\photo.heic"
+```
+
+It scans a temporary catalog, opens the photo, waits for the generated JPEG
+preview to render, and verifies the cached file exists.
 
 Supported results are not claimed until that pass is complete.

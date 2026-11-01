@@ -9,6 +9,7 @@ const ALLOWED = new Set(
     "src/main/platform/catalog-lock.ts",
     "src/main/modules/scanning/infrastructure/electron-thumbnail-generator.ts",
     "src/main/modules/settings/application/settings-service.ts",
+    "src/main/workers/heic-worker.ts",
   ].map((file) => file.replaceAll("/", path.sep)),
 );
 

@@ -107,6 +107,11 @@ Media:
   seeking.
 - Return the cataloged MIME type when known.
 - Open the source read-only and return 404 for missing files.
+- For `.heic` and `.heif` images, generate a JPEG preview on demand in a
+  worker thread and cache it at
+  `.memorylane/cache/previews/<fileId>.jpg` with a `preview` cache entry.
+  Later requests serve the cached JPEG. Conversion failures return 404 and use
+  the viewer's external-open fallback.
 
 The renderer CSP allows `ml-media:` in `img-src` and `media-src`.
 

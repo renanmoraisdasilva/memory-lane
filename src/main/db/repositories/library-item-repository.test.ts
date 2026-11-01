@@ -10,7 +10,9 @@ import {
   getLibraryContext,
   getLibraryItem,
   resolveMediaFile,
+  resolvePreview,
   resolveThumbnail,
+  savePreview,
   saveThumbnail,
 } from "./library-item-repository";
 
@@ -160,6 +162,7 @@ describe("library item repository", () => {
       cachePath: "C:\\cache\\a.jpg",
     });
     expect(resolveThumbnail(db, ids.b)).toMatchObject({ status: "pending", cachePath: null });
+    expect(resolvePreview(db, ids.b)).toMatchObject({ status: "pending", cachePath: null });
     db.close();
   });
 
@@ -177,6 +180,18 @@ describe("library item repository", () => {
     expect(resolveThumbnail(db, ids.b)).toMatchObject({
       status: "ready",
       cachePath: "C:\\cache\\b.jpg",
+    });
+
+    savePreview(db, {
+      fileId: ids.b,
+      path: "C:\\cache\\b-preview.jpg",
+      bytes: 30,
+      status: "ready",
+      now,
+    });
+    expect(resolvePreview(db, ids.b)).toMatchObject({
+      status: "ready",
+      cachePath: "C:\\cache\\b-preview.jpg",
     });
 
     expect(getLibraryContext(db, catalogPath)).toMatchObject({

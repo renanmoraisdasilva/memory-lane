@@ -94,6 +94,8 @@ Known gaps:
 
 - Combined photo/video route with filter-aware previous/next navigation.
 - Photo fit/100%; native HTML5 video playback with external-open fallback.
+- On-demand HEIC/HEIF to JPEG previews, generated in a worker and cached; other
+  unsupported codecs use the external-open fallback.
 - Date, format, size, dimensions, duration, video frame rate, and technical
   metadata.
 - Original path, Reveal in Explorer, and Open externally.

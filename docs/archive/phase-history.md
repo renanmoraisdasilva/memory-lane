@@ -472,4 +472,7 @@ Status: implemented after Phase 6 automation, before the manual release pass.
 - A second launch or taskbar activation explicitly restores, shows, focuses,
   and raises the existing window. Unresponsive and renderer-loss events are
   logged for diagnosis.
+- HEIC/HEIF photos open in the viewer through an on-demand JPEG preview
+  generated in a worker thread and cached under `.memorylane/cache/previews`;
+  the original file is never modified.
 

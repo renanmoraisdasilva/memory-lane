@@ -19,6 +19,8 @@ and status.
   validation, rehash-and-update, and defensive moved confirmation.
 - `0003-scheduled-backups-and-cache.md` - SQLite online backups every 15
   minutes and on close, plus all-or-nothing generated-cache clearing.
+- `0004-heic-preview-conversion.md` - Worker-thread HEIC/HEIF to JPEG previews
+  cached as generated media, with external-open fallback.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

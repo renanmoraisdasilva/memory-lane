@@ -6,6 +6,7 @@ import {
   LibraryFileParamsSchema,
   LibraryItemDbParamsSchema,
   LibraryOtherFilesDbParamsSchema,
+  LibrarySavePreviewParamsSchema,
   LibrarySaveThumbnailParamsSchema,
   LibrarySetDateDbParamsSchema,
   LibraryTimelineDbParamsSchema,
@@ -27,7 +28,9 @@ import {
   getLibraryItem,
   resolveCatalogFile,
   resolveMediaFile,
+  resolvePreview,
   resolveThumbnail,
+  savePreview,
   saveThumbnail,
 } from "./repositories/library-item-repository";
 import { getOtherFiles } from "./repositories/other-files-repository";
@@ -103,6 +106,13 @@ export function createLibraryDbHandlers(options: LibraryDbHandlerOptions): Libra
     "library.saveThumbnail": (params) => {
       const parsed = LibrarySaveThumbnailParamsSchema.parse(params);
       saveThumbnail(catalog(), parsed);
+      return { saved: true };
+    },
+    "library.resolvePreview": (params) =>
+      resolvePreview(catalog(), LibraryFileParamsSchema.parse(params).fileId),
+    "library.savePreview": (params) => {
+      const parsed = LibrarySavePreviewParamsSchema.parse(params);
+      savePreview(catalog(), parsed);
       return { saved: true };
     },
   };

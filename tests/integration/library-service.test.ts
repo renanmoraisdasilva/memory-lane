@@ -87,15 +87,19 @@ describe("library integration", () => {
           throw new Error("cached thumbnail should not regenerate");
         },
       };
+      const noPreviews = {
+        convert: async () => null,
+        shutdown: async () => undefined,
+      };
       const thumbnail = await handleMediaRequest(
-        { db: harness.db, thumbnails: noThumbnails, logger: testLogger() },
+        { db: harness.db, thumbnails: noThumbnails, previews: noPreviews, logger: testLogger() },
         request(item?.thumbnailUrl ?? ""),
       );
       expect(thumbnail.status).toBe(200);
       expect(thumbnail.headers.get("content-type")).toBe("image/jpeg");
 
       const media = await handleMediaRequest(
-        { db: harness.db, thumbnails: noThumbnails, logger: testLogger() },
+        { db: harness.db, thumbnails: noThumbnails, previews: noPreviews, logger: testLogger() },
         request(details.mediaUrl ?? "", { range: "bytes=0-3" }),
       );
       expect(media.status).toBe(206);

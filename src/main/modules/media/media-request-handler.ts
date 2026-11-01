@@ -3,7 +3,13 @@ import path from "node:path";
 import type { DbClient } from "../../clients/db-client";
 import type { Logger } from "../../logging/types";
 import type { ThumbnailWorkScheduler } from "../scanning/domain/scan-files";
-import { createMediaResponse, createThumbnailResponse, parseMediaUrl } from "./media-response";
+import type { PreviewConverter } from "./heic-preview";
+import {
+  createMediaResponse,
+  createPreviewResponse,
+  createThumbnailResponse,
+  parseMediaUrl,
+} from "./media-response";
 
 interface MediaContext {
   volumeId: string;
@@ -29,14 +35,23 @@ interface ResolvedThumbnail {
   status: "pending" | "ready" | "failed";
 }
 
+interface ResolvedPreview {
+  fileId: number;
+  sourcePath: string;
+  state: "present" | "missing";
+  cachePath: string | null;
+  status: "pending" | "ready" | "failed";
+}
+
 export interface MediaRequestDependencies {
   db: DbClient;
   thumbnails: ThumbnailWorkScheduler;
+  previews: PreviewConverter;
   logger: Logger;
   now?: () => Date;
 }
 
-interface ThumbnailStatusInput {
+interface CacheStatusInput {
   dependencies: MediaRequestDependencies;
   fileId: number;
   outputPath: string;
@@ -57,7 +72,7 @@ function notFound(): Response {
   return new Response(null, { status: 404 });
 }
 
-async function saveThumbnailStatus(input: ThumbnailStatusInput): Promise<void> {
+async function saveThumbnailStatus(input: CacheStatusInput): Promise<void> {
   await input.dependencies.db.request("library.saveThumbnail", {
     fileId: input.fileId,
     path: input.status === "ready" ? input.outputPath : "",
@@ -65,6 +80,92 @@ async function saveThumbnailStatus(input: ThumbnailStatusInput): Promise<void> {
     status: input.status,
     now: (input.dependencies.now ?? (() => new Date()))().toISOString(),
   });
+}
+
+async function savePreviewStatus(input: CacheStatusInput): Promise<void> {
+  await input.dependencies.db.request("library.savePreview", {
+    fileId: input.fileId,
+    path: input.status === "ready" ? input.outputPath : "",
+    bytes: input.bytes,
+    status: input.status,
+    now: (input.dependencies.now ?? (() => new Date()))().toISOString(),
+  });
+}
+
+function isHeicPath(filePath: string): boolean {
+  const extension = path.extname(filePath).toLowerCase();
+  return extension === ".heic" || extension === ".heif";
+}
+
+async function generatePreview(
+  dependencies: MediaRequestDependencies,
+  resolved: ResolvedMedia,
+  cached: ResolvedPreview | null,
+  method: string,
+): Promise<Response> {
+  let outputPath = cached?.cachePath ?? null;
+  if (outputPath === null || outputPath.length === 0) {
+    const context = await dependencies.db.request<MediaContext>("library.getContext", {});
+    outputPath = path.join(context.cachePath, "previews", `${resolved.fileId}.jpg`);
+  }
+  await mkdir(path.dirname(outputPath), { recursive: true });
+
+  try {
+    const result = await dependencies.previews.convert(resolved.path, outputPath);
+    if (result === null) {
+      await savePreviewStatus({
+        dependencies,
+        fileId: resolved.fileId,
+        outputPath,
+        bytes: 0,
+        status: "failed",
+      });
+      return notFound();
+    }
+    await savePreviewStatus({
+      dependencies,
+      fileId: resolved.fileId,
+      outputPath,
+      bytes: result.bytes,
+      status: "ready",
+    });
+    return createPreviewResponse(outputPath, method);
+  } catch (error) {
+    dependencies.logger.warn("HEIC preview generation failed", {
+      fileId: resolved.fileId,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    await savePreviewStatus({
+      dependencies,
+      fileId: resolved.fileId,
+      outputPath,
+      bytes: 0,
+      status: "failed",
+    });
+    return notFound();
+  }
+}
+
+async function servePreview(
+  dependencies: MediaRequestDependencies,
+  resolved: ResolvedMedia,
+  method: string,
+): Promise<Response> {
+  const cached = await dependencies.db.request<ResolvedPreview | null>("library.resolvePreview", {
+    fileId: resolved.fileId,
+  });
+  if (cached !== null && cached.status === "failed") {
+    return notFound();
+  }
+  if (
+    cached !== null &&
+    cached.status === "ready" &&
+    cached.cachePath !== null &&
+    (await exists(cached.cachePath))
+  ) {
+    return createPreviewResponse(cached.cachePath, method);
+  }
+  return generatePreview(dependencies, resolved, cached, method);
 }
 
 async function generateThumbnail(
@@ -150,6 +251,10 @@ async function serveMedia(
   });
   if (resolved === null || resolved.state !== "present") {
     return notFound();
+  }
+
+  if (resolved.mediaClass === "image" && isHeicPath(resolved.path)) {
+    return servePreview(dependencies, resolved, request.method);
   }
 
   return createMediaResponse({

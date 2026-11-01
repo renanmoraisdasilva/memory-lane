@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 
 export type MediaUrlTarget =
@@ -151,4 +151,18 @@ export async function createThumbnailResponse(cachePath: string): Promise<Respon
       "Cache-Control": "private, max-age=3600",
     },
   });
+}
+
+export async function createPreviewResponse(cachePath: string, method: string): Promise<Response> {
+  const info = await stat(cachePath);
+  const headers = new Headers({
+    "Content-Type": "image/jpeg",
+    "Content-Length": String(info.size),
+    "Cache-Control": "private, max-age=3600",
+  });
+  if (method === "HEAD") {
+    return new Response(null, { status: 200, headers });
+  }
+  const stream = createReadStream(cachePath);
+  return new Response(Readable.toWeb(stream) as ReadableStream, { status: 200, headers });
 }

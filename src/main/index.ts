@@ -13,6 +13,7 @@ import { createElectronThumbnailGenerator } from "./modules/scanning/infrastruct
 import { createFileHasher } from "./modules/scanning/infrastructure/file-hasher";
 import { createFileMetadataExtractor } from "./modules/scanning/infrastructure/file-metadata";
 import { createThumbnailScheduler } from "./modules/media/thumbnail-scheduler";
+import { createHeicPreviewConverter, type PreviewConverter } from "./modules/media/heic-preview";
 import { registerMediaProtocol, registerMediaScheme } from "./modules/media/media-protocol";
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
@@ -32,6 +33,7 @@ let dbClient: DbWorkerClient | null = null;
 let scanService: ScanService | null = null;
 let healthService: HealthService | null = null;
 let settingsService: SettingsService | null = null;
+let previewService: PreviewConverter | null = null;
 let shuttingDown = false;
 
 function createWindow(): void {
@@ -129,6 +131,8 @@ async function startServices(): Promise<void> {
   settingsService = settings;
 
   const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());
+  const previews = createHeicPreviewConverter({ logger });
+  previewService = previews;
   const libraryService = new LibraryService({
     db,
     shellActions: createShellActions(),
@@ -169,7 +173,7 @@ async function startServices(): Promise<void> {
     settingsService: settings,
     logger,
   });
-  registerMediaProtocol({ db, thumbnails, logger });
+  registerMediaProtocol({ db, thumbnails, previews, logger });
   settings.startBackupTimer();
   createWindow();
 }
@@ -183,6 +187,9 @@ async function shutdown(): Promise<void> {
   }
   if (settingsService !== null) {
     await settingsService.shutdown();
+  }
+  if (previewService !== null) {
+    await previewService.shutdown();
   }
   if (dbClient !== null) {
     try {

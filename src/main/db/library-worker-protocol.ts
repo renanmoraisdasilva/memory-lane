@@ -23,6 +23,8 @@ export const LIBRARY_DB_METHODS = [
   "library.resolveMedia",
   "library.resolveThumbnail",
   "library.saveThumbnail",
+  "library.resolvePreview",
+  "library.savePreview",
 ] as const;
 
 export type LibraryDbMethod = (typeof LIBRARY_DB_METHODS)[number];
@@ -32,6 +34,14 @@ export const LibraryFileParamsSchema = z.object({
 });
 
 export const LibrarySaveThumbnailParamsSchema = z.object({
+  fileId: z.number().int().positive(),
+  path: z.string(),
+  bytes: z.number().int().nonnegative(),
+  status: z.enum(["ready", "failed"]),
+  now: z.string().min(1),
+});
+
+export const LibrarySavePreviewParamsSchema = z.object({
   fileId: z.number().int().positive(),
   path: z.string(),
   bytes: z.number().int().nonnegative(),

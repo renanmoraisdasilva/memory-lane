@@ -104,6 +104,22 @@ describe("library DB handlers", () => {
       status: "ready",
       cachePath: "C:\\cache\\a.jpg",
     });
+    expect(handler.handle("library.resolvePreview", { fileId })).toMatchObject({
+      status: "pending",
+    });
+    expect(
+      handler.handle("library.savePreview", {
+        fileId,
+        path: "C:\\cache\\a-preview.jpg",
+        bytes: 20,
+        status: "ready",
+        now,
+      }),
+    ).toEqual({ saved: true });
+    expect(handler.handle("library.resolvePreview", { fileId })).toMatchObject({
+      status: "ready",
+      cachePath: "C:\\cache\\a-preview.jpg",
+    });
     db.close();
   });
 

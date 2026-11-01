@@ -15,6 +15,7 @@ export default defineConfig({
         input: {
           index: resolve("src/main/index.ts"),
           "db-worker": resolve("src/main/workers/db-worker.ts"),
+          "heic-worker": resolve("src/main/workers/heic-worker.ts"),
         },
         output: {
           format: "cjs",

@@ -102,6 +102,6 @@ Test a real 2 TB USB 3 archive:
 | Packaged smoke | Yes | - | Scan, Other files, Settings, backup, cache |
 | Installer/uninstaller | Verification only | Pending | Clean VM |
 | Portable build | Launch smoke | Pending | Clean VM |
-| Codec matrix | Classification only | Pending | Clean VM |
+| Codec matrix | Classification only | Pending | Clean VM; HEIC packaged check available via `npm run validate:heic -- <photo.heic>` |
 | Real 2 TB archive | - | Pending | Physical drive |
 | Checksums | Yes | Pending | Target-machine verification |
