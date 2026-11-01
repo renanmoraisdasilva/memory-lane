@@ -169,19 +169,48 @@ export function CoverageMap({ cells }: { cells: CoverageMapCell[] }): React.JSX.
     );
   }
   const max = Math.max(...cells.map((cell) => cell.count), 1);
+  const groups = new Map<number, { months: Map<number, number>; yearOnly: number }>();
+  for (const cell of cells) {
+    const group = groups.get(cell.year) ?? { months: new Map<number, number>(), yearOnly: 0 };
+    if (cell.month === null) {
+      group.yearOnly += cell.count;
+    } else {
+      group.months.set(cell.month, cell.count);
+    }
+    groups.set(cell.year, group);
+  }
+  const years = [...groups.entries()].sort(([left], [right]) => left - right);
+
+  function barHeight(count: number): string {
+    return `${String(Math.max(3, (count / max) * 56))}px`;
+  }
+
   return (
-    <div className={styles.coverageMap} aria-label="Verified files by month">
-      {cells.map((cell) => (
-        <div
-          className={styles.coverageCell}
-          key={`${String(cell.year)}-${cell.month === null ? "year" : String(cell.month)}`}
-          title={`${String(cell.year)}${cell.month === null ? "" : `-${String(cell.month).padStart(2, "0")}`}: ${formatCount(cell.count)} files`}
-        >
-          <span
-            className={styles.coverageBar}
-            style={{ height: `${String(Math.max(6, (cell.count / max) * 56))}px` }}
-          />
-          <span className={styles.coverageYear}>{String(cell.year)}</span>
+    <div className={styles.coverageMap} role="img" aria-label="Verified files by month">
+      {years.map(([year, group]) => (
+        <div className={styles.coverageYearGroup} key={String(year)}>
+          <div className={styles.coverageBars}>
+            {Array.from({ length: 12 }, (_, index) => {
+              const month = index + 1;
+              const count = group.months.get(month) ?? 0;
+              return (
+                <span
+                  key={String(month)}
+                  className={`${styles.coverageBar}${count === 0 ? ` ${styles.coverageBarEmpty}` : ""}`}
+                  style={{ height: count === 0 ? undefined : barHeight(count) }}
+                  title={`${String(year)}-${String(month).padStart(2, "0")}: ${formatCount(count)} files`}
+                />
+              );
+            })}
+            {group.yearOnly === 0 ? null : (
+              <span
+                className={`${styles.coverageBar} ${styles.coverageBarYearOnly}`}
+                style={{ height: barHeight(group.yearOnly) }}
+                title={`${String(year)}: ${formatCount(group.yearOnly)} files with year-only dates`}
+              />
+            )}
+          </div>
+          <span className={styles.coverageYear}>{String(year)}</span>
         </div>
       ))}
     </div>

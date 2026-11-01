@@ -439,29 +439,49 @@
 .coverageMap {
   display: flex;
   align-items: flex-end;
-  gap: 3px;
+  gap: 8px;
   min-height: 64px;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
-.coverageCell {
+.coverageYearGroup {
+  flex: 0 0 auto;
   display: flex;
-  flex: 1 1 0;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 3px;
+  gap: 4px;
+}
+
+.coverageBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 56px;
 }
 
 .coverageBar {
-  width: 100%;
+  width: 3px;
   min-height: 3px;
   border-radius: 2px 2px 0 0;
   background: var(--amber-2);
 }
 
+.coverageBarEmpty {
+  height: 2px;
+  background: var(--line-soft);
+}
+
+.coverageBarYearOnly {
+  margin-left: 2px;
+  background: var(--amber);
+}
+
 .coverageYear {
   color: var(--faint);
   font-size: 8.5px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .orderRow {

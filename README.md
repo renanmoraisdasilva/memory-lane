@@ -187,7 +187,7 @@ The IPC and media contracts are in
 - **Partial and full backups**: adopted destination libraries, resumable partial
   runs, complete full copies, source-growth degradation, and metadata-only
   promotion with rollback.
-- **493 automated tests** across 126 files, 10 Electron E2E flows, and a packaged
+- **495 automated tests** across 127 files, 10 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   WMV compatible playback.
 
