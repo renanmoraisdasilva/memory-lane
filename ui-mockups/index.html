@@ -16,13 +16,13 @@
       </div>
       <div class="list-links">
         <a href="drive-selection.html">Start at drive selection <span class="icon icon--sm">arrow_forward</span></a>
-        <a href="../Memory_Lane_Scope_and_Implementation.md">Scope document <span class="icon icon--sm">description</span></a>
+        <a href="../docs/product/scope-and-implementation.md">Scope document <span class="icon icon--sm">description</span></a>
       </div>
     </div>
 
     <div class="index-callout">
       <span class="icon">info</span>
-      <p><strong>What changed:</strong> one shared shell, one combined photo/video viewer, manual-only dates, no advanced search or personal organization features, one Library health hub, and a drive drawer instead of a separate drive manager. Every visible control maps to a planned v0.1 feature.</p>
+      <p><strong>What changed:</strong> one shared shell, one combined photo/video viewer, manual-only dates, no advanced search or personal organization features, one Library health hub, and a drive drawer instead of a separate drive manager. Every v0.1 screen control maps to a planned v0.1 feature; the post-v0.1 replication preview is labelled separately.</p>
     </div>
 
     <div class="index-section">
@@ -35,6 +35,8 @@
         <span>Viewer</span>
         <span class="icon">arrow_forward</span>
         <span>Library health</span>
+        <span class="icon">arrow_forward</span>
+        <span>Backup &amp; replication <em>(post-v0.1)</em></span>
         <span class="icon">arrow_forward</span>
         <span>Scan &amp; processing</span>
         <span class="icon">arrow_forward</span>
@@ -113,6 +115,56 @@
     </div>
 
     <div class="index-section">
+      <h2>Post-v0.1 preview &middot; Backup &amp; replication</h2>
+      <div class="index-callout">
+        <span class="icon">info</span>
+        <p><strong>Design preview, not v0.1 acceptance.</strong> A leaner flow: overview, one review-plan page with an execution drawer, a focused run screen, one destination page with a drive switcher, and a promotion wizard. Adding a destination is a drawer from the overview. The running states show the persistent progress chip and pause-to-edit lock.</p>
+      </div>
+      <div class="screen-grid">
+        <a class="screen-card" href="replication.html">
+          <div class="screen-card__icon"><span class="icon">backup</span></div>
+          <div>
+            <h3>Backup &amp; replication</h3>
+            <p>Source, three destinations, one full-copy target, and a single Needs attention card. Add destination opens here.</p>
+            <div class="screen-card__file">replication.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="replication-plan.html">
+          <div class="screen-card__icon"><span class="icon">playlist_add_check</span></div>
+          <div>
+            <h3>Review plan</h3>
+            <p>Two jobs, one summary, one Start backup in the header. Execution scope and offline behavior open in a drawer.</p>
+            <div class="screen-card__file">replication-plan.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="replication-run.html">
+          <div class="screen-card__icon"><span class="icon">sync</span></div>
+          <div>
+            <h3>Backup running</h3>
+            <p>Progress, run order, waiting offline range, and controls. Only the information needed during a run.</p>
+            <div class="screen-card__file">replication-run.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="replication-destination.html">
+          <div class="screen-card__icon"><span class="icon">hard_drive</span></div>
+          <div>
+            <h3>Destination detail</h3>
+            <p>One page with a partial / full-copy switcher. Overview, Files, and History tabs; local library and attention files share Files.</p>
+            <div class="screen-card__file">replication-destination.html</div>
+          </div>
+        </a>
+        <a class="screen-card" href="replication-promotion.html">
+          <div class="screen-card__icon"><span class="icon">upgrade</span></div>
+          <div>
+            <h3>Prepare new source</h3>
+            <p>Shown after a full copy reaches 100%: a four-step wizard for verify, extras, fates, and confirm.</p>
+            <div class="screen-card__file">replication-promotion.html</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="index-section">
       <h2>Screen states</h2>
       <div class="list-links">
         <a href="media-viewer.html?type=photo">Viewer · photo</a>
@@ -126,6 +178,25 @@
         <a href="scan-processing-dashboard.html?state=interrupted">Scan · interrupted</a>
         <a href="scan-processing-dashboard.html?state=complete">Scan · complete</a>
         <a href="drive-selection.html?case=letter-change">Drive · changed letter</a>
+        <a href="replication.html">Replication · overview</a>
+        <a href="replication.html?run=active">Replication · overview, run active</a>
+        <a href="replication-plan.html">Replication · plan</a>
+        <a href="replication-plan.html?run=active">Replication · plan, locked</a>
+        <a href="replication-plan.html?run=paused">Replication · plan, editable</a>
+        <a href="replication-run.html">Replication · running</a>
+        <a href="replication-run.html?run=paused">Replication · paused</a>
+        <a href="replication-destination.html?dest=a">Replication · destination A</a>
+        <a href="replication-destination.html?dest=a#files-library">Replication · local library A</a>
+        <a href="replication-destination.html?dest=a#files-only">Replication · only on this drive A</a>
+        <a href="replication-destination.html?dest=a#files-missing">Replication · source missing A</a>
+        <a href="replication-destination.html?dest=b">Replication · destination B</a>
+        <a href="replication-destination.html?dest=b#files-only">Replication · only on this drive B</a>
+        <a href="replication-destination.html?dest=h">Replication · destination H full copy</a>
+        <a href="replication-destination.html?dest=h#files-only">Replication · only on this drive H</a>
+        <a href="replication-promotion.html?step=1">Replication · promotion verify</a>
+        <a href="replication-promotion.html?step=2">Replication · promotion extras</a>
+        <a href="replication-promotion.html?step=4">Replication · promotion confirm</a>
+        <a href="replication-promotion.html?step=1&run=active">Replication · promotion blocked</a>
       </div>
     </div>
 
@@ -135,7 +206,7 @@
         Advanced search and saved presets · favorites, collections, tags, and ratings · RAW develop, crop, or rotate · GPS maps
         · CSV/JSON audit exports · delete/cleanup/keep-only actions · drive unmount, SMART, and IOPS diagnostics · NAS or internal
         folder sources · cache relocation · heuristic date inference · validation history panels · telemetry settings · multi-drive
-        combined browsing · partial backups.
+        combined browsing · partial backups (see the post-v0.1 preview above).
       </div>
     </div>
 

@@ -10,6 +10,8 @@ needed.
 | [`product/product-specification.md`](product/product-specification.md) | Product vision, requirements, and long-term direction |
 | [`product/scope-and-implementation.md`](product/scope-and-implementation.md) | Current v0.1 scope, architecture, data model, quality gates, and exception policy |
 | [`product/roadmap.md`](product/roadmap.md) | Delivered phases, current status, and remaining work |
+| [`product/partial-backups.md`](product/partial-backups.md) | Post-v0.1 partial and full replication, destination libraries, and source promotion |
+| [`product/replication-implementation-plan.md`](product/replication-implementation-plan.md) | Replication module layout, delivery slices, risks, and acceptance-test matrix |
 | [`archive/phase-history.md`](archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, tests, and known limits |
 
 ## Contracts
@@ -21,6 +23,7 @@ needed.
 | [`contracts/health.md`](contracts/health.md) | Library health IPC, duplicates, missing/moved files, validation |
 | [`contracts/other-files.md`](contracts/other-files.md) | Other files IPC, categories, pagination, actions |
 | [`contracts/settings.md`](contracts/settings.md) | Settings, cache clearing, backups, manual recovery |
+| [`contracts/replication.md`](contracts/replication.md) | Replication IPC, DB methods, run states, destination catalogs, media scope |
 
 ## Release and quality
 

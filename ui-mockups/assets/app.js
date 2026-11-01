@@ -6,6 +6,7 @@
     { id: "undated", label: "Date unavailable", href: "date-unavailable.html", icon: "event_busy", badge: "142" },
     { id: "other", label: "Other files", href: "other-files.html", icon: "folder_open" },
     { id: "health", label: "Library health", href: "library-health.html", icon: "health_and_safety", badge: "15" },
+    { id: "replication", label: "Backup & replication", href: "replication.html", icon: "backup" },
     { id: "scan", label: "Scan & processing", href: "scan-processing-dashboard.html", icon: "radar", pulse: true, divider: true },
     { id: "settings", label: "Settings", href: "settings.html", icon: "settings" },
   ];
@@ -68,6 +69,16 @@
     if (!host) return;
 
     const scanStatus = document.body.getAttribute("data-scan-status") || "active";
+    const runState =
+      new URLSearchParams(window.location.search).get("run") ||
+      document.body.getAttribute("data-run-state") ||
+      "";
+    const runActive = runState === "active" || runState === "running" || runState === "paused";
+    const driveName = document.body.getAttribute("data-drive-name") || "WD My Passport 2TB (E:)";
+    const driveState = document.body.getAttribute("data-drive-state") || "Connected · Read-only";
+    const driveMeta = document.body.getAttribute("data-drive-meta") || "1.42 TB / 2.0 TB";
+    const drivePercent = document.body.getAttribute("data-drive-percent") || "71%";
+    const driveBar = document.body.getAttribute("data-drive-bar") || "71%";
     const items = NAV.map((item) => {
       const isActive = item.id === active;
       return `
@@ -77,6 +88,7 @@
           <span>${item.label}</span>
           ${item.badge ? `<span class="nav-badge">${item.badge}</span>` : ""}
           ${item.pulse && scanStatus === "active" ? `<span class="nav-pulse" title="Background processing active"></span>` : ""}
+          ${item.id === "replication" && runActive ? `<span class="nav-pulse ${runState === "paused" ? "nav-pulse--blue" : "nav-pulse--amber"}" title="Backup ${runState === "paused" ? "paused" : "running"}"></span>` : ""}
         </a>`;
     }).join("");
 
@@ -98,12 +110,12 @@
             <div class="drive-card__top">
               <div class="drive-card__icon">${icon("hard_drive")}</div>
               <div style="min-width:0">
-                <div class="drive-card__name">WD My Passport 2TB (E:)</div>
-                <div class="drive-card__state">Connected · Read-only</div>
+                <div class="drive-card__name">${driveName}</div>
+                <div class="drive-card__state">${driveState}</div>
               </div>
             </div>
-            <div class="drive-card__meta"><span>1.42 TB / 2.0 TB</span><span>71%</span></div>
-            <div class="drive-card__bar"><span></span></div>
+            <div class="drive-card__meta"><span>${driveMeta}</span><span>${drivePercent}</span></div>
+            <div class="drive-card__bar"><span style="width:${driveBar}"></span></div>
           </button>
           <div class="sidebar__footnote">Catalog v0.1 · no telemetry</div>
         </div>
@@ -121,10 +133,28 @@
       })
       .join("");
 
+    const runState =
+      new URLSearchParams(window.location.search).get("run") ||
+      document.body.getAttribute("data-run-state") ||
+      "";
+    const runPaused = runState === "paused";
+    const runActive = runState === "active" || runState === "running" || runPaused;
+    const runLabel = document.body.getAttribute("data-run-label") || "8TB Archive (H:)";
+    const runPercent = document.body.getAttribute("data-run-percent") || "42%";
+    const runHref = runPaused ? "replication-run.html?run=paused" : "replication-run.html";
+    const runChip = runActive
+      ? `<a class="run-chip${runPaused ? " run-chip--paused" : ""}" href="${runHref}" title="Open backup progress">
+          <span class="run-chip__dot"></span>
+          <span>${runPaused ? "Backup paused" : "Backup running"}</span>
+          <span class="run-chip__meta">${runPercent} · ${runLabel}</span>
+        </a>`
+      : "";
+
     host.outerHTML = `
       <header class="topbar">
         <div class="crumbs">${crumbs}</div>
         <div class="topbar__right">
+          ${runChip}
           ${
             scanChip
               ? `<a class="scan-chip" href="scan-processing-dashboard.html" title="Open scan progress"><span class="dot"></span>Cataloging · 78%</a>`
@@ -137,6 +167,17 @@
 
   const renderDriveDrawer = () => {
     if ($("#drive-drawer")) return;
+    const driveTitle = document.body.getAttribute("data-drive-title") || "WD My Passport 2TB";
+    const driveSubtitle = document.body.getAttribute("data-drive-subtitle") || "E: · Connected and verified";
+    const driveLabel = document.body.getAttribute("data-drive-label") || "MY_PASSPORT";
+    const driveSerial = document.body.getAttribute("data-drive-serial") || "WDBYFT0020BBK-0A · NTFS";
+    const driveVolume = document.body.getAttribute("data-drive-volume") || "{a8f2-39c1-90be-e092}";
+    const driveLetter = document.body.getAttribute("data-drive-letter") || "E:";
+    const driveFs = document.body.getAttribute("data-drive-fs") || "NTFS 3.1";
+    const driveStorage = document.body.getAttribute("data-drive-storage") || "1.42 TB indexed · 580 GB free";
+    const drivePercent = document.body.getAttribute("data-drive-percent") || "71%";
+    const driveBar = document.body.getAttribute("data-drive-bar") || "71%";
+    const driveSchema = document.body.getAttribute("data-drive-schema") || "v0.1 · 97,902 records";
     const wrap = document.createElement("div");
     wrap.id = "drive-drawer";
     wrap.className = "drawer-backdrop";
@@ -145,8 +186,8 @@
       <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drive-drawer-title">
         <div class="drawer__head">
           <div>
-            <h2 id="drive-drawer-title">WD My Passport 2TB</h2>
-            <p>E: · Connected and verified</p>
+            <h2 id="drive-drawer-title">${driveTitle}</h2>
+            <p>${driveSubtitle}</p>
           </div>
           <button class="btn btn--icon btn--ghost" type="button" data-drawer-close aria-label="Close drive details">${icon("close")}</button>
         </div>
@@ -154,30 +195,30 @@
           <div class="drawer-drive">
             <div class="drive-card__icon" style="width:38px;height:38px">${icon("hard_drive")}</div>
             <div style="min-width:0;flex:1">
-              <div style="font-size:12px;font-weight:600">MY_PASSPORT</div>
-              <div class="mono" style="color:var(--muted);margin-top:2px">WDBYFT0020BBK-0A · NTFS</div>
+              <div style="font-size:12px;font-weight:600">${driveLabel}</div>
+              <div class="mono" style="color:var(--muted);margin-top:2px">${driveSerial}</div>
             </div>
             <span class="pill pill--green">${icon("check_circle")} Healthy</span>
           </div>
 
           <div class="drawer-section">
             <div class="drawer-section__label">Identity</div>
-            <div class="kv"><span>Volume ID</span><span class="mono">{a8f2-39c1-90be-e092}</span></div>
-            <div class="kv"><span>Assigned letter</span><span>E:</span></div>
-            <div class="kv"><span>Filesystem</span><span>NTFS 3.1</span></div>
+            <div class="kv"><span>Volume ID</span><span class="mono">${driveVolume}</span></div>
+            <div class="kv"><span>Assigned letter</span><span>${driveLetter}</span></div>
+            <div class="kv"><span>Filesystem</span><span>${driveFs}</span></div>
             <div class="kv"><span>Last seen</span><span>Today, 14:32</span></div>
           </div>
 
           <div class="drawer-section">
             <div class="drawer-section__label">Storage</div>
-            <div class="progress-row"><span>1.42 TB indexed · 580 GB free</span><span>71%</span></div>
-            <div class="progress"><span style="width:71%"></span></div>
+            <div class="progress-row"><span>${driveStorage}</span><span>${drivePercent}</span></div>
+            <div class="progress"><span style="width:${driveBar}"></span></div>
           </div>
 
           <div class="drawer-section">
             <div class="drawer-section__label">Catalog</div>
             <div class="path-box">E:\\.memorylane\\catalog.db</div>
-            <div class="kv"><span>Schema</span><span>v0.1 · 97,902 records</span></div>
+            <div class="kv"><span>Schema</span><span>${driveSchema}</span></div>
             <div class="kv"><span>Last scan</span><span>Today, 14:32</span></div>
             <div class="kv"><span>PC backup</span><span class="green">Today, 14:15</span></div>
           </div>

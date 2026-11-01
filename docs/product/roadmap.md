@@ -65,8 +65,23 @@ files; adjust `maxProcs` if needed.
 
 These are not part of v0.1 acceptance:
 
-- **Partial backups to destination drives** - record and verify which source
-  files are copied to each destination, with coverage by verified bytes.
+- **Archive replication to destination drives** - adoption-first: scan and
+  verify existing manual copies across smaller destination drives, plan the
+  whole archive oldest-first, fill partial destinations in priority order with
+  the oldest uncovered files, copy what fits, and report the remainder.
+  Existing mixed date coverage is shown as-is and never rebalanced by moving
+  files. Files that exist only on a backup drive are shown as “Only on this
+  drive” and are never copied to the source automatically. Large drives can be
+  explicit full copies; a verified full copy can be
+  promoted to the new source archive while preserving catalog identity. Each
+  destination can keep a local library and a compact source index. New copies
+  go under a dedicated `Memory Lane` folder; existing copies are never
+  re-copied or reorganized. Runs are resumable, have a persistent progress
+  status, and lock plan changes until paused. Specifications:
+  [`partial-backups.md`](partial-backups.md),
+  [`replication-implementation-plan.md`](replication-implementation-plan.md),
+  [`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md),
+  [`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md).
 - **Places map** - local-only globe for items with valid GPS metadata; items
   without GPS are excluded, never guessed.
 - **Non-memory images** - local-only classification of screenshots, receipts,

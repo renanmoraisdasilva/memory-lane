@@ -41,7 +41,9 @@ flowchart LR
 
 Every write is scoped to app-managed locations. The quality gate scans the
 main process for filesystem write APIs and rejects anything outside the reviewed
-cache, lock, and backup allowlist.
+cache, lock, and backup allowlist. A future replication release adds registered
+destination roots to that boundary through a single reviewed writer; the source
+archive remains read-only.
 
 ## One scan, four stages
 
@@ -305,8 +307,10 @@ These are post-v0.1 and are not part of current acceptance criteria:
 - **Places map** — local-only globe for items with valid GPS metadata.
 - **Non-memory images** — local-only classification of screenshots, receipts,
   and documents with review-only suggestions.
-- **Partial backups** — verified copies of selected media to smaller destination
-  drives, with cumulative coverage.
+- **Partial backups** — verified copies of the archive across smaller destination
+  drives, with cumulative coverage, full-copy promotion, and a single
+  destination-write boundary. See
+  [`docs/product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md).
 - **Search and saved filters** — keyword search over names, paths, and metadata.
 - **Favorites and collections** — user organization that never modifies
   originals.

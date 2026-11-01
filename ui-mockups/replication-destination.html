@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane &mdash; Destination detail</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/replication.css">
+</head>
+<body data-page="replication" data-run-label="8TB Archive (H:)" data-run-percent="42%" data-drive-name="4TB Archive (E:)" data-drive-state="Connected · Source archive" data-drive-meta="3.8 TB / 4.0 TB" data-drive-percent="95%" data-drive-bar="95%" data-drive-title="4TB Archive" data-drive-subtitle="E: · Source archive · Read-only" data-drive-label="4TB_ARCHIVE" data-drive-serial="4TB Archive · NTFS" data-drive-volume="{4tb-8a2c-91e0}" data-drive-letter="E:" data-drive-fs="NTFS 3.1" data-drive-storage="3.8 TB indexed · 200 GB free" data-drive-schema="v0.1 · 25,717 records" data-crumb="Library / Backup &amp; replication / Destination" data-scan-chip="off">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Destination detail <span class="pill pill--amber">Post-v0.1 preview</span></div>
+            <h1 data-dest-name>Backup A (F:)</h1>
+            <p>Local library and backup destination for 4TB Archive. Existing files stay where they are; offline drives show last-known state.</p>
+          </div>
+          <div class="page-head__actions">
+            <a class="btn btn--sm" href="replication.html"><span class="icon">arrow_back</span> Overview</a>
+            <div class="field" style="min-width:200px">
+              <label for="destination-switcher">Destination</label>
+              <select id="destination-switcher">
+                <option value="a">Backup A (F:)</option>
+                <option value="b">Backup B (G:)</option>
+                <option value="h">8TB Archive (H:)</option>
+              </select>
+            </div>
+            <a class="pill pill--amber" data-dest-review href="#files-missing">3 need review</a>
+            <a class="pill pill--amber" data-dest-missing-link href="#files-missing" hidden>3 source missing</a>
+            <span class="pill pill--green" data-dest-status><span class="icon">check_circle</span> Connected</span>
+            <button class="btn btn--sm" type="button" data-run-unlock data-toast="Prototype only &mdash; opens Re-adopt, Change goal, Deep verify, and Retire."><span class="icon">tune</span> Manage</button>
+          </div>
+        </div>
+
+        <div class="run-banner" data-run-banner hidden>
+          <div class="run-banner__icon"><span class="icon">sync</span></div>
+          <div class="run-banner__body">
+            <strong data-run-banner-title>Backup running</strong>
+            <span data-run-banner-note data-run-note-active="Destination settings are locked until you pause." data-run-note-paused="Destination settings are unlocked. Resume when you are ready.">Destination settings are locked until you pause.</span>
+          </div>
+          <div class="run-banner__meta">42% · 8TB Archive (H:)</div>
+          <div class="run-banner__actions">
+            <a class="btn btn--sm btn--primary" href="replication-run.html">View progress</a>
+          </div>
+        </div>
+
+        <div class="stat-strip stat-strip--3">
+          <div class="stat"><div class="stat__value green" data-dest-verified>800 GB</div><div class="stat__label">Verified replicas</div><div class="stat__hint">of 4TB Archive</div></div>
+          <div class="stat"><div class="stat__value" data-dest-available>161 GB</div><div class="stat__label">Available for new copies</div><div class="stat__hint" data-dest-reserve-hint>reserve 19 GB</div></div>
+          <div class="stat"><div class="stat__value amber" data-dest-attention>42</div><div class="stat__label">Only on this drive</div><div class="stat__hint" data-dest-attention-hint>3.2 GB</div></div>
+        </div>
+
+        <div data-tab-container>
+          <div class="tabs" data-tabs data-sync-hash role="tablist">
+            <button class="tab" type="button" data-tab="overview" role="tab"><span class="icon icon--sm">dashboard</span> Overview</button>
+            <button class="tab" type="button" data-tab="files" role="tab"><span class="icon icon--sm">folder_open</span> Files <span class="pill pill--amber" data-dest-file-count>42</span></button>
+            <button class="tab" type="button" data-tab="history" role="tab"><span class="icon icon--sm">history</span> History</button>
+          </div>
+
+          <section class="tab-panel" data-panel="overview" role="tabpanel">
+            <div class="rep-layout rep-layout--even">
+              <section class="card">
+                <div class="card__head">
+                  <div>
+                    <h2 class="card__title">Identity and allocation</h2>
+                    <p class="card__desc">Stored in the 4TB Archive catalog.</p>
+                  </div>
+                  <span class="pill pill--green" data-dest-identity><span class="icon">verified</span> Confirmed</span>
+                </div>
+                <div class="kv"><span>Volume ID</span><span class="mono" data-dest-volume>{a8f2-39c1-90be-e092}</span></div>
+                <div class="kv"><span>Filesystem</span><span data-dest-fs>NTFS &middot; 1 TB</span></div>
+                <div class="kv"><span>Destination root</span><span class="mono" data-dest-root>F:\</span></div>
+                <div class="kv"><span>Adoption root</span><span class="mono" data-dest-adoption-root>F:\</span></div>
+                <div class="kv"><span>Goal</span><span data-dest-goal>Extend coverage &middot; partial</span></div>
+                <div class="kv"><span>Layout</span><span data-dest-layout>Dedicated folder</span></div>
+                <div class="kv"><span>Allocation</span><span>Use all safe space</span></div>
+                <div class="kv"><span>Reserve</span><span data-dest-reserve>19 GB</span></div>
+                <div class="kv"><span>Last verified</span><span data-dest-last>Today, 14:32</span></div>
+                <div class="path-box" style="margin-top:12px" data-dest-copy-path>F:\Memory Lane\4TB Archive</div>
+              </section>
+
+              <section class="card">
+                <div class="card__head">
+                  <div>
+                    <h2 class="card__title">Coverage and index</h2>
+                    <p class="card__desc">Verified backup coverage. The local library also includes files only on this drive.</p>
+                  </div>
+                  <span class="pill pill--amber" data-dest-range>2005&ndash;2023</span>
+                </div>
+                <div class="map-scope-row">
+                  <div class="segmented" aria-label="Map scope">
+                    <button class="is-active" type="button" data-map-scope="backup">Backup coverage</button>
+                    <button type="button" data-map-scope="library">Local library</button>
+                  </div>
+                  <span data-map-scope-note>Verified replicas</span>
+                </div>
+                <div class="coverage-map">
+                  <div class="coverage-map__cells" data-dest-map aria-label="Destination coverage by year"></div>
+                  <div class="coverage-map__years"><span>2000</span><span>2010</span><span>2024</span></div>
+                </div>
+                <div class="summary-list" style="margin-top:12px">
+                  <div class="summary-row"><span>Source files in index</span><strong>25,717</strong></div>
+                  <div class="summary-row"><span>Source files present here</span><strong data-dest-index-present>12,303</strong></div>
+                  <div class="summary-row"><span>Not on this drive</span><strong data-dest-index-missing>3.0 TB</strong></div>
+                  <div class="summary-row"><span>Overlap</span><strong data-dest-overlap>12 GB on Backup B</strong></div>
+                  <div class="summary-row" data-dest-fullcopy-row hidden><span>Full-copy shortfall</span><strong data-dest-shortfall>0</strong></div>
+                  <div class="summary-row"><span>Local library</span><strong data-dest-local-library>12,345 files &middot; cache ready</strong></div>
+                  <div class="summary-row"><span>Health</span><strong data-dest-health>3 source-missing &middot; 0 conflicts &middot; 0 stale</strong></div>
+                  <div class="summary-row"><span>Index updated</span><strong data-dest-index-updated>Today, 14:32</strong></div>
+                </div>
+                <div class="callout" data-dest-promotion-row hidden style="margin-top:12px">
+                  <span class="icon">info</span>
+                  <div>
+                    <div class="callout__title">Promotion not ready</div>
+                    <div class="callout__body" data-dest-promotion-note>This full copy is 42% verified. Promotion becomes available at 100%.</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="tab-panel" data-panel="files" role="tabpanel">
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">Files</h2>
+                  <p class="card__desc">Local library, only-on-drive files, and source-missing recovery in one place.</p>
+                </div>
+                <div class="segmented" aria-label="File filter">
+                  <button type="button" class="is-active" data-file-filter="library"><span class="icon">photo_library</span> Local library</button>
+                  <button type="button" data-file-filter="only"><span class="icon">visibility</span> Only on this drive <span class="pill pill--amber" data-dest-only-badge>42</span></button>
+                  <button type="button" data-file-filter="missing"><span class="icon">link_off</span> Source missing <span class="pill pill--amber" data-dest-missing-badge>3</span></button>
+                </div>
+              </div>
+
+              <div data-file-panel="library">
+                <div class="callout callout--amber" style="margin-bottom:12px">
+                  <span class="icon">info</span>
+                  <div>
+                    <div class="callout__title">This is the drive’s own library</div>
+                    <div class="callout__body">It includes backup files and files that were already here. Source coverage is tracked separately.</div>
+                  </div>
+                </div>
+                <div class="library-strip">
+                  <figure><img src="assets/images/chronological-gallery-02.jpg" alt="Sunset over the caldera"><figcaption>DSC_4910.JPG</figcaption></figure>
+                  <figure><img src="assets/images/chronological-gallery-03.jpg" alt="Sailing catamaran"><figcaption>MOV_0428.MP4</figcaption></figure>
+                  <figure><img src="assets/images/chronological-gallery-04.jpg" alt="Whitewashed alley"><figcaption>DSC_4914.ARW</figcaption></figure>
+                  <figure><img src="assets/images/chronological-gallery-05.jpg" alt="Cliffside view"><figcaption>DSC_4918.JPG</figcaption></figure>
+                  <figure><img src="assets/images/chronological-gallery-06.jpg" alt="Taverna table"><figcaption>DSC_4922.JPG</figcaption></figure>
+                  <figure><img src="assets/images/chronological-gallery-07.jpg" alt="Windmills"><figcaption>DSC_4929.ARW</figcaption></figure>
+                </div>
+                <div class="summary-list" style="margin-top:14px">
+                  <div class="summary-row"><span>Local files</span><strong data-dest-local-files>12,345</strong></div>
+                  <div class="summary-row"><span>Only on this drive</span><strong data-dest-only-summary>42 files &middot; 3.2 GB</strong></div>
+                  <div class="summary-row"><span>Source missing</span><strong data-dest-missing-summary>3 files</strong></div>
+                </div>
+                <button class="btn btn--sm" type="button" style="margin-top:12px" data-toast="Prototype only &mdash; would open the full local library."><span class="icon">folder_open</span> Open full local library</button>
+              </div>
+
+              <div data-file-panel="only" hidden>
+                <div class="callout callout--amber" style="margin-bottom:12px">
+                  <span class="icon">visibility</span>
+                  <div>
+                    <div class="callout__title">Not in the 4TB source archive</div>
+                    <div class="callout__body">These files stay in the local library. They are never copied to the source or another drive automatically, and never deleted automatically.</div>
+                  </div>
+                </div>
+                <div class="summary-list" style="margin-bottom:10px">
+                  <div class="summary-row"><span>Only on this drive</span><strong data-dest-only-summary>42 files &middot; 3.2 GB</strong></div>
+                  <div class="summary-row"><span>Breakdown</span><strong data-dest-only-breakdown>35 extras &middot; 5 previously &middot; 2 ambiguous</strong></div>
+                </div>
+                <div data-dest-only-rows></div>
+                <div class="callout" style="margin-top:12px">
+                  <span class="icon">info</span>
+                  <div>
+                    <div class="callout__title">No import action</div>
+                    <div class="callout__body">Extras stay local. A future import would be explicit and separate from backup.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div data-file-panel="missing" hidden>
+                <div data-dest-missing-content></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-panel" data-panel="history" role="tabpanel">
+            <div class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">History</h2>
+                  <p class="card__desc">Adoption, verification, and replacement events.</p>
+                </div>
+              </div>
+              <div class="mini-list" data-dest-history></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="assets/app.js"></script>
+  <script src="assets/replication.js"></script>
+</body>
+</html>

@@ -149,6 +149,12 @@ Known gaps:
 - Search and saved filters.
 - Favorites and collections.
 
+Replication has a complete product specification
+([`partial-backups.md`](partial-backups.md)), a decision record
+([`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md)),
+and an implementation plan with delivery slices and an acceptance-test matrix
+([`replication-implementation-plan.md`](replication-implementation-plan.md)).
+
 ---
 
 ## 4. Screens
@@ -265,7 +271,7 @@ Both databases are owned by the DB worker.
 | `app_settings` | Installation preferences |
 | `registered_drives` | Known volumes, last path/letter, catalog schema, scan stats, last backup |
 | `backup_history` | PC catalog backup records |
-| `backup_destinations` | Reserved for the future partial-backup workflow |
+| `backup_destinations` | Reserved for v0.1; post-v0.1 migration replaces it with the replication destination cache |
 | `schema_migrations` | Applied migrations |
 
 **`catalog.db` - per archive drive**
@@ -487,7 +493,11 @@ Open:
 - Access-time preservation policy.
 - Behavior for encrypted, corrupt, permission-restricted, or unreadable files.
 - Manual 200,000-file memory measurement.
-- Future partial-backup schema and coverage definition.
+- Replication schema and coverage definition are specified in
+  [`partial-backups.md`](partial-backups.md) and
+  [`../contracts/replication.md`](../contracts/replication.md); implementation
+  slices are in
+  [`replication-implementation-plan.md`](replication-implementation-plan.md).
 - Search design and whether SQLite FTS5 is required.
 
 ---

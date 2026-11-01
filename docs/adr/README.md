@@ -23,6 +23,12 @@ and status.
   cached as generated media, with external-open fallback.
 - `0005-versioned-metadata-extraction.md` - Extractor version stamps, stale
   detection, and the Memory Lane refresh banner.
+- `0006-adopt-existing-partial-backups.md` - Proposed adoption-first workflow
+  for existing manual copies spread across smaller destination drives.
+- `0007-promote-full-copy-to-source.md` - Proposed full-copy destination goal
+  and guided promotion of a verified copy into the new source archive.
+- `0008-replication-implementation-boundaries.md` - Proposed process, catalog,
+  workload, write-boundary, and API decisions for implementing replication.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane &mdash; Review backup plan</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/replication.css">
+</head>
+<body data-page="replication" data-run-label="8TB Archive (H:)" data-run-percent="42%" data-drive-name="4TB Archive (E:)" data-drive-state="Connected · Source archive" data-drive-meta="3.8 TB / 4.0 TB" data-drive-percent="95%" data-drive-bar="95%" data-drive-title="4TB Archive" data-drive-subtitle="E: · Source archive · Read-only" data-drive-label="4TB_ARCHIVE" data-drive-serial="4TB Archive · NTFS" data-drive-volume="{4tb-8a2c-91e0}" data-drive-letter="E:" data-drive-fs="NTFS 3.1" data-drive-storage="3.8 TB indexed · 200 GB free" data-drive-schema="v0.1 · 25,717 records" data-crumb="Library / Backup &amp; replication / Plan" data-scan-chip="off">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Plan review <span class="pill pill--amber">Post-v0.1 preview</span></div>
+            <h1>Review plan</h1>
+            <p>Entire source archive &middot; 25,717 files &middot; 3.8 TB &middot; 0 undated. This screen only plans; nothing is copied until you start the backup.</p>
+          </div>
+          <div class="page-head__actions">
+            <a class="btn" href="replication.html"><span class="icon">arrow_back</span> Back</a>
+            <a class="btn" data-run-progress hidden href="replication-run.html"><span class="icon">sync</span> View progress</a>
+            <button class="btn" type="button" data-run-plan-edit hidden data-toast="Prototype only &mdash; would edit the remaining plan. Verified files stay."><span class="icon">edit</span> Edit plan</button>
+            <button class="btn btn--primary" type="button" data-execute-open data-run-lock data-run-lock-reason="Pause the backup to change the plan." data-run-lock-paused="Stop or finish the active run before starting another."><span class="icon">play_arrow</span> Start backup</button>
+          </div>
+        </div>
+
+        <div class="run-banner" data-run-banner hidden>
+          <div class="run-banner__icon"><span class="icon">sync</span></div>
+          <div class="run-banner__body">
+            <strong data-run-banner-title>Backup running</strong>
+            <span data-run-banner-note>The plan is read-only while the run is active. Pause to edit.</span>
+          </div>
+          <div class="run-banner__meta">42% · 8TB Archive (H:)</div>
+          <div class="run-banner__actions">
+            <a class="btn btn--sm btn--primary" href="replication-run.html">View progress</a>
+            <button class="btn btn--sm" type="button" data-run-pause data-toast="Prototype only — the run would pause after the current file.">Pause backup</button>
+          </div>
+        </div>
+
+        <div class="stat-strip stat-strip--3">
+          <div class="stat"><div class="stat__value blue">3.96 TB</div><div class="stat__label">Starts now</div><div class="stat__hint">Full copy + Backup A</div></div>
+          <div class="stat"><div class="stat__value amber">261 GB</div><div class="stat__label">Waits for Backup B</div><div class="stat__hint">Last seen 3 days ago</div></div>
+          <div class="stat"><div class="stat__value">1.89 TB</div><div class="stat__label">Partial-only gap</div><div class="stat__hint">Covered by the full copy</div></div>
+        </div>
+
+        <div class="stack">
+          <section class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Full copy</h2>
+                <p class="card__desc">Every source file goes to this drive, including files already on A or B.</p>
+              </div>
+              <span class="pill pill--blue">1 destination</span>
+            </div>
+            <div class="plan-dest is-first">
+              <div class="plan-dest__index">H</div>
+              <div>
+                <div class="plan-dest__name">8TB Archive (H:) <span class="pill pill--green">Connected</span></div>
+                <div class="plan-dest__meta">25,717 files &middot; 3.8 TB &middot; 0 shortfall &middot; after run 3.24 TB free</div>
+              </div>
+              <div class="plan-dest__side"><strong>3.8 TB</strong>starts now</div>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Partial coverage</h2>
+                <p class="card__desc">Oldest uncovered files first. Offline drives keep their assigned range.</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span class="pill pill--amber">1 connected &middot; 1 offline</span>
+                <button class="btn btn--sm" type="button" data-run-unlock data-toast="Prototype only &mdash; opens fill order. Existing files stay put."><span class="icon">swap_vert</span> Order</button>
+              </div>
+            </div>
+            <div class="plan-dest is-first">
+              <div class="plan-dest__index">1</div>
+              <div>
+                <div class="plan-dest__name">Backup A (F:) <span class="pill pill--green">Connected</span> <span class="pill pill--muted">Fills first</span></div>
+                <div class="plan-dest__meta">3,120 files &middot; 161 GB &middot; 2000&ndash;2004 &middot; 19 GB free after</div>
+              </div>
+              <div class="plan-dest__side"><strong>161 GB</strong>starts now</div>
+            </div>
+            <div class="plan-dest">
+              <div class="plan-dest__index">2</div>
+              <div>
+                <div class="plan-dest__name">Backup B (G:) <span class="pill pill--amber"><span class="icon">usb_off</span> Offline</span> <span class="pill pill--muted">Fills next</span></div>
+                <div class="plan-dest__meta">4,980 files &middot; 261 GB &middot; last seen 3 days ago &middot; range stays reserved</div>
+              </div>
+              <div class="plan-dest__side"><strong class="amber">261 GB</strong>waits</div>
+            </div>
+          </section>
+
+          <div class="callout callout--amber">
+            <span class="icon">warning</span>
+            <div>
+              <div class="callout__title">3 stale files will be replaced on their existing destinations</div>
+              <div class="callout__body">2 use the reserve temporarily; the app keeps at least 1 GiB free and warns automatically. New copies never use the reserve.</div>
+            </div>
+          </div>
+
+          <section class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Projected coverage</h2>
+                <p class="card__desc">Full copy after the connected run; partial drives after Backup B reconnects.</p>
+              </div>
+            </div>
+            <div class="progress-row"><span>8TB full copy (H:)</span><span class="green">100% after this run</span></div>
+            <div class="progress progress--green" style="margin-bottom:10px"><span style="width:100%"></span></div>
+            <div class="progress-row"><span>Partial drives only (A+B)</span><span>39% today &middot; 43% after A &middot; 50% after B</span></div>
+            <div class="progress" style="margin-bottom:10px"><span style="width:50%"></span></div>
+            <div class="callout" style="margin-top:10px">
+              <span class="icon">info</span>
+              <div>
+                <div class="callout__title">The partial drives are not 100%</div>
+                <div class="callout__body">The 8TB full copy is what makes total coverage complete. The partial drives are meant to hold only what fits.</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="execute-drawer" data-execute-drawer>
+    <aside class="drawer drawer--wide" role="dialog" aria-modal="true" aria-labelledby="execute-title">
+      <div class="drawer__head">
+        <div>
+          <h2 id="execute-title">Start backup</h2>
+          <p>Nothing has been copied yet.</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-execute-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="drawer__body">
+        <div class="summary-list">
+          <div class="summary-row"><span>Starts now</span><strong>3.96 TB &middot; 28,837 files</strong></div>
+          <div class="summary-row"><span>Full copy</span><strong>3.8 TB &middot; H:</strong></div>
+          <div class="summary-row"><span>Partial fill</span><strong>161 GB &middot; Backup A</strong></div>
+          <div class="summary-row"><span>Waiting</span><strong class="amber">261 GB &middot; Backup B</strong></div>
+          <div class="summary-row"><span>Partial remainder</span><strong>1.88 TB</strong></div>
+        </div>
+        <div class="rep-kicker" style="margin-top:16px">What to run now</div>
+        <div class="choice-list" style="margin-top:8px">
+          <label class="choice is-selected">
+            <input type="radio" name="run-scope" checked>
+            <div class="choice__body">
+              <div class="choice__title">All connected work <span class="pill pill--green">Recommended</span></div>
+              <div class="choice__desc">H: and Backup A start now. Backup B waits for reconnect.</div>
+            </div>
+          </label>
+          <label class="choice">
+            <input type="radio" name="run-scope">
+            <div class="choice__body">
+              <div class="choice__title">Full copy only</div>
+              <div class="choice__desc">H: starts now. Partial fills stay pending.</div>
+            </div>
+          </label>
+          <label class="choice">
+            <input type="radio" name="run-scope">
+            <div class="choice__body">
+              <div class="choice__title">Partial coverage only</div>
+              <div class="choice__desc">Backup A starts now. Full copy stays pending; B waits.</div>
+            </div>
+          </label>
+        </div>
+        <div class="callout callout--amber" style="margin-top:12px">
+          <span class="icon">usb_off</span>
+          <div>
+            <div class="callout__title">Backup B keeps its range</div>
+            <div class="callout__body">261 GB is not reassigned to A or H. Reconnect B to resume its range. Nothing is marked covered until verified.</div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer__foot">
+        <button class="btn" type="button" data-execute-close>Cancel</button>
+        <a class="btn btn--primary" href="replication-run.html"><span class="icon">play_arrow</span> Start backup</a>
+      </div>
+    </aside>
+  </div>
+  <script src="assets/app.js"></script>
+  <script src="assets/replication.js"></script>
+</body>
+</html>

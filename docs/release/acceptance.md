@@ -27,3 +27,7 @@ Status: automated criteria complete; manual release pass pending.
 v0.1 is accepted only when every row above is either automated-green or marked
 complete in `release-checklist.md` with a date and tester. No manual row may be
 waived without updating the product scope.
+
+Post-v0.1 replication has a separate acceptance matrix in
+[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md)
+(§9). It is not part of v0.1 sign-off.

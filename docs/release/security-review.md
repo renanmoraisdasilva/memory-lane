@@ -9,6 +9,7 @@ Status: Phase 6 automated review complete; clean-VM manual checks pending.
 | Renderer to main process | Untrusted content, trusted origin | Context isolation, sandbox, typed preload, exact sender validation |
 | Main process to SQLite | Trusted code only | Single DB worker, prepared statements, Zod validation |
 | Main process to archive files | Read-only | No direct write APIs outside cache, logs, catalog, and backups |
+| Main process to replication destinations (planned) | Registered destination roots only | Single destination writer, path policy, explicit plan confirmation, read-only source guard |
 | Media protocol to renderer | Catalog IDs only | `ml-media` resolves IDs through the DB worker; no raw paths |
 | Package and update channel | User-installed binary | Unsigned build, no auto-update, manual download |
 | Backups | Local filesystem | SQLite online backup, plaintext, latest-snapshot retention |
@@ -50,6 +51,24 @@ The read-only guard allowlist is intentionally small:
 
 No module is allowed to write, rename, truncate, or delete an original archive
 file.
+
+## Replication extension (planned)
+
+Adoption-first replication extends the write surface to registered destination
+drives. It does not relax the source-archive guarantee.
+
+- A destination write goes through one allowlisted adapter,
+  `replication/infrastructure/destination-writer.ts`.
+- The adapter rejects the source root, overlapping roots, unregistered roots,
+  `..` escapes, and symlink/reparse-point escapes.
+- Destination writes start only after an explicit plan confirmation.
+- The app never deletes destination-only files or verified replicas. It removes
+  only its own temporary files and empty directories it created.
+- Source files remain open read-only. No replication IPC accepts a source path
+  for writing.
+- Destination media URLs use destination IDs, not paths.
+- The security review and read-only guard tests must be updated before the
+  replication slice that first writes to a destination.
 
 ## Changes made in Phase 6
 

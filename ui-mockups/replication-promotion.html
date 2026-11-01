@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane &mdash; Prepare 8TB as new source</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/replication.css">
+</head>
+<body data-page="replication" data-run-label="8TB Archive (H:)" data-run-percent="42%" data-drive-name="4TB Archive (E:)" data-drive-state="Connected · Source archive" data-drive-meta="3.8 TB / 4.0 TB" data-drive-percent="95%" data-drive-bar="95%" data-drive-title="4TB Archive" data-drive-subtitle="E: · Source archive · Read-only" data-drive-label="4TB_ARCHIVE" data-drive-serial="4TB Archive · NTFS" data-drive-volume="{4tb-8a2c-91e0}" data-drive-letter="E:" data-drive-fs="NTFS 3.1" data-drive-storage="3.8 TB indexed · 200 GB free" data-drive-schema="v0.1 · 25,717 records" data-crumb="Library / Backup &amp; replication / Promote" data-scan-chip="off">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Source promotion <span class="pill pill--amber">Post-v0.1 preview</span></div>
+            <h1>Prepare 8TB as new source</h1>
+            <p>The full copy is complete. Promotion changes the active source without moving archive files.</p>
+          </div>
+          <div class="page-head__actions">
+            <span class="pill pill--green"><span class="icon">check_circle</span> Full copy complete</span>
+            <a class="btn" href="replication.html"><span class="icon">arrow_back</span> Back to overview</a>
+          </div>
+        </div>
+
+        <div class="run-banner" data-run-banner hidden>
+          <div class="run-banner__icon"><span class="icon">lock</span></div>
+          <div class="run-banner__body">
+            <strong data-run-banner-title>Backup running</strong>
+            <span data-run-banner-note data-run-note-active="Promotion is blocked while a backup is running. Pause or finish it first." data-run-note-paused="Promotion stays blocked while the run is paused. Finish or stop it first.">Promotion is blocked while a backup is running. Pause or finish it first.</span>
+          </div>
+          <div class="run-banner__meta">42% · 8TB Archive (H:)</div>
+          <div class="run-banner__actions">
+            <a class="btn btn--sm btn--primary" href="replication-run.html">View progress</a>
+          </div>
+        </div>
+
+        <div class="stepper" aria-label="Promotion steps">
+          <button class="step is-current" type="button" data-promo-step="1"><span class="step__num">1</span> Verify</button>
+          <button class="step" type="button" data-promo-step="2"><span class="step__num">2</span> Review extras</button>
+          <button class="step" type="button" data-promo-step="3"><span class="step__num">3</span> Choose fates</button>
+          <button class="step" type="button" data-promo-step="4"><span class="step__num">4</span> Confirm</button>
+        </div>
+
+        <section class="wizard-step is-active" data-promo-panel="1">
+          <div class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Full-copy verification</h2>
+                <p class="card__desc">Every source file must be verified on 8TB Archive before promotion.</p>
+              </div>
+              <span class="pill pill--green">Passed</span>
+            </div>
+            <div class="verify-grid">
+              <div class="verify"><strong>25,717</strong><span>Files verified</span></div>
+              <div class="verify"><strong>3.8 TB</strong><span>Verified bytes</span></div>
+              <div class="verify"><strong>0</strong><span>Stale</span></div>
+              <div class="verify"><strong>0</strong><span>Conflicts</span></div>
+            </div>
+            <div class="summary-list" style="margin-top:12px">
+              <div class="summary-row"><span>Destination identity</span><strong class="green">Connected &middot; confirmed</strong></div>
+              <div class="summary-row"><span>Source / destination</span><strong>3.8 TB of 7.2 TB usable</strong></div>
+              <div class="summary-row"><span>Reserve and headroom</span><strong>160 GB reserve &middot; 3.24 TB free after</strong></div>
+              <div class="summary-row"><span>Missing destination files</span><strong class="green">0</strong></div>
+              <div class="summary-row"><span>Failed copies</span><strong class="green">0</strong></div>
+              <div class="summary-row"><span>Remainder</span><strong class="green">0</strong></div>
+              <div class="summary-row"><span>Last verification</span><strong>Today, 14:32</strong></div>
+            </div>
+            <button class="btn btn--sm" type="button" style="margin-top:12px" data-run-lock data-run-lock-reason="Pause or finish the backup before promoting." data-run-lock-paused="Finish or stop the backup before promoting." data-toast="Prototype only &mdash; would run a deep verification pass."><span class="icon">fact_check</span> Deep verify</button>
+          </div>
+          <div class="step-actions">
+            <span></span>
+            <button class="btn btn--primary" type="button" data-promo-next data-run-lock data-run-lock-reason="Pause or finish the backup before promoting." data-run-lock-paused="Finish or stop the backup before promoting.">Review extras <span class="icon">arrow_forward</span></button>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-promo-panel="2">
+          <div class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Extras inside the new source root</h2>
+                <p class="card__desc">12 files &middot; 1.4 GB. They stay in the local library and out of the new source archive.</p>
+              </div>
+              <span class="pill pill--amber">Not imported</span>
+            </div>
+            <div class="mini-list">
+              <div class="mini-row" style="grid-template-columns:1fr auto auto"><span class="mini-row__name">IMG_8821.HEIC<span>H:\Memory Lane\4TB Archive\Backup\Phone</span></span><span class="mini-row__meta">4.8 MB</span><span class="mini-row__action"><span class="pill pill--amber">Extra</span></span></div>
+              <div class="mini-row" style="grid-template-columns:1fr auto auto"><span class="mini-row__name">receipt_2023_11.pdf<span>H:\Memory Lane\4TB Archive\Scans\Receipts</span></span><span class="mini-row__meta">182 KB</span><span class="mini-row__action"><span class="pill pill--amber">Extra</span></span></div>
+              <div class="mini-row" style="grid-template-columns:1fr auto auto"><span class="mini-row__name">IMG_0042.JPG<span>H:\Memory Lane\4TB Archive\Backup\Unsorted</span></span><span class="mini-row__meta">3.2 MB</span><span class="mini-row__action"><span class="pill pill--blue">Ambiguous</span></span></div>
+            </div>
+            <div class="callout" style="margin-top:12px">
+              <span class="icon">info</span>
+              <div>
+                <div class="callout__title">No automatic import</div>
+                <div class="callout__body">They remain visible in the drive’s local library. They are not added to the new source archive and are never deleted.</div>
+              </div>
+            </div>
+          </div>
+          <div class="step-actions">
+            <button class="btn" type="button" data-promo-back><span class="icon">arrow_back</span> Back</button>
+            <button class="btn btn--primary" type="button" data-promo-next data-run-lock data-run-lock-reason="Pause or finish the backup before promoting." data-run-lock-paused="Finish or stop the backup before promoting.">Choose fates <span class="icon">arrow_forward</span></button>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-promo-panel="3">
+          <div class="card">
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">After promotion</h2>
+                <p class="card__desc">Choose what happens to the old source and the 1 TB destinations.</p>
+              </div>
+            </div>
+            <div class="rep-kicker">Old source</div>
+            <div class="choice-list" style="margin-top:8px">
+              <label class="choice is-selected">
+                <input type="radio" name="old-source" checked>
+                <div class="choice__body">
+                  <div class="choice__title">Keep as full-copy destination <span class="pill pill--green">Recommended</span></div>
+                  <div class="choice__desc">3.8 TB today, about 200 GB free. Becomes partial if the new source outgrows 4 TB.</div>
+                </div>
+              </label>
+              <label class="choice">
+                <input type="radio" name="old-source">
+                <div class="choice__body">
+                  <div class="choice__title">Keep as partial destination</div>
+                  <div class="choice__desc">Keep its files and coverage, but stop treating it as a complete mirror.</div>
+                </div>
+              </label>
+              <label class="choice">
+                <input type="radio" name="old-source">
+                <div class="choice__body">
+                  <div class="choice__title">Retire after verification</div>
+                  <div class="choice__desc">Stop active backups; files remain.</div>
+                </div>
+              </label>
+            </div>
+
+            <div class="rep-kicker" style="margin-top:16px">1 TB destinations</div>
+            <div class="choice-list" style="margin-top:8px">
+              <div class="choice is-selected">
+                <input type="checkbox" checked>
+                <div class="choice__body">
+                  <div class="choice__title">Backup A (F:) &middot; keep as partial</div>
+                  <div class="choice__desc">800 GB verified; marker and coverage carry over.</div>
+                </div>
+              </div>
+              <div class="choice is-selected">
+                <input type="checkbox" checked>
+                <div class="choice__body">
+                  <div class="choice__title">Backup B (G:) &middot; keep as partial</div>
+                  <div class="choice__desc">700 GB last-known; reconnect to verify.</div>
+                </div>
+              </div>
+            </div>
+            <p class="card__desc" style="margin:8px 0 0">Unchecking a drive retires it. Its files, marker, and history remain.</p>
+          </div>
+          <div class="step-actions">
+            <button class="btn" type="button" data-promo-back><span class="icon">arrow_back</span> Back</button>
+            <button class="btn btn--primary" type="button" data-promo-next data-run-lock data-run-lock-reason="Pause or finish the backup before promoting." data-run-lock-paused="Finish or stop the backup before promoting.">Confirm <span class="icon">arrow_forward</span></button>
+          </div>
+        </section>
+
+        <section class="wizard-step" data-promo-panel="4">
+          <div class="card" data-promo-confirm-card>
+            <div class="card__head">
+              <div>
+                <h2 class="card__title">Confirm promotion</h2>
+                <p class="card__desc">This changes the active source.</p>
+              </div>
+              <span class="pill pill--green">Ready</span>
+            </div>
+            <div class="summary-list">
+              <div class="summary-row"><span>New source</span><strong>8TB Archive (H:)</strong></div>
+              <div class="summary-row"><span>Catalog root</span><strong class="mono">H:\</strong></div>
+              <div class="summary-row"><span>Source root</span><strong class="mono">H:\Memory Lane\4TB Archive</strong></div>
+              <div class="summary-row"><span>Old source</span><strong>E: &middot; full-copy destination</strong></div>
+              <div class="summary-row"><span>1 TB destinations</span><strong>Backup A and B kept</strong></div>
+              <div class="summary-row"><span>Catalog identity</span><strong class="green">Preserved</strong></div>
+            </div>
+            <div class="callout callout--amber" style="margin-top:12px">
+              <span class="icon">warning</span>
+              <div>
+                <div class="callout__title">Rollback ends at the first change on H:</div>
+                <div class="callout__body">Once you scan, edit, import, or back up on the new source, rollback is disabled unless a merge-back feature exists.</div>
+              </div>
+            </div>
+            <label class="choice" style="margin-top:12px">
+              <input type="checkbox" data-promotion-confirm>
+              <div class="choice__body">
+                <div class="choice__title">I understand H: becomes the active source</div>
+                <div class="choice__desc">E: will be demoted; no archive files are moved.</div>
+              </div>
+            </label>
+          </div>
+          <div class="step-actions" data-promo-confirm-actions>
+            <button class="btn" type="button" data-promo-back><span class="icon">arrow_back</span> Back</button>
+            <button class="btn btn--primary" type="button" data-promotion-submit data-run-lock data-run-lock-reason="Pause or finish the backup before promoting." data-run-lock-paused="Finish or stop the backup before promoting." disabled><span class="icon">upgrade</span> Promote to source</button>
+          </div>
+
+          <div class="card" data-promotion-complete hidden>
+            <div class="promo-complete">
+              <div class="promo-complete__icon"><span class="icon">check</span></div>
+              <div>
+                <h3>8TB Archive is now the active source</h3>
+                <p>E: is demoted to a full-copy destination. Backup A and B remain partial. No archive files moved.</p>
+              </div>
+            </div>
+            <div class="summary-list" style="margin-top:12px">
+              <div class="summary-row"><span>Active source</span><strong>8TB Archive (H:) &middot; catalog identity preserved</strong></div>
+              <div class="summary-row"><span>Source root</span><strong class="mono">H:\Memory Lane\4TB Archive</strong></div>
+              <div class="summary-row"><span>Old source</span><strong>E: &middot; demoted, full-copy destination</strong></div>
+              <div class="summary-row"><span>1 TB destinations</span><strong>Backup A and B kept as partial</strong></div>
+            </div>
+            <div class="callout callout--amber" style="margin:12px 0">
+              <span class="icon">warning</span>
+              <div>
+                <div class="callout__title">Rollback is available until the first change on H:</div>
+                <div class="callout__body">Scanning, editing, importing, or backing up on the new source ends the guaranteed rollback window.</div>
+              </div>
+            </div>
+            <div class="step-actions">
+              <button class="btn btn--danger" type="button" data-toast="Prototype only &mdash; would restore the pre-promotion catalogs and reactivate E:."><span class="icon">undo</span> Roll back promotion</button>
+              <a class="btn btn--primary" href="replication.html"><span class="icon">arrow_forward</span> Go to overview</a>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="assets/app.js"></script>
+  <script src="assets/replication.js"></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane &mdash; Backup &amp; replication</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/replication.css">
+</head>
+<body data-page="replication" data-run-label="8TB Archive (H:)" data-run-percent="42%" data-drive-name="4TB Archive (E:)" data-drive-state="Connected · Source archive" data-drive-meta="3.8 TB / 4.0 TB" data-drive-percent="95%" data-drive-bar="95%" data-drive-title="4TB Archive" data-drive-subtitle="E: · Source archive · Read-only" data-drive-label="4TB_ARCHIVE" data-drive-serial="4TB Archive · NTFS" data-drive-volume="{4tb-8a2c-91e0}" data-drive-letter="E:" data-drive-fs="NTFS 3.1" data-drive-storage="3.8 TB indexed · 200 GB free" data-drive-schema="v0.1 · 25,717 records" data-crumb="Library / Backup &amp; replication" data-scan-chip="off">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Archive protection <span class="pill pill--amber">Post-v0.1 preview</span></div>
+            <h1>Backup &amp; replication</h1>
+            <p>4TB Archive is the source. 25,717 files &middot; 3.8 TB &middot; last verified today at 14:32.</p>
+          </div>
+          <div class="page-head__actions">
+            <button class="btn" type="button" data-add-destination><span class="icon">add</span> Add destination</button>
+            <a class="btn btn--primary" data-run-progress hidden href="replication-run.html"><span class="icon">sync</span> View progress</a>
+            <a class="btn btn--primary" data-run-review href="replication-plan.html"><span class="icon">playlist_add_check</span> Review plan</a>
+          </div>
+        </div>
+
+        <div class="run-banner" data-run-banner hidden>
+          <div class="run-banner__icon"><span class="icon">sync</span></div>
+          <div class="run-banner__body">
+            <strong data-run-banner-title>Backup running</strong>
+            <span data-run-banner-note>Plan changes are locked until you pause.</span>
+          </div>
+          <div class="run-banner__meta">42% · 8TB Archive (H:)</div>
+          <div class="run-banner__actions">
+            <a class="btn btn--sm btn--primary" href="replication-run.html">View progress</a>
+            <button class="btn btn--sm" type="button" data-run-pause data-toast="Prototype only — the run would pause after the current file.">Pause backup</button>
+          </div>
+        </div>
+
+        <div class="source-card">
+          <div class="source-card__icon"><span class="icon">hard_drive</span></div>
+          <div class="source-card__body">
+            <div class="source-card__top">
+              <strong>4TB Archive</strong>
+              <span class="pill pill--green"><span class="icon">verified_user</span> Source archive</span>
+              <span class="pill pill--muted"><span class="icon">lock</span> Read-only</span>
+            </div>
+            <p><span class="mono">E:\</span> &middot; 25,717 files &middot; 3.8 TB</p>
+          </div>
+          <div class="source-card__meta">
+            <div><span>Coverage as of</span><strong>Today, 14:32</strong></div>
+          </div>
+        </div>
+
+        <div class="stat-strip stat-strip--3">
+          <div class="stat"><div class="stat__value">39%</div><div class="stat__label">Partial coverage today</div><div class="stat__hint">Backup A + B &middot; 1.49 TB</div></div>
+          <div class="stat"><div class="stat__value amber">2.31 TB</div><div class="stat__label">Partial remainder today</div><div class="stat__hint">Not on Backup A or B</div></div>
+          <div class="stat"><div class="stat__value green">3.8 TB</div><div class="stat__label">Full-copy plan</div><div class="stat__hint">8 TB target &middot; 0 shortfall</div></div>
+        </div>
+
+        <div class="rep-layout">
+          <div class="stack">
+            <div class="rep-section-head">
+              <h2>Destinations</h2>
+              <span>Fill order &middot; Backup A &rarr; Backup B</span>
+            </div>
+
+            <a class="dest-card" href="replication-destination.html?dest=a">
+              <div class="dest-card__head">
+                <div class="dest-card__icon"><span class="icon">hard_drive</span></div>
+                <div class="dest-card__body">
+                  <div class="dest-card__title">Backup A (F:) <span class="pill pill--amber">Partial</span></div>
+                  <div class="dest-card__meta">1 TB &middot; 800 GB verified &middot; 161 GB available &middot; 2005&ndash;2023 mixed</div>
+                </div>
+                <div class="dest-card__pills">
+                  <span class="pill pill--green"><span class="icon">check_circle</span> Connected</span>
+                  <span class="pill pill--muted">Fills first</span>
+                </div>
+              </div>
+              <div class="progress" style="margin-top:12px"><span style="width:80%"></span></div>
+              <div class="dest-card__foot">
+                <span>42 files only on this drive</span>
+                <span class="amber">Open <span class="icon icon--sm">arrow_forward</span></span>
+              </div>
+            </a>
+
+            <a class="dest-card" href="replication-destination.html?dest=b">
+              <div class="dest-card__head">
+                <div class="dest-card__icon"><span class="icon">hard_drive</span></div>
+                <div class="dest-card__body">
+                  <div class="dest-card__title">Backup B (G:) <span class="pill pill--amber">Partial</span></div>
+                  <div class="dest-card__meta">1 TB &middot; 700 GB last-known &middot; 261 GB last-known available &middot; 2008&ndash;2024 mixed</div>
+                </div>
+                <div class="dest-card__pills">
+                  <span class="pill pill--amber"><span class="icon">usb_off</span> Offline</span>
+                  <span class="pill pill--muted">Fills next</span>
+                </div>
+              </div>
+              <div class="progress" style="margin-top:12px"><span style="width:70%"></span></div>
+              <div class="dest-card__foot">
+                <span>Last seen 3 days ago &middot; 7 files only on this drive</span>
+                <span class="amber">Open <span class="icon icon--sm">arrow_forward</span></span>
+              </div>
+            </a>
+
+            <a class="dest-card" href="replication-destination.html?dest=h">
+              <div class="dest-card__head">
+                <div class="dest-card__icon"><span class="icon">save</span></div>
+                <div class="dest-card__body">
+                  <div class="dest-card__title">8TB Archive (H:) <span class="pill pill--blue">Full copy</span></div>
+                  <div class="dest-card__meta">8 TB &middot; 1.6 TB verified &middot; 5.44 TB available &middot; 42% complete</div>
+                </div>
+                <div class="dest-card__pills">
+                  <span class="pill pill--green"><span class="icon">check_circle</span> Connected</span>
+                  <span class="pill pill--amber">In progress</span>
+                </div>
+              </div>
+              <div class="progress" style="margin-top:12px"><span style="width:42%"></span></div>
+              <div class="dest-card__foot">
+                <span>12 files only on this drive &middot; 0 shortfall &middot; promotion after 100%</span>
+                <span class="amber">Open <span class="icon icon--sm">arrow_forward</span></span>
+              </div>
+            </a>
+
+            <button class="dest-card dest-card--muted" type="button" data-add-destination style="width:100%;text-align:left">
+              <div class="dest-card__head">
+                <div class="dest-card__icon"><span class="icon">add</span></div>
+                <div class="dest-card__body">
+                  <div class="dest-card__title">Add a destination</div>
+                  <div class="dest-card__meta">Register a drive, choose partial or full copy, and adopt existing files.</div>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <aside class="stack">
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">Needs attention</h2>
+                  <p class="card__desc">Files outside the source archive, and source files with a backup copy.</p>
+                </div>
+              </div>
+              <div class="attention-row">
+                <div class="attention-row__name">Backup A &middot; only on this drive<span>42 files &middot; 3.2 GB</span></div>
+                <a class="pill pill--amber" href="replication-destination.html?dest=a#files-only">Review</a>
+              </div>
+              <div class="attention-row">
+                <div class="attention-row__name">Backup B &middot; only on this drive<span>7 files &middot; 0.4 GB</span></div>
+                <a class="pill pill--amber" href="replication-destination.html?dest=b#files-only">Review</a>
+              </div>
+              <div class="attention-row">
+                <div class="attention-row__name">Source missing &middot; Backup A<span>3 files &middot; 188 MB</span></div>
+                <a class="pill pill--amber" href="replication-destination.html?dest=a#files-missing">Review</a>
+              </div>
+              <div class="attention-row">
+                <div class="attention-row__name">8TB Archive &middot; only on this drive<span>12 files &middot; 1.4 GB</span></div>
+                <a class="pill pill--amber" href="replication-destination.html?dest=h#files-only">Review</a>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <h2 class="card__title">Coverage note</h2>
+                </div>
+              </div>
+              <p class="card__desc" style="margin:0">Coverage is a union: a file on A and B counts once. The 8 TB full copy intentionally duplicates files from both partial drives.</p>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="drawer-backdrop" id="add-destination-drawer" data-add-drawer>
+    <aside class="drawer drawer--wide" role="dialog" aria-modal="true" aria-labelledby="add-destination-title">
+      <div class="drawer__head">
+        <div>
+          <h2 id="add-destination-title">Add destination</h2>
+          <p>Step <span data-add-step-label>1</span> of 2</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-add-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="drawer__body">
+        <div class="callout callout--amber" data-run-active-note hidden style="margin-bottom:12px">
+          <span class="icon">info</span>
+          <div>
+            <div class="callout__title">A backup is running</div>
+            <div class="callout__body">This destination will be added to the next plan. The active run is not changed.</div>
+          </div>
+        </div>
+        <section data-add-panel="1">
+          <div class="rep-kicker">Drive</div>
+          <div class="choice-list" style="margin-top:8px">
+            <label class="choice is-selected">
+              <input type="radio" name="add-drive" checked>
+              <div class="choice__body">
+                <div class="choice__title">Seagate 8TB (I:) <span class="pill pill--blue">New</span></div>
+                <div class="choice__desc">NTFS &middot; 7.2 TB free &middot; external &middot; identity confirmed</div>
+              </div>
+            </label>
+            <label class="choice">
+              <input type="radio" name="add-drive">
+              <div class="choice__body">
+                <div class="choice__title">Seagate 4TB (J:)</div>
+                <div class="choice__desc">exFAT &middot; 3.6 TB free &middot; full copy would be 200 GB short</div>
+              </div>
+            </label>
+            <label class="choice" style="opacity:.62">
+              <input type="radio" name="add-drive" disabled>
+              <div class="choice__body">
+                <div class="choice__title">4TB Archive (E:) <span class="pill pill--red">Source</span></div>
+                <div class="choice__desc">Cannot be a destination for itself.</div>
+              </div>
+            </label>
+          </div>
+          <div class="rep-kicker" style="margin-top:16px">Goal</div>
+          <div class="choice-list" style="margin-top:8px">
+            <label class="choice">
+              <input type="radio" name="add-goal">
+              <div class="choice__body">
+                <div class="choice__title">Extend coverage <span class="pill pill--amber">Partial</span></div>
+                <div class="choice__desc">Oldest uncovered files only.</div>
+              </div>
+            </label>
+            <label class="choice is-selected">
+              <input type="radio" name="add-goal" checked>
+              <div class="choice__body">
+                <div class="choice__title">Full copy <span class="pill pill--blue">All files</span></div>
+                <div class="choice__desc">Every source file; can become the next source.</div>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section data-add-panel="2" hidden>
+          <div class="callout callout--green" style="margin-bottom:12px">
+            <span class="icon">check_circle</span>
+            <div>
+              <div class="callout__title">Full copy fits</div>
+              <div class="callout__body">3.8 TB source + 160 GB reserve fits in 7.2 TB free. No shortfall.</div>
+            </div>
+          </div>
+          <div class="rep-kicker">New copies</div>
+          <div class="choice-list" style="margin-top:8px">
+            <label class="choice is-selected">
+              <input type="radio" name="add-layout" checked>
+              <div class="choice__body">
+                <div class="choice__title">Dedicated Memory Lane folder <span class="pill pill--green">Recommended</span></div>
+                <div class="choice__desc">Existing files stay where they are.</div>
+              </div>
+            </label>
+            <label class="choice">
+              <input type="radio" name="add-layout">
+              <div class="choice__body">
+                <div class="choice__title">Mirror source layout</div>
+                <div class="choice__desc">New copies match the source at the drive root.</div>
+              </div>
+            </label>
+          </div>
+          <div class="summary-list" style="margin-top:14px">
+            <div class="summary-row"><span>Root</span><strong class="mono">I:\</strong></div>
+            <div class="summary-row"><span>New copies</span><strong class="mono">I:\Memory Lane\4TB Archive</strong></div>
+            <div class="summary-row"><span>Allocation</span><strong>Use all safe space</strong></div>
+            <div class="summary-row"><span>Reserve</span><strong>160 GB</strong></div>
+            <div class="summary-row"><span>Existing library</span><strong>Reuse if present</strong></div>
+          </div>
+          <div class="callout callout--amber" style="margin-top:12px">
+            <span class="icon">warning</span>
+            <div>
+              <div class="callout__title">Safety check</div>
+              <div class="callout__body">Different volume, no root overlap, source stays read-only. The destination is not copied to until you review the plan.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="drawer__foot">
+        <button class="btn" type="button" data-add-back hidden><span class="icon">arrow_back</span> Back</button>
+        <button class="btn btn--primary" type="button" data-add-next><span class="icon">arrow_forward</span> Next</button>
+        <button class="btn btn--primary" type="button" data-add-submit hidden><span class="icon">add</span> Add destination</button>
+      </div>
+    </aside>
+  </div>
+  <script src="assets/app.js"></script>
+  <script src="assets/replication.js"></script>
+</body>
+</html>

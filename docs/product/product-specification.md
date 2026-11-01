@@ -463,33 +463,192 @@ separate, resumable operation.
 Show a validation report in the UI. Do not modify original files.
 Missing files remain cataloged and marked as missing.
 
-## 15. Future capability: partial backups across destination drives
+## 15. Future capability: archive replication and source promotion
 
 **Status:** post-v0.1, not part of the initial single-drive archive workflow.
 
-The user expects to connect smaller destination drives and back up selected
-photos and videos because no single destination can hold the entire archive.
-The feature must record which exact source files were copied to which
-destination, verify copies, and report cumulative coverage.
+Detailed design, formulas, failure behavior, and resolved decisions:
+[`partial-backups.md`](partial-backups.md).
+
+The user expects to connect smaller destination drives and back up the archive
+because no single destination can hold it. The feature must record which exact
+source files were copied to which destination, verify copies, and report
+cumulative coverage.
+
+**Adoption-first requirement:** the user already has manual partial backups.
+A 4 TB source archive is split across two 1 TB destination drives, and both
+drives already contain subsets copied outside Memory Lane. The feature must
+adopt that existing state rather than require a fresh backup or a new folder
+layout.
+
+**Confirmed direction:** support partial destinations, explicit full-copy
+destinations, and a guided promotion of a verified full copy into the new source
+archive. Plan the entire source archive, fill partial destinations in priority
+order from oldest files to newest, copy what fits, and report the remainder. The
+user does not select files in the first version.
+
+**First-release scope:** destinations must be dedicated drives, not active
+source archives. Scan, validation, and replication are mutually exclusive heavy
+workloads, and switching the source archive is blocked while a run is running or
+paused. Dual-role destinations and promotion from a dual-role drive are deferred.
 
 Requirements:
 
--   Select photos and videos by media type and date range; show the selection
-    size before copying.
+-   Use **source archive** for the truth copy and **backup destination** for a
+    drive that holds a copy. These are archive relationships, not permanent
+    drive types.
 -   Support partial backups that fit on smaller destination drives.
+-   **Scan and adopt existing destination contents before copying anything
+    new.** Do not require the user to re-copy, move, or reorganize files that
+    are already on a destination.
+-   Match existing destination files by source-relative path and size, then by
+    unique name and size, then by content hash. Verify SHA-256.
 -   Record source-to-destination file relationships and verification status.
--   Identify destinations by stable volume identity, not drive letter.
--   Show coverage by verified bytes and, where useful, by file count, with a
-    clearly stated scope and no double-counting.
+-   Allow a source file to live on zero, one, or multiple destinations.
+    Coverage is the **union** of verified copies and must not double-count a
+    file that exists on two destinations.
+-   Partial destinations fill gaps only. A full-copy destination may
+    intentionally receive every source file, including files already verified
+    on partial destinations. Plan the two groups separately.
+-   After adoption, copy only files that are missing, unverified, stale, or not
+    covered by any active partial destination.
+-   Plan the entire present source archive in chronological order, oldest
+    first. Files with no reliable date come last, ordered by path.
+-   Fill partial destinations in user-defined priority order. The first
+    destination in fill order receives the oldest **uncovered** files until its
+    allocation is reached; the next destination continues from there. Existing
+    destination files are never moved to make date ranges cleaner.
+-   Let the user choose a safe allocation per destination, including **Use all
+    safe space**. Default reserve: 2% of capacity with a 5 GiB minimum.
+-   Support a per-destination goal: **extend coverage** or **full copy**. A
+    full-copy destination receives every present source file, even when partial
+    destinations already cover it. Full copy is optional: partial-only archives
+    must work, and a completed full copy can be excluded from later runs.
+-   A full-copy destination must fit the entire source plus the reserve. If it
+    does not, show the shortfall and do not label it full.
+-   If the source later grows beyond a full-copy destination, automatically mark
+    it partial with a warning. Keep its existing files and show what is missing.
+-   When partial capacity runs out, copy what fits and report the exact
+    remainder. Do not ask the user to choose a subset.
+-   The app copies files after plan confirmation, with pause and resume. It
+    must never imply a file is backed up because a copy was attempted.
+-   A running backup has a persistent status on every screen and a run banner on
+    the overview, so the progress screen is always one click away. Reopening the
+    app during a run resumes the run screen or shows a resume card; it never
+    starts a second run.
+-   Allow at most one active run per source archive. Lock plan and destination
+    changes while the run is active; pause, confirm the change, and resume.
+    Changes apply only to remaining work and never recopy or move verified
+    files.
+-   Adding a destination during a run is queued for the next plan. Promotion is
+    blocked while a run is running or paused.
+-   Preserve the existing destination layout. New copies use a dedicated
+    `Memory Lane\<archive>` folder by default so they do not mix with manual
+    files. A mirror layout is available for drives that should keep the source
+    structure at their root.
+-   Store both destination-relative and source-relative paths for each replica.
+    The source-relative path is the stable coverage key when a source root moves
+    or a destination is promoted.
+-   Each destination keeps its own local library catalog and cache for its own
+    files, plus a compact read-only source index. The source catalog remains the
+    authority for coverage. Catalog files carry
+    `source_membership = source | local_only`; source coverage and planning use
+    only `source` files, while the local library shows both.
+-   A destination that was already initialized in Memory Lane reuses its
+    existing catalog instead of creating a second one.
+-   Identify destinations by stable volume identity, not drive letter. Use a
+    destination marker as a second identity factor when two drives look
+    identical.
+-   Hard-reject a destination on the same volume as the source archive, or with
+    overlapping source/destination roots. A drive may be a source for its own
+    local library and a destination for a different archive.
+-   Show per-destination coverage, cumulative coverage, free space, overlaps,
+    full-copy status, stale/missing copies, and the remainder. Coverage is by
+    verified bytes and file count.
+-   Show each destination’s actual date coverage as a map, not a single range
+    when the years are mixed or non-contiguous. Do not imply that the first
+    destination is the “older” drive.
 -   Detect source files that changed after backup and mark the copy stale.
--   Distinguish copied from verified; never imply a file is backed up because a
-    copy was attempted.
--   Preserve the source archive unchanged.
+    Replace stale copies only after a once-per-run approval, on their existing
+    destination first. A stale replacement may temporarily use the reserve but
+    must keep at least 1 GiB free and show a warning. New copies never use the
+    reserve.
+-   A different hash at the expected path on first adoption is a conflict, not a
+    stale copy. Never overwrite it automatically.
+-   Detect files that exist only on a backup destination and show them under
+    **Only on this drive**. They are visible in the destination’s local
+    library, but are never counted as source coverage, copied to the source or
+    other destinations automatically, or deleted automatically. If a file was
+    once present in the source index but is no longer in the source catalog,
+    label it **Previously in source**.
+-   Distinguish a destination-only extra from a source-missing replica. A
+    verified replica whose source file is missing is shown as “Source missing;
+    backup copy exists.” Restoring it is an explicit recovery action, never
+    automatic.
+-   Fill gaps only for partial destinations. Full-copy destinations are the
+    explicit intentional-overlap exception.
+-   Allow a verified full-copy destination to be promoted to the new source
+    archive without moving files or re-hashing. Preserve the archive identity,
+    dates, overrides, duplicates, and coverage history.
+-   After promotion, keep the old source as a full-copy destination when it
+    still fits, or as a partial destination when the new source outgrows it.
+    The user chooses whether to keep or retire the existing 1 TB destinations.
+-   Allow only one active source catalog per archive identity. Rollback is
+    guaranteed only before the first change on the new source; after that it is
+    disabled unless a merge-back feature exists.
+-   Leave destination-only files out of the new source archive. Keep them
+    visible in the local library; never import or delete them automatically.
+-   Show source-missing replicas with reveal/open actions only. Restoring a file
+    into the source archive is deferred so the first release keeps the source
+    read-only.
+-   If a full-copy destination runs out of space, mark it incomplete and do not
+    spill its files to partial destinations.
+-   Preserve the source archive files unchanged.
+
+First-run adoption flow:
+
+1.  Connect one of the existing destination drives. A destination is required;
+    a full-copy destination is not.
+2.  Register its stable volume identity, choose the destination root (the drive
+    root is recommended for reorganized drives), and scan its current contents.
+3.  Reuse its existing local catalog if it has one; otherwise create one.
+4.  Match files by relative path and size, then name and size, then content
+    hash. Verify SHA-256.
+5.  Record each existing file as verified, unverified, stale, missing, or
+    conflicting without modifying or moving it.
+6.  Show what this destination already covers, its actual date coverage map,
+    including overlapping or non-contiguous years, and any files that are only
+    on this drive.
+7.  Choose the destination goal: extend coverage or full copy.
+8.  Repeat for the other destination drives.
+9.  Review the plan: full-copy destinations, partial destinations, adopted
+    bytes, new files, planned date range, and the remainder.
+10. Start the backup, verify each copy, update local libraries, and report the
+    final coverage.
+
+An initial adoption pass may need to hash existing destination files to prove
+coverage. That is a read-only verification cost, not a re-copy.
+
+Full-copy and promotion flow:
+
+1.  Add the new large drive as a **full-copy destination**.
+2.  Copy and verify every present source file. If the drive cannot fit the
+    source, show the shortfall and do not call it a full copy.
+3.  If the drive should become the new source, run the guided promotion flow.
+4.  Preserve the archive identity, dates, overrides, duplicates, and coverage.
+    Demote the old source and choose whether it becomes a full or partial
+    destination.
+5.  Keep or retire the existing 1 TB destinations.
+6.  If the source later grows beyond the old 4 TB drive, automatically mark it
+    partial and show what no longer fits.
 
 Architecture implications: the initial data model already reserves
 `backup_destinations` and `backup_history`. Do not merge independent source
 catalogs to support this feature. Implement it after v0.1 with its own ADR,
-migration, verification workflow, and tests.
+migration, verification workflow, and tests. The authoritative coverage map
+belongs in the source archive’s `catalog.db`; the PC `app.db` is only a cache.
+Full-copy destinations and source promotion are recorded in
+[`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md).
 
 ## 16. Initial UI areas
 
@@ -579,8 +738,11 @@ phase:
     Sharp are needed for unsupported playback or thumbnails.
 -   Whether filesystem access-time updates must be prevented.
 -   Behavior for unreadable, encrypted, corrupt, or permission-restricted files.
--   Future backup conflict handling and destination capacity checks.
 -   Search design and whether SQLite FTS5 is required (post-v0.1).
+
+Replication-specific decisions, including conflict handling, destination
+capacity, and one destination relationship per drive, are resolved in
+[`partial-backups.md`](partial-backups.md) §16.
 
 Resolved during Phases 4-5: validation outcomes and wording; all-generated-assets
 cache clearing; latest-snapshot backup retention with manual recovery.
