@@ -119,6 +119,30 @@ describe("LibraryPage", () => {
     expect(screen.getByText("03:24")).toBeInTheDocument();
   });
 
+  it("shows a metadata refresh banner for older catalogs", async () => {
+    const item = libraryFixtureItems[0];
+    if (item === undefined) {
+      throw new Error("The library fixture is missing");
+    }
+    const summary: LibrarySummary = {
+      totalItems: 1,
+      photoCount: 1,
+      videoCount: 0,
+      indexedBytes: item.sizeBytes,
+      undatedCount: 0,
+      lastScanAt: null,
+      metadataRefreshCount: 3,
+    };
+    renderLibrary(createLibraryFixtureClient({ items: [item], summary }));
+
+    expect(await screen.findByText("Metadata refresh available")).toBeInTheDocument();
+    expect(screen.getByText(/3 files were indexed with an older metadata extractor/)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open Scan & processing" })).toHaveAttribute(
+      "href",
+      "/scan",
+    );
+  });
+
   it("filters to photos and updates the timeline query", async () => {
     const client = createLibraryFixtureClient();
     const timelineSpy = vi.spyOn(client, "getTimeline");

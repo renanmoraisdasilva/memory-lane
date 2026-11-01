@@ -42,6 +42,7 @@ export const LibrarySummarySchema = z.object({
   indexedBytes: z.number().int().nonnegative(),
   undatedCount: z.number().int().nonnegative(),
   lastScanAt: z.string().min(1).nullable(),
+  metadataRefreshCount: z.number().int().nonnegative(),
 });
 export type LibrarySummary = z.infer<typeof LibrarySummarySchema>;
 

@@ -7,6 +7,7 @@ import type {
   LibraryTimelinePage,
 } from "@shared/contracts/library";
 import { LibraryTimelineIndexSchema, LibraryTimelinePageSchema } from "@shared/contracts/library";
+import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
 import {
   LIBRARY_SELECT,
   buildTimelineWhere,
@@ -62,6 +63,24 @@ function readLastScanAt(db: Database.Database): string | null {
   return row?.finished_at ?? null;
 }
 
+function readMetadataRefreshCount(db: Database.Database): number {
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS count FROM files f
+       WHERE f.state = 'present'
+         AND EXISTS (
+           SELECT 1 FROM file_metadata m WHERE m.file_id = f.id AND m.key = 'scan.metadata'
+         )
+         AND COALESCE((
+           SELECT CAST(m.value AS INTEGER) FROM file_metadata m
+           WHERE m.file_id = f.id AND m.key = 'scan.metadataVersion'
+           LIMIT 1
+         ), 0) < ?`,
+    )
+    .get(METADATA_EXTRACTOR_VERSION) as { count: number } | undefined;
+  return row?.count ?? 0;
+}
+
 export function getLibrarySummary(db: Database.Database): LibrarySummary {
   const row = readSummaryCounts(db);
   return {
@@ -71,6 +90,7 @@ export function getLibrarySummary(db: Database.Database): LibrarySummary {
     indexedBytes: row?.bytes ?? 0,
     undatedCount: readUndatedCount(db),
     lastScanAt: readLastScanAt(db),
+    metadataRefreshCount: readMetadataRefreshCount(db),
   };
 }
 

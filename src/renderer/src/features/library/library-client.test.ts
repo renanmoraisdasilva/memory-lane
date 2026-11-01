@@ -23,6 +23,7 @@ const summary: LibrarySummary = {
   indexedBytes: 0,
   undatedCount: 0,
   lastScanAt: null,
+  metadataRefreshCount: 0,
 };
 
 const timeline: LibraryTimelinePage = { items: [], nextCursor: null, total: 0 };

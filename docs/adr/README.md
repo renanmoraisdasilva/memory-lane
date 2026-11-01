@@ -21,6 +21,8 @@ and status.
   minutes and on close, plus all-or-nothing generated-cache clearing.
 - `0004-heic-preview-conversion.md` - Worker-thread HEIC/HEIF to JPEG previews
   cached as generated media, with external-open fallback.
+- `0005-versioned-metadata-extraction.md` - Extractor version stamps, stale
+  detection, and the Memory Lane refresh banner.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

@@ -116,8 +116,8 @@ function FileDetails({ details }: { details: LibraryItemDetails }): React.JSX.El
         <DetailRow label="Dimensions" value={`${String(item.width)} × ${String(item.height)}`} />
       ) : null}
       {duration === null ? null : <DetailRow label="Duration" value={duration} />}
-      {item.mediaClass === "video" && frameRate !== null ? (
-        <DetailRow label="Frame rate" value={frameRate} />
+      {item.mediaClass === "video" ? (
+        <DetailRow label="Frame rate" value={frameRate ?? "Not recorded"} />
       ) : null}
       <DetailRow label="Modified" value={formatDateTime(details.modifiedAtFs)} />
       {details.createdAtFs === null ? null : (

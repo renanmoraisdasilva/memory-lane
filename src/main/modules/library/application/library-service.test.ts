@@ -13,6 +13,7 @@ const summary: LibrarySummary = {
   indexedBytes: 100,
   undatedCount: 0,
   lastScanAt: "2026-10-31T14:00:00.000Z",
+  metadataRefreshCount: 0,
 };
 
 const details = {

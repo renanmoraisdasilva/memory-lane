@@ -194,6 +194,7 @@ describe("MediaViewerPage", () => {
 
     expect(await screen.findByText("Thumbnail unavailable")).toBeInTheDocument();
     expect(screen.getByText("01:15")).toBeInTheDocument();
+    expect(screen.getByText("Not recorded")).toBeInTheDocument();
   });
 
   it("surfaces reveal and open errors", async () => {

@@ -475,4 +475,8 @@ Status: implemented after Phase 6 automation, before the manual release pass.
 - HEIC/HEIF photos open in the viewer through an on-demand JPEG preview
   generated in a worker thread and cached under `.memorylane/cache/previews`;
   the original file is never modified.
+- Metadata extraction now stamps `scan.metadataVersion`. Files below the current
+  extractor version are refreshed by the next incremental scan, and Memory Lane
+  shows a banner with the stale count so users are not left guessing why newer
+  details such as frame rate are absent.
 

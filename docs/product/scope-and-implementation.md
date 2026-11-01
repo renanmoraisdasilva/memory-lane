@@ -304,6 +304,8 @@ adds no catalog migration.
 2. **Extract metadata** - classify media, read selected ExifTool tags for dates,
    dimensions, duration, frame rate, camera, codec, and GPS; fill gaps with the
    dependency-free readers; resolve the final date through the priority chain.
+   Successful extractions record `scan.metadataVersion`; older versions are
+   refreshed by the next incremental scan and surface as a library banner.
 3. **Generate thumbnails** - Electron `nativeImage` thumbnails into
    `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streamed SHA-256 with file-level resume.

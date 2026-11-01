@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
+import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
 import { catalogMigrations } from "../migrations/catalog-migrations";
 import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
@@ -166,6 +167,7 @@ describe("library repository", () => {
       indexedBytes: 1_200,
       undatedCount: 1,
       lastScanAt: "2024-08-18T12:30:00.000Z",
+      metadataRefreshCount: 0,
     });
     db.close();
   });
@@ -179,7 +181,27 @@ describe("library repository", () => {
       indexedBytes: 0,
       undatedCount: 0,
       lastScanAt: null,
+      metadataRefreshCount: 0,
     });
+    db.close();
+  });
+
+  it("counts files extracted with an older metadata version", () => {
+    const db = createDb();
+    seed(db);
+    const row = db.prepare("SELECT id FROM files WHERE name = 'a.jpg'").get() as { id: number };
+    const upsert = db.prepare(
+      `INSERT OR REPLACE INTO file_metadata (file_id, key, value, source, extracted_at)
+       VALUES (?, ?, ?, 'scan', ?)`,
+    );
+    upsert.run(row.id, "scan.metadata", "ok", now);
+    upsert.run(row.id, "scan.metadataVersion", "0", now);
+    expect(getLibrarySummary(db).metadataRefreshCount).toBe(1);
+
+    db.prepare(
+      "UPDATE file_metadata SET value = ? WHERE file_id = ? AND key = 'scan.metadataVersion'",
+    ).run(String(METADATA_EXTRACTOR_VERSION), row.id);
+    expect(getLibrarySummary(db).metadataRefreshCount).toBe(0);
     db.close();
   });
 

@@ -84,7 +84,8 @@ The coordinator runs stages in this order:
    selected ExifTool tags for dates, dimensions, duration, frame rate, camera,
    codec, and GPS. The dependency-free readers fill missing dimensions or
    MP4/MOV duration; the date priority chain falls back to filesystem
-   timestamps.
+   timestamps. Successful extraction writes `scan.metadataVersion` with the
+   current `METADATA_EXTRACTOR_VERSION`.
 3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
@@ -145,8 +146,13 @@ current drive letter differs from the last registered letter.
 
 The current catalog schema version is 6. Opening an older catalog applies
 pending migrations checksum-safely. A catalog upgraded from schema 5 starts
-with null frame rates for videos indexed before the field existed; a metadata
-revalidation or rescan extracts them.
+with null frame rates for videos indexed before the field existed.
+
+Metadata has its own extractor version independent of the catalog schema.
+Files below `METADATA_EXTRACTOR_VERSION` are treated as pending by the metadata
+stage, so the next incremental scan refreshes them without re-extracting files
+that are already current. The library summary exposes the stale count and
+Memory Lane links to Scan & processing when a refresh is available.
 
 ## Current limits
 

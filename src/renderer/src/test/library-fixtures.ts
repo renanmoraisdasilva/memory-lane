@@ -196,7 +196,6 @@ function sortItems(items: LibraryItem[]): LibraryItem[] {
     return right.fileId - left.fileId;
   });
 }
-
 function anchorItems(items: LibraryItem[], params: LibraryTimelineParams): LibraryItem[] {
   const year = params.year;
   if (year === undefined) {
@@ -225,6 +224,7 @@ function summaryFromItems(items: LibraryItem[]): LibrarySummary {
     indexedBytes: items.reduce((total, item) => total + item.sizeBytes, 0) + GB,
     undatedCount: items.filter((item) => item.date.value === null).length,
     lastScanAt: "2026-10-31T14:32:00.000Z",
+    metadataRefreshCount: 0,
   };
 }
 

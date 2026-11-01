@@ -1,6 +1,7 @@
 import type Database from "better-sqlite3";
 import { z } from "zod";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
 import type {
   HashSaveItem,
   MetadataSaveItem,
@@ -42,8 +43,8 @@ function assertVolume(db: Database.Database, volumeId: string): void {
   }
 }
 
-function countRows(db: Database.Database, sql: string): number {
-  const row = db.prepare(sql).get() as { count: number } | undefined;
+function countRows(db: Database.Database, sql: string, params: unknown[] = []): number {
+  const row = db.prepare(sql).get(...params) as { count: number } | undefined;
   return row?.count ?? 0;
 }
 
@@ -53,9 +54,17 @@ export function countPendingMetadata(db: Database.Database, volumeId: string): n
     db,
     `SELECT COUNT(*) AS count FROM files f
      WHERE f.state = 'present'
-       AND NOT EXISTS (
-         SELECT 1 FROM file_metadata m WHERE m.file_id = f.id AND m.key = 'scan.metadata'
+       AND (
+         NOT EXISTS (
+           SELECT 1 FROM file_metadata m WHERE m.file_id = f.id AND m.key = 'scan.metadata'
+         )
+         OR COALESCE((
+           SELECT CAST(m.value AS INTEGER) FROM file_metadata m
+           WHERE m.file_id = f.id AND m.key = 'scan.metadataVersion'
+           LIMIT 1
+         ), 0) < ?
        )`,
+    [METADATA_EXTRACTOR_VERSION],
   );
 }
 
@@ -70,13 +79,20 @@ export function listPendingMetadata(
       `SELECT f.id, f.path, f.media_class, f.format, f.size, f.created_at_fs, f.modified_at_fs
        FROM files f
        WHERE f.state = 'present'
-         AND NOT EXISTS (
-           SELECT 1 FROM file_metadata m WHERE m.file_id = f.id AND m.key = 'scan.metadata'
+         AND (
+           NOT EXISTS (
+             SELECT 1 FROM file_metadata m WHERE m.file_id = f.id AND m.key = 'scan.metadata'
+           )
+           OR COALESCE((
+             SELECT CAST(m.value AS INTEGER) FROM file_metadata m
+             WHERE m.file_id = f.id AND m.key = 'scan.metadataVersion'
+             LIMIT 1
+           ), 0) < ?
          )
        ORDER BY f.id
        LIMIT ?`,
     )
-    .all(limit);
+    .all(METADATA_EXTRACTOR_VERSION, limit);
 
   return rows.map((row) => {
     const parsed = PendingMetadataRowSchema.safeParse(row);
@@ -168,6 +184,15 @@ export function saveMetadataBatch(
         insert.run(item.fileId, entry.key, entry.value, entry.source, now);
       }
       insert.run(item.fileId, "scan.metadata", item.status, "scan", now);
+      if (item.status === "ok") {
+        insert.run(
+          item.fileId,
+          "scan.metadataVersion",
+          String(METADATA_EXTRACTOR_VERSION),
+          "scan",
+          now,
+        );
+      }
       saveMediaFacts.run(
         item.width,
         item.height,

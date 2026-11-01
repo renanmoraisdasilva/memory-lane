@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
 import { catalogMigrations } from "../migrations/catalog-migrations";
 import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
@@ -110,7 +111,11 @@ describe("scan stage repository", () => {
       now,
     );
 
-    expect(countPendingMetadata(db, volumeId)).toBe(1);
+    expect(countPendingMetadata(db, volumeId)).toBe(2);
+    const version = db
+      .prepare("SELECT value FROM file_metadata WHERE file_id = ? AND key = 'scan.metadataVersion'")
+      .get(first);
+    expect(version).toEqual({ value: String(METADATA_EXTRACTOR_VERSION) });
     const dates = db
       .prepare("SELECT COUNT(*) AS count FROM file_dates WHERE resolved_date IS NOT NULL")
       .get() as { count: number };
@@ -122,6 +127,36 @@ describe("scan stage repository", () => {
 
     resetFailedStage(db, "metadata");
     expect(countPendingMetadata(db, volumeId)).toBe(2);
+    db.close();
+  });
+
+  it("marks files extracted with an older metadata version as pending", () => {
+    const db = createDb();
+    const file = insertFile(db, { path: "C:\\archive\\a.jpg", mediaClass: "image" });
+
+    saveMetadataBatch(
+      db,
+      volumeId,
+      [
+        {
+          fileId: file,
+          status: "ok",
+          entries: [],
+          date: null,
+          width: null,
+          height: null,
+          durationSeconds: null,
+        },
+      ],
+      now,
+    );
+    expect(countPendingMetadata(db, volumeId)).toBe(0);
+
+    db.prepare(
+      "UPDATE file_metadata SET value = '0' WHERE file_id = ? AND key = 'scan.metadataVersion'",
+    ).run(file);
+    expect(countPendingMetadata(db, volumeId)).toBe(1);
+    expect(listPendingMetadata(db, volumeId, 10).map((item) => item.id)).toEqual([file]);
     db.close();
   });
 

@@ -1,6 +1,9 @@
-import { useCallback, useMemo, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
+import { useCallback, useMemo, useRef, type RefObject } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useWorkspace } from "../../app/workspace";
+import { Callout } from "../../components/ui/Callout";
+import { formatCount } from "../../lib/format";
 import { useContainerWidth } from "../../lib/use-container-width";
 import { LibraryHeader } from "./LibraryHeader";
 import { LibraryPageBody } from "./LibraryPageBody";
@@ -76,6 +79,85 @@ function useLibraryPageData(
   return { summary, monthsQuery, months, timeline, items, columns, rows };
 }
 
+function LibraryTimelineSection({
+  data,
+  actions,
+  filter,
+  density,
+  anchor,
+  gridRef,
+  handleScroll,
+}: {
+  data: ReturnType<typeof useLibraryPageData>;
+  actions: ReturnType<typeof useLibraryPageActions>;
+  filter: LibraryFilter;
+  density: LibraryDensity;
+  anchor: PeriodAnchor;
+  gridRef: RefObject<VirtualGridHandle | null>;
+  handleScroll: (offset: number) => void;
+}): React.JSX.Element | null {
+  const { summary, monthsQuery, months, timeline, items, columns, rows } = data;
+  if (summary.data === undefined || summary.data.totalItems === 0) {
+    return null;
+  }
+  return (
+    <>
+      <TimelineToolbar
+        months={months}
+        loading={monthsQuery.isLoading}
+        error={monthsQuery.isError}
+        anchor={anchor}
+        onYearChange={actions.changeYear}
+        onAllYears={actions.resetAnchor}
+        onMonthStep={actions.stepMonth}
+      />
+      <LibraryPageBody
+        key={`${filter}:${anchorKey(anchor)}`}
+        timelineLoading={timeline.isLoading}
+        timelineError={timeline.error}
+        filterEmpty={filterIsEmpty(summary.data, filter)}
+        itemsCount={items.length}
+        rows={rows}
+        columns={columns}
+        filter={filter}
+        density={density}
+        anchor={anchor}
+        gridRef={gridRef}
+        hasNextPage={timeline.hasNextPage}
+        isFetchingNextPage={timeline.isFetchingNextPage}
+        onRetry={() => void timeline.refetch()}
+        onRetryAll={actions.retryAll}
+        onSwitchDrive={actions.switchDrive}
+        onClearFilter={() => actions.changeFilter("all")}
+        onClearAnchor={actions.resetAnchor}
+        onLoadMore={actions.loadMore}
+        onScroll={handleScroll}
+        onVisibleRangeChange={actions.handleVisibleRange}
+      />
+    </>
+  );
+}
+
+function MetadataRefreshBanner({ count }: { count: number }): React.JSX.Element {
+  return (
+    <Callout
+      tone="amber"
+      icon={<RefreshCw size={17} aria-hidden="true" />}
+      title="Metadata refresh available"
+      role="status"
+    >
+      <p>
+        {formatCount(count)} files were indexed with an older metadata extractor. Run an incremental
+        scan to add video frame rates and other newer details. It can be paused and resumed, and
+        manual dates are preserved.
+      </p>
+      <Link className={styles.summaryLink} to="/scan">
+        Open Scan &amp; processing
+      </Link>
+    </Callout>
+  );
+}
+
 export function LibraryPage(): React.JSX.Element {
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = parseLibraryFilter(searchParams.get("filter"));
@@ -87,15 +169,9 @@ export function LibraryPage(): React.JSX.Element {
   const gridRef = useRef<VirtualGridHandle>(null);
   const visibleAnchorRef = useRef<number | null>(null);
   const { anchor, setAnchor } = useLibraryViewAnchor({ scope: viewScope, filter, density });
-
-  const { summary, monthsQuery, months, timeline, items, columns, rows } = useLibraryPageData(
-    filter,
-    density,
-    anchor,
-    width,
-  );
+  const data = useLibraryPageData(filter, density, anchor, width);
+  const { summary, monthsQuery, months, timeline, rows } = data;
   const updateSearchParams = useSearchParamUpdate(searchParams, setSearchParams);
-
   const actions = useLibraryPageActions({
     anchor,
     setAnchor,
@@ -113,7 +189,6 @@ export function LibraryPage(): React.JSX.Element {
     closeWorkspace,
     navigate,
   });
-
   const handleScroll = useLibraryScrollMemory({
     scope: viewScope,
     filter,
@@ -122,8 +197,6 @@ export function LibraryPage(): React.JSX.Element {
     rowsCount: rows.length,
     gridRef,
   });
-
-  const filterEmpty = filterIsEmpty(summary.data, filter);
 
   return (
     <div className={styles.page} ref={widthRef}>
@@ -144,42 +217,19 @@ export function LibraryPage(): React.JSX.Element {
         onSwitchDrive={actions.switchDrive}
       />
 
-      {summary.data !== undefined && summary.data.totalItems > 0 ? (
-        <>
-          <TimelineToolbar
-            months={months}
-            loading={monthsQuery.isLoading}
-            error={monthsQuery.isError}
-            anchor={anchor}
-            onYearChange={actions.changeYear}
-            onAllYears={actions.resetAnchor}
-            onMonthStep={actions.stepMonth}
-          />
-          <LibraryPageBody
-            key={`${filter}:${anchorKey(anchor)}`}
-            timelineLoading={timeline.isLoading}
-            timelineError={timeline.error}
-            filterEmpty={filterEmpty}
-            itemsCount={items.length}
-            rows={rows}
-            columns={columns}
-            filter={filter}
-            density={density}
-            anchor={anchor}
-            gridRef={gridRef}
-            hasNextPage={timeline.hasNextPage}
-            isFetchingNextPage={timeline.isFetchingNextPage}
-            onRetry={() => void timeline.refetch()}
-            onRetryAll={actions.retryAll}
-            onSwitchDrive={actions.switchDrive}
-            onClearFilter={() => actions.changeFilter("all")}
-            onClearAnchor={actions.resetAnchor}
-            onLoadMore={actions.loadMore}
-            onScroll={handleScroll}
-            onVisibleRangeChange={actions.handleVisibleRange}
-          />
-        </>
+      {summary.data !== undefined && summary.data.metadataRefreshCount > 0 ? (
+        <MetadataRefreshBanner count={summary.data.metadataRefreshCount} />
       ) : null}
+
+      <LibraryTimelineSection
+        data={data}
+        actions={actions}
+        filter={filter}
+        density={density}
+        anchor={anchor}
+        gridRef={gridRef}
+        handleScroll={handleScroll}
+      />
     </div>
   );
 }

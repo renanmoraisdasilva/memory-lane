@@ -67,6 +67,11 @@ previous/next navigation and returns to the same filtered grid on Escape.
 extracted metadata, the 1-based position within the active filter, total count,
 previous/next file IDs, and the media URL.
 
+`LibrarySummary` includes `metadataRefreshCount`. When it is greater than zero,
+Memory Lane shows a **Metadata refresh available** banner linking to Scan &
+processing. A normal incremental scan refreshes only files below the current
+metadata extractor version.
+
 `LibraryItem` carries optional `width`, `height`, `durationSeconds`, and
 `frameRate` media facts. The viewer shows format, size, dimensions, duration,
 and, for videos with a known value, frame rate in fps. Frame rate comes from
