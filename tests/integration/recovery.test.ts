@@ -85,13 +85,13 @@ describe("recovery drills", () => {
       handler.handle("app.registerDrive", {
         identity,
         lastSeenAt: now,
-        catalogSchema: 5,
+        catalogSchema: 6,
       });
       handler.handle("catalog.create", {
         catalogPath,
         cachePath,
         identity,
-        catalogSchema: 5,
+        catalogSchema: 6,
       });
       handler.handle("scan.start", {
         volumeId,

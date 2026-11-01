@@ -190,6 +190,7 @@ export class ScanRunner {
         width: extracted.width,
         height: extracted.height,
         durationSeconds: extracted.durationSeconds,
+        frameRate: extracted.frameRate ?? null,
       };
     } catch (error) {
       this.runtime.logger.warn("Metadata extraction failed", {
@@ -204,6 +205,7 @@ export class ScanRunner {
         width: null,
         height: null,
         durationSeconds: null,
+        frameRate: null,
       };
     }
   }

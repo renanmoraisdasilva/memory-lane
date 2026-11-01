@@ -4,7 +4,7 @@ import { catalogMigrations } from "./catalog-migrations";
 import { runMigrations } from "./runner";
 
 describe("catalog library migration", () => {
-  it("backfills width and height and adds the timeline index", () => {
+  it("backfills width, height, and frame rate and adds the timeline index", () => {
     const db = new Database(":memory:");
     runMigrations(db, catalogMigrations.slice(0, 2));
 
@@ -24,14 +24,23 @@ describe("catalog library migration", () => {
       `INSERT INTO file_metadata (file_id, key, value, source, extracted_at)
        VALUES (?, 'media.height', '1080', 'image', '2024-01-01T00:00:00.000Z')`,
     ).run(row.id);
+    db.prepare(
+      `INSERT INTO file_metadata (file_id, key, value, source, extracted_at)
+       VALUES (?, 'media.frameRate', '29.97', 'exiftool', '2024-01-01T00:00:00.000Z')`,
+    ).run(row.id);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(5);
+    expect(result.version).toBe(6);
 
     const media = db
-      .prepare("SELECT width, height, duration_seconds FROM files WHERE id = ?")
+      .prepare("SELECT width, height, duration_seconds, frame_rate FROM files WHERE id = ?")
       .get(row.id);
-    expect(media).toEqual({ width: 1920, height: 1080, duration_seconds: null });
+    expect(media).toEqual({
+      width: 1920,
+      height: 1080,
+      duration_seconds: null,
+      frame_rate: 29.97,
+    });
 
     const indexes = db.prepare("PRAGMA index_list('file_dates')").all() as Array<{ name: string }>;
     expect(indexes.map((index) => index.name)).toContain("idx_file_dates_timeline");
@@ -54,7 +63,7 @@ describe("catalog library migration", () => {
        VALUES (?, '2011-07-04T15:30:00', 'exact', 'exif.datetimeOriginal', 0.95, '2011:07:04 15:30:00')`,
     ).run(row.id);
 
-    expect(runMigrations(db, catalogMigrations).version).toBe(5);
+    expect(runMigrations(db, catalogMigrations).version).toBe(6);
     expect(
       db
         .prepare(

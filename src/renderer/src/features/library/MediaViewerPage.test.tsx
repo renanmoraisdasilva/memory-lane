@@ -120,6 +120,8 @@ describe("MediaViewerPage", () => {
     expect(video).toHaveAttribute("poster", "ml-media://thumbnail/2");
     expect(screen.getByText("In-app playback · read-only original")).toBeInTheDocument();
     expect(screen.getByText("03:24")).toBeInTheDocument();
+    expect(screen.getByText("Frame rate")).toBeInTheDocument();
+    expect(screen.getByText("29.97 fps")).toBeInTheDocument();
   });
 
   it("keeps metadata visible and disables actions for a missing file", async () => {

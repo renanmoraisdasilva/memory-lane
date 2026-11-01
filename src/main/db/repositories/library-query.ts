@@ -12,6 +12,7 @@ export const LibraryRowSchema = z.object({
   width: z.number().int().nonnegative().nullable(),
   height: z.number().int().nonnegative().nullable(),
   duration_seconds: z.number().nonnegative().nullable(),
+  frame_rate: z.number().positive().nullable(),
   state: z.enum(["present", "missing"]),
   resolved_date: z.string().nullable(),
   precision: z.enum(["year", "month", "exact"]).nullable(),
@@ -120,6 +121,7 @@ export function toLibraryItem(row: LibraryRow): LibraryItem {
     width: row.width === 0 ? null : row.width,
     height: row.height === 0 ? null : row.height,
     durationSeconds: row.duration_seconds,
+    frameRate: row.frame_rate,
     date:
       row.resolved_date === null
         ? { value: null, precision: null, source: null, isOverride: false }
@@ -146,6 +148,7 @@ export const LIBRARY_SELECT = `
     f.width,
     f.height,
     f.duration_seconds,
+    f.frame_rate,
     f.state,
     fd.resolved_date,
     fd.precision,

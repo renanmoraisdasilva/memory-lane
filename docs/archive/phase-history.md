@@ -39,6 +39,7 @@ catalog-only manual overrides.
 - Extracts selected fields only:
   - date tags and provenance;
   - image dimensions and video duration;
+  - video frame rate where available;
   - camera make/model/lens;
   - GPS latitude/longitude/altitude;
   - video codec where available.
@@ -450,4 +451,20 @@ These cannot be completed inside the development environment:
 Phase 6 is complete when `check:full`, packaging verification, packaged smoke,
 the 200,000-file run, and the manual release checklist all pass on the release
 candidate.
+
+---
+
+## Post-Phase 6 polish
+
+Status: implemented after Phase 6 automation, before the manual release pass.
+
+- Catalog schema 6 adds `files.frame_rate` and backfills it from existing
+  `media.frameRate` entries. ExifTool reads QuickTime, RIFF, Matroska, MPEG,
+  Composite, and generic frame-rate tags; rational values such as `30000/1001`
+  are converted to decimal fps.
+- The viewer details panel shows a **Frame rate** row for videos when the
+  catalog has a positive value.
+- Settings cache statistics read from `cache_entries` instead of walking the
+  cache directory, keeping the page responsive for large caches.
+- App-wide dark scrollbar styling matches the rest of the UI.
 

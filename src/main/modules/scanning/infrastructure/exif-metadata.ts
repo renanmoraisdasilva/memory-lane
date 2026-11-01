@@ -8,6 +8,7 @@ export interface ExifMetadata {
   width: number | null;
   height: number | null;
   durationSeconds: number | null;
+  frameRate: number | null;
 }
 
 export interface ExifMetadataReader {
@@ -105,6 +106,21 @@ const DURATION_FIELDS: Array<[string, string]> = [
   ["Composite", "Duration"],
 ];
 
+const FRAME_RATE_FIELDS: Array<[string, string]> = [
+  ["QuickTime", "VideoFrameRate"],
+  ["QuickTime", "FrameRate"],
+  ["RIFF", "VideoFrameRate"],
+  ["RIFF", "FrameRate"],
+  ["Matroska", "VideoFrameRate"],
+  ["Matroska", "FrameRate"],
+  ["MPEG", "VideoFrameRate"],
+  ["MPEG", "FrameRate"],
+  ["ASF", "FrameRate"],
+  ["Composite", "VideoFrameRate"],
+  ["Composite", "FrameRate"],
+  ["File", "FrameRate"],
+];
+
 function toTagBag(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
@@ -161,6 +177,23 @@ function parseDuration(value: unknown): number | null {
     return Number.isFinite(seconds) ? seconds : null;
   }
   return parseClockDuration(text);
+}
+
+function validFrameRate(value: number): number | null {
+  return Number.isFinite(value) && value > 0 && value <= 1_000 ? value : null;
+}
+
+function parseFrameRate(value: unknown): number | null {
+  if (typeof value === "number") {
+    return validFrameRate(value);
+  }
+  if (typeof value !== "string") {
+    return null;
+  }
+  const text = value.trim().replace(/\s*fps$/i, "");
+  const [numerator, denominator] = text.split("/");
+  const bottom = denominator === undefined ? 1 : Number(denominator);
+  return validFrameRate(Number(numerator) / bottom);
 }
 
 function textValue(value: unknown): string | null {
@@ -272,14 +305,17 @@ export function extractExifMetadata(tagsValue: unknown): ExifMetadata {
   const width = asPositiveInteger(firstValue(tags, WIDTH_FIELDS));
   const height = asPositiveInteger(firstValue(tags, HEIGHT_FIELDS));
   const durationSeconds = parseDuration(firstValue(tags, DURATION_FIELDS));
-  if (width !== null) {
-    entries.push(entry("media.width", String(width)));
-  }
-  if (height !== null) {
-    entries.push(entry("media.height", String(height)));
-  }
-  if (durationSeconds !== null) {
-    entries.push(entry("media.durationSeconds", String(durationSeconds)));
+  const frameRate = parseFrameRate(firstValue(tags, FRAME_RATE_FIELDS));
+  const mediaFacts: Array<[string, number | null]> = [
+    ["media.width", width],
+    ["media.height", height],
+    ["media.durationSeconds", durationSeconds],
+    ["media.frameRate", frameRate],
+  ];
+  for (const [key, value] of mediaFacts) {
+    if (value !== null) {
+      entries.push(entry(key, String(value)));
+    }
   }
   entries.push(...dateEntries(tags), ...cameraEntries(tags), ...gpsEntries(tags));
 
@@ -294,7 +330,7 @@ export function extractExifMetadata(tagsValue: unknown): ExifMetadata {
     }
   }
 
-  return { entries, dateCandidates, width, height, durationSeconds };
+  return { entries, dateCandidates, width, height, durationSeconds, frameRate };
 }
 
 export function createExifMetadataReader(): ExifMetadataReader {

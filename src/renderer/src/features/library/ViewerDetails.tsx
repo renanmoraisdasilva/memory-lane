@@ -2,7 +2,12 @@ import { CalendarPlus, ExternalLink, FolderOpen, Info, ShieldCheck, Undo2 } from
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { Callout } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
-import { formatBytes, formatDateTime, formatMediaDuration } from "../../lib/format";
+import {
+  formatBytes,
+  formatDateTime,
+  formatFrameRate,
+  formatMediaDuration,
+} from "../../lib/format";
 import { formatDateSource, formatLibraryDateValue, formatPrecisionLabel } from "./date-format";
 import type { LibraryItemDetails } from "./types";
 import styles from "./MediaViewer.module.css";
@@ -96,6 +101,7 @@ function DateDetails({
 function FileDetails({ details }: { details: LibraryItemDetails }): React.JSX.Element {
   const item = details.item;
   const duration = formatMediaDuration(item.durationSeconds);
+  const frameRate = formatFrameRate(item.frameRate);
   return (
     <section className={styles.detailBlock} aria-labelledby="viewer-file-title">
       <h2 id="viewer-file-title" className={styles.detailLabel}>
@@ -110,6 +116,9 @@ function FileDetails({ details }: { details: LibraryItemDetails }): React.JSX.El
         <DetailRow label="Dimensions" value={`${String(item.width)} × ${String(item.height)}`} />
       ) : null}
       {duration === null ? null : <DetailRow label="Duration" value={duration} />}
+      {item.mediaClass === "video" && frameRate !== null ? (
+        <DetailRow label="Frame rate" value={frameRate} />
+      ) : null}
       <DetailRow label="Modified" value={formatDateTime(details.modifiedAtFs)} />
       {details.createdAtFs === null ? null : (
         <DetailRow label="Created" value={formatDateTime(details.createdAtFs)} />

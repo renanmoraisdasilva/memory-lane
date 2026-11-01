@@ -81,9 +81,10 @@ The coordinator runs stages in this order:
 1. **Catalog files** - enumerates the drive root, writes `files`, detects
    new/changed/reappearing files, and marks missing files after enumeration.
 2. **Extract metadata** - records filesystem facts, media classification, and
-   selected ExifTool tags for dates, dimensions, duration, camera, codec, and
-   GPS. The dependency-free readers fill missing dimensions or MP4/MOV duration;
-   the date priority chain falls back to filesystem timestamps.
+   selected ExifTool tags for dates, dimensions, duration, frame rate, camera,
+   codec, and GPS. The dependency-free readers fill missing dimensions or
+   MP4/MOV duration; the date priority chain falls back to filesystem
+   timestamps.
 3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
@@ -139,9 +140,13 @@ current drive letter differs from the last registered letter.
 - Catalog migration 4 adds reversible extracted-date fields and undated lookup
   indexes.
 - Catalog migration 5 adds validation progress and per-result levels.
+- Catalog migration 6 adds the `files.frame_rate` video fact and backfills it
+  from existing `media.frameRate` metadata entries.
 
-The current catalog schema version is 5. Opening an older catalog applies
-pending migrations checksum-safely.
+The current catalog schema version is 6. Opening an older catalog applies
+pending migrations checksum-safely. A catalog upgraded from schema 5 starts
+with null frame rates for videos indexed before the field existed; a metadata
+revalidation or rescan extracts them.
 
 ## Current limits
 

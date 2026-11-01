@@ -3,6 +3,7 @@ import catalogScanState from "./catalog/0002-scan-state.sql?raw";
 import catalogLibrary from "./catalog/0003-library.sql?raw";
 import catalogDateOverrides from "./catalog/0004-date-overrides.sql?raw";
 import catalogValidation from "./catalog/0005-validation.sql?raw";
+import catalogFrameRate from "./catalog/0006-frame-rate.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -30,5 +31,10 @@ export const catalogMigrations: Migration[] = [
     version: 5,
     name: "validation progress and result levels",
     sql: catalogValidation,
+  },
+  {
+    version: 6,
+    name: "video frame rate",
+    sql: catalogFrameRate,
   },
 ];

@@ -45,6 +45,7 @@ export const libraryFixtureItems: LibraryItem[] = [
     width: 3840,
     height: 2160,
     durationSeconds: 204,
+    frameRate: 29.97,
     date: {
       value: "2024-08-18T18:45:00.000Z",
       precision: "exact",
@@ -185,7 +186,6 @@ function filteredItems(items: LibraryItem[], filter: LibraryFilter): LibraryItem
   }
   return items;
 }
-
 function sortItems(items: LibraryItem[]): LibraryItem[] {
   return [...items].sort((left, right) => {
     const leftDate = left.date.value === null ? 0 : Date.parse(left.date.value);
@@ -262,7 +262,7 @@ function detailsForItem(item: LibraryItem, items: LibraryItem[]): LibraryItemDet
       item.mediaClass === "video"
         ? [
             { key: "Codec", value: "H.264", source: "Container" },
-            { key: "Frame rate", value: "29.97 fps", source: "Container" },
+            { key: "Color space", value: "BT.709", source: "Container" },
           ]
         : [
             { key: "Camera", value: "Sony α7R V", source: "EXIF" },

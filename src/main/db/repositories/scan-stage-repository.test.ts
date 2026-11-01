@@ -125,6 +125,36 @@ describe("scan stage repository", () => {
     db.close();
   });
 
+  it("saves video frame rate alongside dimensions and duration", () => {
+    const db = createDb();
+    const video = insertFile(db, { path: "C:\\archive\\clip.mp4", mediaClass: "video" });
+
+    saveMetadataBatch(
+      db,
+      volumeId,
+      [
+        {
+          fileId: video,
+          status: "ok",
+          entries: [{ key: "media.frameRate", value: "29.97", source: "exiftool" }],
+          date: null,
+          width: 1920,
+          height: 1080,
+          durationSeconds: 75,
+          frameRate: 29.97,
+        },
+      ],
+      now,
+    );
+
+    expect(
+      db
+        .prepare("SELECT width, height, duration_seconds, frame_rate FROM files WHERE id = ?")
+        .get(video),
+    ).toEqual({ width: 1920, height: 1080, duration_seconds: 75, frame_rate: 29.97 });
+    db.close();
+  });
+
   it("lists and saves thumbnails and retries failed entries", () => {
     const db = createDb();
     const image = insertFile(db, { path: "C:\\archive\\a.jpg", mediaClass: "image" });

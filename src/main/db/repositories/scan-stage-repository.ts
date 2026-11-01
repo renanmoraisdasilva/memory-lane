@@ -158,7 +158,7 @@ export function saveMetadataBatch(
        extracted_original_value = excluded.extracted_original_value`,
   );
   const saveMediaFacts = db.prepare(
-    "UPDATE files SET width = ?, height = ?, duration_seconds = ? WHERE id = ?",
+    "UPDATE files SET width = ?, height = ?, duration_seconds = ?, frame_rate = ? WHERE id = ?",
   );
 
   const save = db.transaction(() => {
@@ -168,7 +168,13 @@ export function saveMetadataBatch(
         insert.run(item.fileId, entry.key, entry.value, entry.source, now);
       }
       insert.run(item.fileId, "scan.metadata", item.status, "scan", now);
-      saveMediaFacts.run(item.width, item.height, item.durationSeconds, item.fileId);
+      saveMediaFacts.run(
+        item.width,
+        item.height,
+        item.durationSeconds,
+        item.frameRate ?? null,
+        item.fileId,
+      );
       const date = dateParams(item);
       saveDate.run(item.fileId, ...date, ...date);
     }

@@ -66,6 +66,19 @@ export function formatMediaDuration(totalSeconds: number | null): string | null 
     : `${paddedMinutes}:${paddedSeconds}`;
 }
 
+export function formatFrameRate(frameRate: number | null | undefined): string | null {
+  if (
+    frameRate === null ||
+    frameRate === undefined ||
+    !Number.isFinite(frameRate) ||
+    frameRate <= 0
+  ) {
+    return null;
+  }
+  const rounded = Math.round(frameRate * 1000) / 1000;
+  return `${rounded} fps`;
+}
+
 export function formatPercent(processed: number, total: number | null): string | null {
   if (total === null || total <= 0) {
     return null;

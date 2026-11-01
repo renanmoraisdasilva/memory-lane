@@ -56,6 +56,7 @@ export interface MetadataSaveItem {
   width: number | null;
   height: number | null;
   durationSeconds: number | null;
+  frameRate?: number | null | undefined;
 }
 
 export interface ExtractedMetadata {
@@ -64,6 +65,7 @@ export interface ExtractedMetadata {
   width: number | null;
   height: number | null;
   durationSeconds: number | null;
+  frameRate?: number | null | undefined;
 }
 
 export interface FileMetadataExtractor {

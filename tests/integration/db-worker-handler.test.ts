@@ -92,7 +92,7 @@ describe("database worker handler", () => {
     ) as CatalogSummary;
 
     expect(created.fileCount).toBe(0);
-    expect(created.schemaVersion).toBe(5);
+    expect(created.schemaVersion).toBe(6);
     await expect(access(catalogPath)).resolves.toBeUndefined();
     await expect(access(cachePath)).resolves.toBeUndefined();
 
@@ -147,11 +147,11 @@ describe("database worker handler", () => {
     handler.handle("app.registerDrive", {
       identity: identity(root),
       lastSeenAt: "2026-10-31T12:00:00.000Z",
-      catalogSchema: 5,
+      catalogSchema: 6,
     });
     handler.handle("catalog.create", {
       ...createParams(root, catalogPath, cachePath),
-      catalogSchema: 5,
+      catalogSchema: 6,
     });
 
     expect(handler.handle("library.getOtherFiles", {})).toMatchObject({

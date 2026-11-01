@@ -290,6 +290,7 @@ export function createFileMetadataExtractor(
         width: mergedFact(exifResult.exif?.width, facts.width),
         height: mergedFact(exifResult.exif?.height, facts.height),
         durationSeconds: mergedFact(exifResult.exif?.durationSeconds, facts.durationSeconds),
+        frameRate: exifResult.exif?.frameRate ?? null,
       };
     },
     async shutdown(): Promise<void> {

@@ -142,6 +142,7 @@ export class ValidationChecker {
       width: extracted.width,
       height: extracted.height,
       durationSeconds: extracted.durationSeconds,
+      frameRate: extracted.frameRate ?? null,
     };
     const context = await this.db.request<{ volumeId: string }>("library.getContext", {});
     await this.db.request("scan.saveMetadata", {

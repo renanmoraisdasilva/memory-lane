@@ -4,6 +4,7 @@ import {
   formatCount,
   formatDateTime,
   formatDuration,
+  formatFrameRate,
   formatMediaDuration,
   formatPercent,
 } from "./format";
@@ -40,6 +41,16 @@ describe("scan formatting", () => {
     expect(formatMediaDuration(204)).toBe("03:24");
     expect(formatMediaDuration(3_724)).toBe("1:02:04");
     expect(formatMediaDuration(null)).toBeNull();
+  });
+
+  it("formats video frame rates", () => {
+    expect(formatFrameRate(29.97)).toBe("29.97 fps");
+    expect(formatFrameRate(30)).toBe("30 fps");
+    expect(formatFrameRate(23.976023976)).toBe("23.976 fps");
+    expect(formatFrameRate(null)).toBeNull();
+    expect(formatFrameRate(undefined)).toBeNull();
+    expect(formatFrameRate(0)).toBeNull();
+    expect(formatFrameRate(Number.NaN)).toBeNull();
   });
 
   it("formats percentages and unknown totals", () => {

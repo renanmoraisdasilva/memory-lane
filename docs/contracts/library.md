@@ -62,6 +62,12 @@ previous/next navigation and returns to the same filtered grid on Escape.
 extracted metadata, the 1-based position within the active filter, total count,
 previous/next file IDs, and the media URL.
 
+`LibraryItem` carries optional `width`, `height`, `durationSeconds`, and
+`frameRate` media facts. The viewer shows format, size, dimensions, duration,
+and, for videos with a known value, frame rate in fps. Frame rate comes from
+ExifTool video tags; catalogs created before schema 6 only show it after a
+metadata revalidation or rescan.
+
 Behavior:
 
 - Missing files keep their catalog row and details but have `mediaUrl: null`.

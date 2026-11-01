@@ -22,12 +22,14 @@ describe("ExifTool metadata extraction", () => {
       GPSLongitude: 2.2945,
       GPSAltitude: 35,
       "QuickTime:Duration": "0:01:02",
+      "QuickTime:VideoFrameRate": 29.97,
       "QuickTime:VideoCodec": "avc1",
     });
 
     expect(metadata.width).toBe(1920);
     expect(metadata.height).toBe(1080);
     expect(metadata.durationSeconds).toBe(62);
+    expect(metadata.frameRate).toBe(29.97);
     expect(metadata.dateCandidates[0]).toMatchObject({
       resolvedDate: "2011-07-04T15:30:00",
       source: "exif.datetimeOriginal",
@@ -42,6 +44,7 @@ describe("ExifTool metadata extraction", () => {
         { key: "gps.longitude", value: "2.294500", source: "exiftool" },
         { key: "gps.altitude", value: "35", source: "exiftool" },
         { key: "media.durationSeconds", value: "62", source: "exiftool" },
+        { key: "media.frameRate", value: "29.97", source: "exiftool" },
         { key: "media.videoCodec", value: "avc1", source: "exiftool" },
       ]),
     );
@@ -59,6 +62,15 @@ describe("ExifTool metadata extraction", () => {
       "month",
     ]);
     expect(metadata.durationSeconds).toBe(12.5);
+  });
+
+  it("parses rational frame rates and ignores invalid values", () => {
+    const rational = extractExifMetadata({ "Composite:VideoFrameRate": "30000/1001" });
+    expect(rational.frameRate).toBeCloseTo(29.97002997, 6);
+
+    const invalid = extractExifMetadata({ "QuickTime:VideoFrameRate": 0 });
+    expect(invalid.frameRate).toBeNull();
+    expect(invalid.entries.some((entry) => entry.key === "media.frameRate")).toBe(false);
   });
 
   it("rejects an ExifTool error payload", () => {

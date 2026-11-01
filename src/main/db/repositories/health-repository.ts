@@ -96,6 +96,7 @@ function readDuplicateFiles(db: Database.Database, groupIds: number[]): Map<numb
          f.width,
          f.height,
          f.duration_seconds,
+         f.frame_rate,
          f.state,
          fd.resolved_date,
          fd.precision,

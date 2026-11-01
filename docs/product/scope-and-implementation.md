@@ -94,7 +94,8 @@ Known gaps:
 
 - Combined photo/video route with filter-aware previous/next navigation.
 - Photo fit/100%; native HTML5 video playback with external-open fallback.
-- Date, format, size, dimensions, duration, and technical metadata.
+- Date, format, size, dimensions, duration, video frame rate, and technical
+  metadata.
 - Original path, Reveal in Explorer, and Open externally.
 - Missing and unsupported states that retain catalog metadata.
 
@@ -274,7 +275,7 @@ Both databases are owned by the DB worker.
 | `scan_roots` | Explicit scan roots |
 | `scan_sessions` | Scan runs, intensity, progress, report counters |
 | `scan_stages` | Per-stage progress |
-| `files` | Paths, size, timestamps, media class, format, MIME, dimensions, duration, state |
+| `files` | Paths, size, timestamps, media class, format, MIME, dimensions, duration, frame rate, state |
 | `file_metadata` | Extracted metadata with provenance |
 | `file_dates` | Resolved and extracted date, precision, source, confidence, original value, override flag |
 | `date_overrides` | Manual year/year-month assignments with revert history |
@@ -289,16 +290,17 @@ Both databases are owned by the DB worker.
 Catalog migration 3 added media dimensions, video duration, and the timeline
 index. Migration 4 added extracted-date fields for reversible overrides and
 undated lookup indexes. Migration 5 added validation progress, current level,
-error state, and per-result levels. Phase 5 reuses the existing
-`backup_history` and `registered_drives.last_backup_at` fields and adds no
-catalog migration.
+error state, and per-result levels. Migration 6 added the video frame rate and
+backfills it from existing `media.frameRate` metadata. Phase 5 reuses the
+existing `backup_history` and `registered_drives.last_backup_at` fields and
+adds no catalog migration.
 
 ### 5.5 Scan pipeline
 
 1. **Catalog files** - enumerate paths and basic filesystem metadata, compare
    with the previous scan, and mark missing files.
 2. **Extract metadata** - classify media, read selected ExifTool tags for dates,
-   dimensions, duration, camera, codec, and GPS; fill gaps with the
+   dimensions, duration, frame rate, camera, codec, and GPS; fill gaps with the
    dependency-free readers; resolve the final date through the priority chain.
 3. **Generate thumbnails** - Electron `nativeImage` thumbnails into
    `.memorylane/cache/thumbs`.

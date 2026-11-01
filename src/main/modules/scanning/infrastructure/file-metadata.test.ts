@@ -147,6 +147,7 @@ describe("file metadata extractor", () => {
         width: 1920,
         height: 1080,
         durationSeconds: null,
+        frameRate: 29.97,
       })),
       shutdown,
     };
@@ -159,6 +160,7 @@ describe("file metadata extractor", () => {
       source: "exif.datetimeOriginal",
     });
     expect(extracted.width).toBe(1920);
+    expect(extracted.frameRate).toBe(29.97);
     expect(extracted.entries).toEqual(
       expect.arrayContaining([
         { key: "metadata.exiftool", value: "ok", source: "exiftool" },

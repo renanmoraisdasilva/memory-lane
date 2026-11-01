@@ -66,6 +66,7 @@ const MetadataSaveItemSchema = z.object({
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
   durationSeconds: z.number().nonnegative().nullable(),
+  frameRate: z.number().positive().nullable().optional(),
 });
 
 const ThumbnailSaveItemSchema = z.object({
