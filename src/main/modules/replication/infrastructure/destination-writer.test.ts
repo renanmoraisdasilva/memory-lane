@@ -78,4 +78,13 @@ describe("destination writer", () => {
     }
     await expect(writer.writeText("escape\\a.txt", "no")).rejects.toBeInstanceOf(AppError);
   });
+
+  it.skipIf(process.platform !== "win32")(
+    "accepts an existing drive root without trying to mkdir it",
+    async () => {
+      const driveRoot = path.parse(process.cwd()).root;
+      const writer = createDestinationWriter(driveRoot);
+      await expect(writer.freeBytes()).resolves.toBeGreaterThan(0);
+    },
+  );
 });

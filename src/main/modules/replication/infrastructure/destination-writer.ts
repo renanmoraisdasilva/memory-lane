@@ -1,6 +1,16 @@
 import { randomUUID } from "node:crypto";
 import { createWriteStream, type WriteStream } from "node:fs";
-import { lstat, mkdir, realpath, rename, rmdir, statfs, unlink, writeFile } from "node:fs/promises";
+import {
+  lstat,
+  mkdir,
+  realpath,
+  rename,
+  rmdir,
+  stat,
+  statfs,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { assertPathInside } from "../../../platform/path-guard";
@@ -32,8 +42,20 @@ export interface DestinationWriter {
 }
 
 async function realDestinationRoot(root: string): Promise<string> {
-  await mkdir(root, { recursive: true });
+  await ensureDirectory(root);
   return realpath(root);
+}
+
+async function ensureDirectory(directory: string): Promise<void> {
+  try {
+    const info = await stat(directory);
+    if (info.isDirectory()) {
+      return;
+    }
+  } catch {
+    // The directory may not exist yet; create it below.
+  }
+  await mkdir(directory, { recursive: true });
 }
 
 async function assertRealParentInside(root: string, absolutePath: string): Promise<void> {
@@ -63,7 +85,7 @@ function resolveFile(root: string, relativePath: string): string {
 }
 
 async function ensureParent(root: string, absolutePath: string): Promise<void> {
-  await mkdir(path.dirname(absolutePath), { recursive: true });
+  await ensureDirectory(path.dirname(absolutePath));
   await assertRealParentInside(root, absolutePath);
 }
 
@@ -83,7 +105,7 @@ export function createDestinationWriter(rootPath: string): DestinationWriter {
         return;
       }
       const absolutePath = resolveFile(root, relativePath);
-      await mkdir(absolutePath, { recursive: true });
+      await ensureDirectory(absolutePath);
       await assertRealParentInside(root, absolutePath);
     },
 
@@ -116,7 +138,7 @@ export function createDestinationWriter(rootPath: string): DestinationWriter {
     },
 
     async freeBytes() {
-      await mkdir(root, { recursive: true });
+      await ensureDirectory(root);
       const info = await statfs(root);
       return Number(info.bsize) * Number(info.bavail);
     },
