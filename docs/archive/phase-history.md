@@ -469,4 +469,7 @@ Status: implemented after Phase 6 automation, before the manual release pass.
 - App-wide dark scrollbar styling matches the rest of the UI.
 - Returning from the viewer restores the library filter, density, year/month
   anchor, and scroll position instead of jumping back to the top.
+- A second launch or taskbar activation explicitly restores, shows, focuses,
+  and raises the existing window. Unresponsive and renderer-loss events are
+  logged for diagnosis.
 

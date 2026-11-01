@@ -62,12 +62,45 @@ function createWindow(): void {
     mainWindow = null;
   });
 
+  mainWindow.on("minimize", () => {
+    logger.info("Main window minimized");
+  });
+
+  mainWindow.on("restore", () => {
+    logger.info("Main window restored");
+  });
+
+  mainWindow.on("unresponsive", () => {
+    logger.warn("Main window became unresponsive");
+  });
+
+  mainWindow.on("responsive", () => {
+    logger.info("Main window became responsive");
+  });
+
+  mainWindow.webContents.on("render-process-gone", (_event, details) => {
+    logger.error("Renderer process terminated", details);
+  });
+
   const developmentUrl = process.env.ELECTRON_RENDERER_URL;
   if (developmentUrl !== undefined) {
     void mainWindow.loadURL(developmentUrl);
   } else {
     void mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
+}
+
+function restoreMainWindow(): void {
+  if (mainWindow === null) {
+    createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.show();
+  mainWindow.focus();
+  mainWindow.moveTop();
 }
 
 async function startServices(): Promise<void> {
@@ -172,14 +205,8 @@ if (!hasSingleInstanceLock) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    if (mainWindow === null) {
-      createWindow();
-      return;
-    }
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore();
-    }
-    mainWindow.focus();
+    logger.info("Second instance requested; restoring main window");
+    restoreMainWindow();
   });
 
   app
@@ -191,9 +218,7 @@ if (!hasSingleInstanceLock) {
     });
 
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+    restoreMainWindow();
   });
 
   app.on("window-all-closed", () => {
