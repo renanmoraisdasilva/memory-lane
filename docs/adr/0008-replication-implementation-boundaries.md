@@ -1,6 +1,6 @@
 # 0008 - Replication implementation boundaries
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 Detailed feature behavior:

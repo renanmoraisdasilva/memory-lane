@@ -180,13 +180,17 @@ The IPC and media contracts are in
 - **Hardening**: 100k/200k performance coverage, simulated disconnect and
   unclean-restart drills, a backup-restore drill, tightened IPC/CSP controls, a
   read-only guard, SHA-256 package checksums, and an expanded packaged smoke.
+- **Partial and full backups**: adopted destination libraries, resumable partial
+  runs, complete full copies, source-growth degradation, and metadata-only
+  promotion with rollback.
 - **469 automated tests** across 118 files, 9 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   replication promotion.
 
-Phase 6 automated hardening is complete. The manual release pass — clean Windows
+Phase 6 automated hardening is complete. The manual release pass (clean Windows
 VM install/uninstall, physical USB disconnect, codec playback, 200k memory
-measurement, and a real 2 TB archive — remains in
+measurement, a real 2 TB archive, and the replication promotion/rollback drills)
+remains in
 [`docs/release/release-checklist.md`](docs/release/release-checklist.md).
 
 ## Quality gates
@@ -272,14 +276,17 @@ Start at [`docs/README.md`](docs/README.md).
 | [`product/product-specification.md`](docs/product/product-specification.md) | Product vision and requirements |
 | [`product/scope-and-implementation.md`](docs/product/scope-and-implementation.md) | Scope, architecture, data model, quality gates |
 | [`product/roadmap.md`](docs/product/roadmap.md) | Delivered phases and next work |
+| [`product/partial-backups.md`](docs/product/partial-backups.md) | Replication behavior: adoption, copies, libraries, promotion |
+| [`product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md) | Replication slices, architecture, test matrix |
 | [`archive/phase-history.md`](docs/archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, and limits |
 | [`contracts/scan.md`](docs/contracts/scan.md) | Scan IPC, state, stages, and reports |
 | [`contracts/library.md`](docs/contracts/library.md) | Library IPC, media protocol, viewer |
 | [`contracts/health.md`](docs/contracts/health.md) | Health IPC, duplicates, validation |
 | [`contracts/other-files.md`](docs/contracts/other-files.md) | Other files IPC and categories |
 | [`contracts/settings.md`](docs/contracts/settings.md) | Settings, cache, backup, recovery |
-| [`release/acceptance.md`](docs/release/acceptance.md) | v0.1 acceptance criteria and sign-off |
-| [`release/release-checklist.md`](docs/release/release-checklist.md) | Clean-VM and physical-drive release pass |
+| [`contracts/replication.md`](docs/contracts/replication.md) | Replication IPC, runs, destinations, media, promotion |
+| [`release/acceptance.md`](docs/release/acceptance.md) | v0.1 and replication acceptance criteria and sign-off |
+| [`release/release-checklist.md`](docs/release/release-checklist.md) | Clean-VM, physical-drive, and replication release pass |
 | [`release/security-review.md`](docs/release/security-review.md) | Trust boundaries, controls, residual risks |
 | [`release/codec-matrix.md`](docs/release/codec-matrix.md) | Codec expectations and external fallbacks |
 | [`adr/`](docs/adr/README.md) | Architecture decision records |
@@ -298,6 +305,7 @@ above are captured from the packaged application.
 | 4 | Integrity | Complete |
 | 5 | Other files and Settings | Complete |
 | 6 | Hardening | Automated complete; manual release pass pending |
+| Post-v0.1 | Replication and promotion | Automated complete; physical-drive pass pending |
 
 The status table in [`docs/product/roadmap.md`](docs/product/roadmap.md) is the source of truth.
 
@@ -308,10 +316,6 @@ These are post-v0.1 and are not part of current acceptance criteria:
 - **Places map** — local-only globe for items with valid GPS metadata.
 - **Non-memory images** — local-only classification of screenshots, receipts,
   and documents with review-only suggestions.
-- **Partial and full backups** - verified copies across smaller destination
-  drives, cumulative partial coverage, complete full copies, and metadata-only
-  promotion to the source archive. See
-  [`docs/product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md).
 - **Search and saved filters** — keyword search over names, paths, and metadata.
 - **Favorites and collections** — user organization that never modifies
   originals.

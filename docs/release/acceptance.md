@@ -1,6 +1,6 @@
-# v0.1 acceptance criteria
+# Acceptance criteria
 
-Status: automated criteria complete; manual release pass pending.
+Status: v0.1 and replication automated criteria complete; manual release pass pending.
 
 | # | Criterion | Evidence | Status |
 |---|---|---|---|
@@ -36,14 +36,13 @@ Status: automated criteria complete; manual release pass pending.
 | R8 | Source archives remain read-only and source switching is blocked during runs | Read-only guard, run controls, E2E | Automated |
 | R9 | Physical USB promotion and rollback drills | Manual release pass | Pending |
 
-Replication rows have their own sign-off and are not part of the v0.1 rows above.
-
 ## Sign-off rule
 
-v0.1 is accepted only when every row above is either automated-green or marked
-complete in `release-checklist.md` with a date and tester. No manual row may be
-waived without updating the product scope.
+v0.1 is accepted only when every v0.1 row (1-17) is either automated-green or
+marked complete in `release-checklist.md` with a date and tester. No manual row
+may be waived without updating the product scope.
 
-Post-v0.1 replication has a separate acceptance matrix in
-[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md)
-(§9). It is not part of v0.1 sign-off.
+Replication has its own acceptance rows and matrix in
+[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md).
+Its rows are accepted only when automated-green or recorded in
+`release-checklist.md`; they are not part of v0.1 acceptance.

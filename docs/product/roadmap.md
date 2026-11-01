@@ -1,11 +1,12 @@
 # Roadmap
 
-Last updated: 2026-10-31
+Last updated: 2026-11-01
 
 ## Current state
 
-Phases 0-5 are implemented. Phase 6 automated hardening is complete; the
-physical-drive and clean-VM release pass remains.
+Phases 0-5 and post-v0.1 replication are implemented. Phase 6 automated
+hardening is complete; the physical-drive, replication, and clean-VM release
+pass remains.
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -21,11 +22,14 @@ physical-drive and clean-VM release pass remains.
 - Automated hardening: 100k/200k performance coverage, simulated disconnect and
   unclean-restart drills, backup-restore drill, tightened IPC/CSP controls, a
   read-only guard, package checksums, and an expanded packaged smoke.
+- Post-v0.1 replication: adoption of existing destination copies, resumable
+  partial runs, local destination libraries and media, complete full copies,
+  shortfall/source-growth handling, and metadata-only promotion with rollback.
 
-Verification at the Phase 6 automated integration point: 315
-unit/component/integration tests across 69 files, 7 Electron E2E flows, 100k and
-200k in-memory query passes, coverage above the configured floors, and a packaged
-smoke with SHA-256 package checksums.
+Verification at the current integration point: 469 unit/component/integration
+tests across 118 files, 9 Electron E2E flows, 100k and 200k in-memory query
+passes, coverage above the configured floors, and a packaged smoke with SHA-256
+package checksums.
 
 ## Delivered phases
 
@@ -41,6 +45,29 @@ smoke with SHA-256 package checksums.
 
 Phase 3-6 decisions, implementation detail, tests, and known limits are preserved
 in [`../archive/phase-history.md`](../archive/phase-history.md).
+
+## Delivered post-v0.1 replication
+
+Adoption-first replication is implemented as a separate post-v0.1 release slice:
+
+- Destination registration and adoption verify existing copies without moving or
+  reorganizing them.
+- Partial runs fill destinations oldest-first, are resumable, and report the
+  exact remainder.
+- Full-copy destinations receive every present source file, report shortfalls,
+  and never spill into partial destinations.
+- Each destination keeps a local library and source index; destination-scoped
+  media uses destination IDs.
+- A complete full copy can be promoted into the active source without moving
+  files. Promotion preserves catalog identity, dates, overrides, duplicates, and
+  coverage, and can be rolled back before the first change on the new source.
+
+Specifications:
+[`partial-backups.md`](partial-backups.md),
+[`replication-implementation-plan.md`](replication-implementation-plan.md),
+[`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md),
+[`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md),
+[`../contracts/replication.md`](../contracts/replication.md).
 
 ## Remaining work
 
@@ -61,27 +88,21 @@ in [`../archive/phase-history.md`](../archive/phase-history.md).
 Benchmark ExifTool on a mixed corpus of JPEG, HEIC, MP4/MOV, and legacy camcorder
 files; adjust `maxProcs` if needed.
 
+### Replication manual release pass
+
+1. Verify a real full copy on a physical destination drive.
+2. Promote it to the source archive and inspect the new source and demoted
+   destination roles.
+3. Roll back before the first change, then confirm rollback is refused after a
+   scan or date edit.
+4. Physically disconnect and reconnect a destination during a partial run.
+5. Record the results in
+   [`../release/release-checklist.md`](../release/release-checklist.md).
+
 ## Post-v0.1 candidates
 
 These are not part of v0.1 acceptance:
 
-- **Archive replication to destination drives** - adoption-first: scan and
-  verify existing manual copies across smaller destination drives, plan the
-  whole archive oldest-first, fill partial destinations in priority order with
-  the oldest uncovered files, copy what fits, and report the remainder.
-  Existing mixed date coverage is shown as-is and never rebalanced by moving
-  files. Files that exist only on a backup drive are shown as “Only on this
-  drive” and are never copied to the source automatically. Large drives can be
-  explicit full copies; a verified full copy can be
-  promoted to the new source archive while preserving catalog identity. Each
-  destination can keep a local library and a compact source index. New copies
-  go under a dedicated `Memory Lane` folder; existing copies are never
-  re-copied or reorganized. Runs are resumable, have a persistent progress
-  status, and lock plan changes until paused. Specifications:
-  [`partial-backups.md`](partial-backups.md),
-  [`replication-implementation-plan.md`](replication-implementation-plan.md),
-  [`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md),
-  [`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md).
 - **Places map** - local-only globe for items with valid GPS metadata; items
   without GPS are excluded, never guessed.
 - **Non-memory images** - local-only classification of screenshots, receipts,

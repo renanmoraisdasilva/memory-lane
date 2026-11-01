@@ -1,6 +1,6 @@
 # Security review
 
-Status: Phase 6 automated review complete; clean-VM manual checks pending.
+Status: Phase 6 automated review complete; replication write surface reviewed; clean-VM manual checks pending.
 
 ## Trust boundaries
 
@@ -9,7 +9,7 @@ Status: Phase 6 automated review complete; clean-VM manual checks pending.
 | Renderer to main process | Untrusted content, trusted origin | Context isolation, sandbox, typed preload, exact sender validation |
 | Main process to SQLite | Trusted code only | Single DB worker, prepared statements, Zod validation |
 | Main process to archive files | Read-only | No direct write APIs outside cache, logs, catalog, and backups |
-| Main process to replication destinations (planned) | Registered destination roots only | Single destination writer, path policy, explicit plan confirmation, read-only source guard |
+| Main process to replication destinations | Registered destination roots only | Single destination writer, path policy, explicit plan confirmation, read-only source guard |
 | Media protocol to renderer | Catalog IDs only | `ml-media` resolves IDs through the DB worker; no raw paths |
 | Package and update channel | User-installed binary | Unsigned build, no auto-update, manual download |
 | Backups | Local filesystem | SQLite online backup, plaintext, latest-snapshot retention |

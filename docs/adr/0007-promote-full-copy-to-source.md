@@ -1,6 +1,6 @@
 # 0007 - Promote a verified full-copy destination to source archive
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 Detailed feature specification:

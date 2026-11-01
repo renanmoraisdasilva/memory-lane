@@ -1,8 +1,8 @@
 # Memory Lane - v0.1 Scope and Implementation
 
-**Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending.
+**Status:** Phases 0-5 implemented. Phase 6 automated hardening complete; manual release pass pending. Post-v0.1 replication is implemented as a separate release slice.
 **Platform:** Windows desktop
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-01
 **Companions:** `product-specification.md`, `roadmap.md`,
 `../contracts/scan.md`, `../contracts/library.md`,
 `../release/security-review.md`, `../release/release-checklist.md`
@@ -47,11 +47,18 @@ Verified at the Phase 6 automated integration point:
 - The packaged smoke resolves an EXIF date through the packaged ExifTool binary
   and covers Other files, Settings, backup, and cache clearing.
 
+Post-v0.1 replication adds 154 tests and two Electron E2E flows. Current totals
+are 469 tests across 118 files and 9 Electron E2E flows. See
+[`partial-backups.md`](partial-backups.md) and
+[`../contracts/replication.md`](../contracts/replication.md).
+
 Known gaps:
 
 - The manual 200,000-file run, ExifTool mixed-corpus benchmark, physical USB
   disconnect, clean-VM install/uninstall, and playback matrix are still
   outstanding.
+- Replication still needs its physical-drive full-copy, promotion, rollback, and
+  disconnect/reconnect release pass.
 - Backups run only while Memory Lane is open and overwrite the latest snapshot;
   recovery is manual and there is no restore UI in v0.1.
 - ffmpeg/ffprobe and Sharp are not dependencies of the current build. ExifTool

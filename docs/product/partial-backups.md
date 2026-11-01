@@ -1,10 +1,10 @@
 # Archive replication across destination drives
 
-Status: proposed design, post-v0.1. Not implemented.
+Status: implemented as the post-v0.1 replication release. The design below is
+the source of truth for behavior; all three delivery slices (adoption/planning,
+partial execution, full copy/promotion) are implemented.
 
-This document defines the adoption-first partial-backup, full-copy, destination
-library, and source-promotion feature. It is the detailed specification
-referenced by
+It is referenced by
 [`../adr/0006-adopt-existing-partial-backups.md`](../adr/0006-adopt-existing-partial-backups.md)
 and
 [`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md).
@@ -53,9 +53,9 @@ target, not a second source catalog.
 - Scan, validation, and replication are mutually exclusive heavy workloads.
   Browsing remains available.
 - Switching the source archive is blocked while a run is running or paused.
-- The feature is delivered in three slices: adoption/coverage/plan, partial copy
-  execution, then full copy and promotion. The slice plan and test matrix are in
-  [`replication-implementation-plan.md`](replication-implementation-plan.md).
+- The feature was delivered in three slices: adoption/coverage/plan, partial
+  copy execution, then full copy and promotion. The slice plan and test matrix
+  are in [`replication-implementation-plan.md`](replication-implementation-plan.md).
 
 ### Decision log
 
@@ -87,7 +87,7 @@ target, not a second source catalog.
 | Rollback | Rollback is guaranteed only before the first change on the new source. After that, disable rollback or require an explicit merge. |
 | Full-copy out of space | Mark the full copy incomplete. Do not silently spill its files to partial destinations. |
 | Destination-only UI | Show **Only on this drive** and **Source missing** as separate groups. |
-| Source-missing replicas | Show them separately; do not write into the source archive in the first release. Reveal/open the verified copy; restore is deferred. |
+| Source-missing replicas | Show them separately; do not write into the source archive in the first release. Expose no restore or reveal/open action; restore is deferred. |
 | Run re-entry | A persistent **Backup running** status on every screen opens the run screen. The overview also shows a run banner. The run screen never depends on browser history. |
 | Plan changes during a run | Lock goal, allocation, priority, layout, root, retire, and re-adoption while the run is running. Pause first; changes apply only to remaining work and never move or recopy verified files. |
 | Concurrent runs | At most one active run per source archive. Starting another opens the active run instead. |
@@ -612,9 +612,9 @@ Rules:
 - They are never counted as source coverage, never copied to the source archive
   or another destination automatically, and never deleted automatically.
 - A **source-missing replica** has a source file ID and a verified hash; the app
-  shows “Source file missing; backup copy exists” in a separate **Source
-  missing** section. The first release offers reveal/open only; it does not
-  restore the file into the source archive and never writes into the source.
+  reports it in a separate **Source missing** attention category with a count.
+  The current release does not expose destination file browsing, reveal/open, or
+  restore; it never writes into the source archive.
 - A source-missing replica requires a stored source hash and a verified match.
   Without a stored hash, the destination file remains unverified or extra; the
   app must not guess that it is the missing source file.
@@ -1499,8 +1499,7 @@ While a run is active, disable:
 Allow:
 
 - pause and stop-after-current-file;
-- viewing progress, plan, destination detail, and run history;
-- reveal/open file actions;
+- viewing progress, plan, destination detail, and run status;
 - adding a new destination, queued for the next plan.
 
 A disabled control must say why. Use “Pause the backup to change the plan” for
@@ -1577,7 +1576,7 @@ promotion. Do not hide the control without an explanation.
 | A `.memorylane-tmp-*` temporary file is found | Never adopt it or count it as destination-only. Clean it during startup/recovery. |
 | Destination file has no matching source file | Record as an extra; show under **Only on this drive**; never copy or delete automatically. |
 | Destination file matches multiple source files | Record as ambiguous; show for review; do not guess or copy. |
-| Source file is missing but a verified replica exists | Show as **Source missing; backup copy exists**; offer reveal/open only. Do not restore into the source archive in the first release. |
+| Source file is missing but a verified replica exists | Report it as a **Source missing** attention count. Do not restore into the source archive or expose reveal/open in this release. |
 | Destination-only file is inside the source root during promotion | Report it; do not import it automatically. The user may keep it as a local extra or exclude it from the new source. |
 | Destination-only file disappears | Mark it missing in the local catalog; keep the orphan record for history. |
 
@@ -1940,8 +1939,8 @@ Append-only audit events for run state and plan changes:
 - `plan_revision`
 - `note`
 
-Events are never edited or deleted. Run history shows the latest events; the
-full list is available in destination or run history.
+Events are never edited or deleted. Run events are available through the
+run-events API and the run screen.
 
 ### 12.5 Destination marker
 
@@ -2029,10 +2028,10 @@ Overview → Plan (execution drawer) → Running
   separate execute page. Destination order uses a small sheet.
 - **Running** is focused on progress, run order, waiting offline ranges, and
   controls. Local-library and replacement details live in destination detail.
-- **Destination detail** is one page with a drive switcher. The switcher
-  includes partial and full-copy destinations. Tabs are Overview, Files, and
-  History. Files combines the local library, only-on-drive files, and
-  source-missing recovery behind a filter.
+- **Destination detail** is one page per destination, including partial and
+  full-copy destinations. The current release shows Overview only; Files and
+  History are deferred. Overview combines adoption, coverage, attention counts,
+  settings, and media.
 - **Promotion** is a four-step wizard: verify, review extras, choose fates, and
   confirm. The destination is chosen by entering promotion from a complete
   full-copy destination.
@@ -2091,44 +2090,33 @@ The overview card is a summary. It is not a settings page.
 
 ### 13.1a Destination detail
 
-One page for every destination, including full-copy destinations. A switcher
-changes the drive without leaving the page. Tabs: **Overview**, **Files**, and
-**History**.
+One page for every destination, including full-copy destinations. The current
+release shows the **Overview** only; destination file browsing, history, and
+reveal/open actions are not exposed.
 
 **Overview**
 
 - Identity and allocation: volume ID, filesystem, destination root, goal,
-  layout, allocation mode, reserve, identity confidence, last verified, and copy
-  path.
-- Coverage and index: backup coverage map with a **Backup coverage / Local
-  library** toggle; source files present; not on this drive; overlap with other
-  destinations; source index timestamp; local library file count and cache
-  status.
+  layout, allocation mode, reserve, identity confidence, and source-index path.
+- Coverage and local library: verified files and bytes, safe-to-add space,
+  overlap, local-library file count, backup coverage map, source-index timestamp,
+  and cache status.
 - For a full-copy destination: full-copy status, verified bytes, shortfall,
   promotion readiness, and a link to promotion when complete.
-- A **Manage** action holds Re-adopt, Change goal, Deep verify, and Retire. It
-  is disabled while the run is running. After pause it is enabled; changes apply
-  to the remaining plan.
+- Destination settings: change the goal between partial coverage and full copy.
+  Changes apply to future plans and are locked while a run is running.
+- Adoption controls: start, pause, resume, and re-adopt the drive.
 - Warnings for over budget, reserve below the floor, free space below reserve,
   stale replacement reserve use, read-only destination, or a full copy that no
   longer fits.
-- **Only on this drive** and **Source missing** counts, linking to the Files
-  filters.
+- **Only on this drive** and **Source missing** counts. They are not clickable
+  file lists in this release.
 
-**Files**
+**Files and History**
 
-- Filter between **Local library**, **Only on this drive**, and **Source
-  missing**.
-- Local library shows files physically on the drive, including extras.
-- Only on this drive shows destination-only files with reveal/open actions. No
-  import, copy, or delete action.
-- Source missing shows verified replicas whose source file is missing, with
-  reveal/open actions. Restore into the source archive is deferred.
-
-**History**
-
-- Adoption, verification, replacement, and run events.
-- Failed local-library or source-index updates.
+Destination file browsing, destination history, and reveal/open actions are
+deferred. The source catalog is never used to answer destination-library
+queries, and destination detail shows only aggregate counts and health.
 
 Example:
 
@@ -2237,7 +2225,7 @@ The run screen is a stable destination, not a transient page.
   crash or disconnect discards temporary files, extras stay local, and restore
   into the source is unavailable in the first release.
 - Local library and cache status are summarized. Details live in destination
-  History. A failed update appears as a warning banner with a link.
+  detail. A failed update appears as a warning banner with a link.
 - Error list with retry actions, only when errors exist.
 - Completion summary: whether the run completed or was stopped, verified now,
   pending on offline destinations, failed, partial remainder, full-copy
@@ -2445,9 +2433,9 @@ Promotion warnings:
   the source or another destination automatically, and never deleted
   automatically.
 - Ambiguous destination files are reported for review and never guessed.
-- Source-missing replicas are identified as “Source missing; backup copy
-  exists” and offer reveal/open only. The first release does not write restored
-  files into the source archive.
+- Source-missing replicas are reported in the **Source missing** attention
+  category with counts. The current release exposes no restore or reveal/open
+  action and never writes restored files into the source archive.
 - The local-library date map includes destination-only files; the backup
   coverage map excludes them.
 - Promotion leaves destination-only files out of the new source archive, keeps
@@ -2456,7 +2444,7 @@ Promotion warnings:
 - Promotion rollback is guaranteed only before the first change on the new
   source; after that it is disabled or requires a merge.
 - Source-missing replicas are never written back into the source archive in the
-  first release; they can be revealed or opened.
+  first release; they are reported as attention counts.
 - Source coverage and planning use only `source_membership = source` files;
   local-library-only files are excluded.
 - The plan lists every candidate as planned, a gap, or the remainder.
@@ -2569,8 +2557,8 @@ Promotion warnings:
 - Stale, missing, conflicting, and destination-only files.
 - Destination has extra files not in the source: shown in the local library and
   **Only on this drive**, not counted as coverage, not copied, not deleted.
-- Source file missing but a verified replica exists: shown as source-missing
-  with reveal/open only; no source write in the first release.
+- Source file missing but a verified replica exists: reported as a source-missing
+  attention count; no restore or reveal/open in this release.
 - Ambiguous destination file matching multiple source files: reported without
   guessing.
 - Promotion with destination-only files inside the new source root: reported,
@@ -2604,7 +2592,8 @@ Promotion warnings:
   recopying.
 - Cache reuse rejected when the source hash/version changed.
 - `.memorylane-tmp-*` files skipped and cleaned.
-- Source-missing replica reveal/open only; no source write in the first release.
+- Source-missing replica is reported as an attention count; no restore or
+  reveal/open exists in the first release.
 - Dedicated destination with its own local catalog; an active source used as a
   destination is rejected until dual-role support lands.
 - Old source registered as a full-copy or partial destination after promotion.
@@ -2644,8 +2633,8 @@ Promotion warnings:
   partial with an accurate shortfall.
 - Roll back a promotion before the first change on the new source; verify
   rollback is refused after a scan or edit.
-- Confirm a source-missing replica can be revealed/opened and the source archive
-  remains unchanged.
+- Confirm source-missing replicas appear as attention counts and the source
+  archive remains unchanged.
 
 ## 16. Resolved decisions and deferred choices
 
@@ -2692,8 +2681,9 @@ implementation.
    source archive and shows them in the local library. A future explicit import
    is possible but not required.
 5. **Restore into source.** The first release keeps the source archive
-   read-only and offers reveal/open only. A future explicit recovery tool may add
-   per-file or batch restore with its own write boundary and security review.
+   read-only and exposes no destination item actions. A future explicit recovery
+   tool may add per-file or batch restore with its own write boundary and
+   security review.
 6. **Merge-back after the rollback safe point.** If required later, it is a
    separate explicit migration. The first version disables rollback instead.
 
@@ -2724,6 +2714,9 @@ The product phases below describe feature capability, not the merge order.
     source rejected as a destination, 8 TB full copy, promotion, source growth
     beyond the old 4 TB, and 1 TB keep/retire.
 
+Status: capabilities 1-9 are implemented. The manual physical-drive drill in
+step 10 remains tracked in the release checklist.
+
 ## 18. Known limits
 
 - The first implementation is Windows-first. The path model is mount-relative,
@@ -2736,8 +2729,11 @@ The product phases below describe feature capability, not the merge order.
 - Destination-only files are local to the destination and are not part of source
   coverage. They are never copied to the source or other destinations
   automatically.
-- Restoring a source-missing replica is deferred. The first release shows it with
-  reveal/open only and never writes into the source archive.
+- Destination file browsing, destination history, and reveal/open destination
+  item actions are not exposed in the current UI; destination detail shows
+  aggregate health, coverage, local-library counts, and destination media.
+- Restoring a source-missing replica is deferred. The first release never writes
+  into the source archive from a replica.
 - Extra-file detection depends on the source catalog and source index. A stale
   index is labelled, and files from before the catalog may appear as extras.
 - Promotion reports extras inside the new source root but does not import them
@@ -2758,7 +2754,7 @@ The product phases below describe feature capability, not the merge order.
 - Rollback is guaranteed only before the first change on the new source. After
   that, it is disabled unless a merge-back feature exists.
 - Source-missing replicas are never restored into the source archive in the first
-  release; they are shown with reveal/open actions only.
+  release and are reported only as attention counts.
 - A first-adoption different-hash file is a conflict, not a stale copy, and is
   never overwritten automatically.
 - The 1 GiB reserve floor applies only to temporary stale replacement space; new

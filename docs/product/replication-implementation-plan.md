@@ -19,8 +19,17 @@ Confirmed on 2026-11-01:
   copy execution, then full copy and promotion. Promotion ships last.
 
 These choices keep the riskiest catalog-merge work out of the first copy
-executor and make failure recovery understandable. No further blocking product
-decision is required for Slice 1.
+executor and make failure recovery understandable. All three slices are now
+implemented.
+
+## 1.1 Delivery status
+
+- Slice 1: adoption, coverage, and planning — implemented.
+- Slice 2: partial execution and run lifecycle — implemented.
+- Slice 3: full copy and promotion — implemented.
+- Verification: 469 tests across 118 files, 9 Electron E2E flows, and coverage
+  above the configured floors. The physical-drive replication release pass is
+  still tracked in the roadmap and release checklist.
 
 ## 2. Current-code findings
 
@@ -597,6 +606,10 @@ Exit criteria:
 - old source and 1 TB destinations end in the chosen roles;
 - no active source can be registered as a destination in this release.
 
+Status: implemented. Automated evidence lives in the full-copy, promotion,
+promotion-service, promotion-merge, and E2E suites. The manual physical-drive
+pass remains open.
+
 ## 8. Test strategy
 
 ### 8.1 Unit tests
@@ -728,28 +741,28 @@ Failure path:
 - no renderer direct filesystem or SQLite access;
 - update `docs/release/security-review.md`.
 
-### 8.10 Proposed test files
+### 8.10 Delivered test files
 
 | File | Scope |
 |---|---|
-| `src/main/modules/replication/domain/*.test.ts` | coverage, capacity, chronology, planner, path policy, state machine |
-| `src/main/modules/replication/infrastructure/destination-writer.test.ts` | destination path safety, temp/rename/remove, symlink escape |
-| `src/main/modules/replication/infrastructure/file-copier.test.ts` | stream copy, dual hash, source change, hash mismatch |
-| `src/main/modules/replication/application/run-service.test.ts` | start/pause/resume/stop/replan/recovery |
-| `src/main/modules/replication/application/promotion-service.test.ts` | preflight, fates, rollback |
-| `src/main/db/repositories/replication-*.test.ts` | constraints, coverage, runs, events, promotions |
+| `src/main/modules/replication/domain/*.test.ts` | adoption matching, coverage, chronology, planning, full-copy status, promotion policy |
+| `src/main/modules/replication/infrastructure/*.test.ts` | destination path safety, writer, reader, marker, temp/rename/remove, file copy |
+| `src/main/modules/replication/application/*.test.ts` | adoption processing, destination service, run service, promotion state and markers |
+| `src/main/db/repositories/replication-*.test.ts` | destination, source, coverage, adoption, run, event, and promotion persistence |
+| `src/main/db/replication-db-handlers.test.ts` | registration, plan, run, and promotion handlers |
+| `src/main/db/migrations/catalog-replication-migration.test.ts` | schema 7 migration and backfill |
 | `src/main/db/catalog-registry.test.ts` | source + destination sessions, duplicate paths, locks |
 | `src/main/modules/workloads/application/workload-coordinator.test.ts` | exclusive leases and conflicts |
-| `src/renderer/src/features/replication/*.test.tsx` | overview, plan, run, destination, promotion states |
-| `tests/integration/replication-harness.ts` | real source + two destination fixtures |
-| `tests/integration/replication-adoption.test.ts` | adoption, orphans, conflicts, source index, pause/resume/restart |
-| `tests/integration/replication-plan.test.ts` | deployment shapes and planning |
-| `tests/integration/replication-run.test.ts` | copy, pause, resume, stop, replan |
-| `tests/integration/replication-failures.test.ts` | disk full, permissions, disconnect, source change |
-| `tests/integration/replication-promotion.test.ts` | full copy, merge, rollback |
-| `tests/integration/replication-recovery.test.ts` | crash, restart, temp cleanup |
-| `tests/e2e/replication.spec.ts` | happy path, re-entry, promotion, blocked actions |
-| `src/renderer/src/test/replication-fixtures.ts` | component fixtures |
+| `src/renderer/src/features/replication/*.test.tsx` | overview, plan, run, destination, and promotion states |
+| `tests/integration/replication-adoption.test.ts` | adoption, orphans, conflicts, source index |
+| `tests/integration/replication-run.test.ts` | planned copies and run lifecycle |
+| `tests/integration/replication-run-controls.test.ts` | pause, resume, stop, replan |
+| `tests/integration/replication-full-copy.test.ts` | full-copy completion, shortfall, source growth |
+| `tests/integration/replication-promotion.test.ts` | promotion merge, fates, rollback |
+| `tests/integration/replication-promotion-service.test.ts` | promotion preflight and service transitions |
+| `tests/integration/replication-media.test.ts` | destination-scoped media |
+| `tests/e2e/replication.spec.ts` | replication happy path and re-entry |
+| `tests/e2e/replication-promotion.spec.ts` | promotion and rollback |
 
 ## 9. Acceptance criteria matrix
 
@@ -777,7 +790,7 @@ Failure path:
 | R-19 | Destination changed or missing file is re-verified before coverage | Integration | adoption test |
 | R-20 | Ambiguous file is reported, never guessed | Integration | adoption test |
 | R-21 | Only-on-drive extra is visible, never coverage, never copied/deleted | Integration | orphan test |
-| R-22 | Source-missing replica is separate and offers reveal/open only; no source write in the first release | Integration/component | destination-files test |
+| R-22 | Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release | Integration/component | attention/coverage tests |
 | R-23 | Symlink/junction/reparse escape is skipped or rejected | Unit/integration | path-policy test |
 | R-24 | Destination local catalog is reused or created once | Integration | destination-library test |
 | R-24a | Adoption progress is visible; pause, resume, and restart recover the session | Integration/component | adoption-controls test |
@@ -847,7 +860,7 @@ Failure path:
 | R-88 | Destination-scoped media resolves only destination file IDs | Unit/integration | media parser test |
 | R-89 | All destination writes are confined to the allowlisted writer | Static/security | read-only guard test |
 | R-90 | No source file content or metadata is modified | Integration/E2E | hash-before/after test |
-| R-91 | Source-missing UI offers reveal/open only; no restore-to-source IPC exists | Static/component | IPC/channel test |
+| R-91 | No restore-to-source or destination reveal/open IPC exists; source files are never written | Static/component | IPC/channel test |
 
 ## 10. Failure and edge-case matrix
 
@@ -952,7 +965,8 @@ Not part of the first replication release:
 - selected second copies on partial destinations;
 - sidecar grouping;
 - importing destination-only files;
-- restore into the source archive; the first release offers reveal/open only;
+- restore into the source archive; the first release reports source-missing
+  replicas as counts and exposes no restore or reveal/open action;
 - batch restore;
 - merge-back after the promotion rollback safe point;
 - scheduled deep verification;

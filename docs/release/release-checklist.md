@@ -1,6 +1,6 @@
 # Release checklist
 
-Status: automated gates run locally; clean-VM and physical-drive checks pending.
+Status: automated gates run locally; clean-VM, physical-drive, and replication release checks pending.
 
 ## Automated gates
 
@@ -70,6 +70,22 @@ in-memory query passes are green.
 6. Reopen Memory Lane and verify the file, dates, health, and Settings data.
 7. Delete the moved-aside databases only after verification.
 
+## Replication release pass
+
+1. Use a source archive and at least one physical destination drive.
+2. Register and adopt the destination, review the plan, and run a partial copy.
+3. Pause, resume, and stop a run; confirm verified files survive each transition.
+4. Add a full-copy destination, run it to completion, and inspect the completion
+   status and shortfall display.
+5. Promote the full copy. Confirm the new source opens, the old source is
+   demoted, and chosen destinations keep or retire as selected.
+6. Before changing the new source, roll back and confirm the old source is active
+   again.
+7. Repeat a promotion, then change the new source (scan or date edit) and confirm
+   rollback is refused.
+8. Disconnect a destination during a run and confirm it is skipped, then
+   reconnect and resume without duplicating verified files.
+
 ## Codec matrix
 
 Use `codec-matrix.md`. Record each tested extension and whether it played,
@@ -104,4 +120,5 @@ Test a real 2 TB USB 3 archive:
 | Portable build | Launch smoke | Pending | Clean VM |
 | Codec matrix | Classification only | Pending | Clean VM; HEIC packaged check available via `npm run validate:heic -- <photo.heic>` |
 | Real 2 TB archive | - | Pending | Physical drive |
+| Replication full copy/promotion | Yes | Pending | Physical destination drives; rollback and disconnect drills |
 | Checksums | Yes | Pending | Target-machine verification |

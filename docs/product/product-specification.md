@@ -1,9 +1,9 @@
 # Memory Lane --- Product Specification
 
-**Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete\
+**Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete; post-v0.1 replication implemented\
 **Platform:** Windows desktop\
-**Version:** 0.6\
-**Date:** 2026-10-31\
+**Version:** 0.7\
+**Date:** 2026-11-01\
 **Scope companion:** `scope-and-implementation.md`
 
 ## 1. Product vision
@@ -463,9 +463,10 @@ separate, resumable operation.
 Show a validation report in the UI. Do not modify original files.
 Missing files remain cataloged and marked as missing.
 
-## 15. Future capability: archive replication and source promotion
+## 15. Archive replication and source promotion
 
-**Status:** post-v0.1, not part of the initial single-drive archive workflow.
+**Status:** implemented in the post-v0.1 replication release. The v0.1
+single-drive workflow remains unchanged.
 
 Detailed design, formulas, failure behavior, and resolved decisions:
 [`partial-backups.md`](partial-backups.md).
@@ -598,9 +599,9 @@ Requirements:
     disabled unless a merge-back feature exists.
 -   Leave destination-only files out of the new source archive. Keep them
     visible in the local library; never import or delete them automatically.
--   Show source-missing replicas with reveal/open actions only. Restoring a file
-    into the source archive is deferred so the first release keeps the source
-    read-only.
+-   Report source-missing replicas as an attention count. Restoring a file into
+    the source archive and destination reveal/open are deferred so the first
+    release keeps the source read-only.
 -   If a full-copy destination runs out of space, mark it incomplete and do not
     spill its files to partial destinations.
 -   Preserve the source archive files unchanged.

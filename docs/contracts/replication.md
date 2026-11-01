@@ -1,6 +1,6 @@
 # Replication contract
 
-Status: proposed. TypeScript and Zod definitions will live in
+Status: implemented. TypeScript and Zod definitions live in
 `src/shared/contracts/replication/`, `src/shared/contracts/channels.ts`, and
 `src/preload/index.ts`.
 
@@ -13,9 +13,11 @@ layout and test plan are in
 
 ```text
 src/shared/contracts/replication/
-  types.ts       shared Zod schemas and inferred types
-  channels.ts    IPC channel names
-  api.ts         ReplicationApi namespace exposed by preload
+  types.ts           public destination, plan, and shared contracts
+  run-types.ts       run state, scopes, order entries, start params
+  promotion-types.ts promotion state, verification, apply, and rollback params
+  channels.ts        IPC channel names
+  api.ts             ReplicationApi namespace exposed by preload
 ```
 
 The preload bridge exposes a nested namespace:
@@ -35,33 +37,34 @@ flat methods to `MemoryLaneApi`.
 | `replication:get-overview` | `getOverview` | none | `ReplicationOverview` |
 | `replication:list-destination-candidates` | `listDestinationCandidates` | none | `DestinationCandidate[]` |
 | `replication:list-destinations` | `listDestinations` | none | `DestinationSummary[]` |
-| `replication:get-destination` | `getDestination` | `{ destinationId, mapScope? }` | `DestinationDetail` |
+| `replication:get-destination` | `getDestination` | `{ destinationId }` | `DestinationDetail` |
 | `replication:register-destination` | `registerDestination` | `RegisterDestinationParams` | `DestinationDetail` |
 | `replication:get-adoption-state` | `getAdoptionState` | `{ destinationId }` | `AdoptionState` |
 | `replication:start-adoption` | `startAdoption` | `{ destinationId }` | `AdoptionState` |
 | `replication:pause-adoption` | `pauseAdoption` | `{ destinationId }` | `AdoptionState` |
 | `replication:resume-adoption` | `resumeAdoption` | `{ destinationId }` | `AdoptionState` |
 | `replication:update-destination` | `updateDestination` | `UpdateDestinationParams` | `DestinationDetail` |
-| `replication:re-adopt-destination` | `reAdoptDestination` | `{ destinationId }` | `DestinationDetail` |
-| `replication:get-destination-files` | `getDestinationFiles` | `DestinationFilesParams` | `DestinationFilesPage` |
-| `replication:get-destination-history` | `getDestinationHistory` | `{ destinationId, cursor? }` | `DestinationHistoryPage` |
-| `replication:get-plan` | `getPlan` | `{ scope? }` | `ReplicationPlan` |
+| `replication:get-plan` | `getPlan` | none | `ReplicationPlan` |
 | `replication:get-coverage` | `getCoverage` | none | `CoverageSummary` |
 | `replication:get-run-state` | `getRunState` | none | `ReplicationRunState \| null` |
 | `replication:start-run` | `startRun` | `StartRunParams` | `ReplicationRunState` |
 | `replication:pause-run` | `pauseRun` | none | `ReplicationRunState` |
 | `replication:resume-run` | `resumeRun` | none | `ReplicationRunState` |
 | `replication:request-stop` | `requestStop` | none | `ReplicationRunState` |
+| `replication:replan` | `replan` | none | `ReplicationRunState \| null` |
 | `replication:get-run-events` | `getRunEvents` | `{ runId, cursor? }` | `RunEventsPage` |
 | `replication:get-promotion` | `getPromotion` | `{ destinationId }` | `PromotionState` |
 | `replication:verify-promotion` | `verifyPromotion` | `{ destinationId, deep? }` | `PromotionState` |
 | `replication:apply-promotion` | `applyPromotion` | `ApplyPromotionParams` | `PromotionState` |
-| `replication:rollback-promotion` | `rollbackPromotion` | `{ promotionId }` | `PromotionState` |
-| `replication:reveal-destination-item` | `revealDestinationItem` | `{ destinationId, fileId }` | `void` |
-| `replication:open-destination-item` | `openDestinationItem` | `{ destinationId, fileId }` | `void` |
+| `replication:rollback-promotion` | `rollbackPromotion` | `{ promotionId, destinationId }` | `PromotionState` |
+
+Not yet exposed: destination file browsing/history and reveal/open destination
+items. Re-adoption reuses `startAdoption`. The implemented API covers adoption,
+planning, run control, destination detail/media, and promotion.
 
 There is deliberately no restore-to-source method in the first release. Source
-files are never written. Source-missing replicas can be revealed or opened.
+files are never written. Source-missing replicas are reported as coverage gaps;
+destination reveal/open is deferred.
 
 All params are Zod-parsed in the main process. All handlers use the existing
 trusted-sender check and `IpcResult<T>` envelope.
@@ -224,6 +227,58 @@ Rules:
 - Switching the source archive is rejected while a run is running or paused.
 - Promotion requires no active run, including paused or interrupted.
 
+## Run scopes and full copies
+
+`StartRunParams.scope` selects work from the current execution plan:
+
+- `all_connected` runs the full-copy job first, then partial destinations in
+  priority order.
+- `full_copy_only` runs only the full-copy destination.
+- `partial_only` runs only partial destinations.
+
+A full copy is complete only when every present source file is verified on the
+destination with zero stale, missing, conflict, failed, or remainder files.
+A shortfall blocks the full-copy goal by default; it is never spilled to partial
+destinations. `full_copy_status` and its shortfall are refreshed when plans load
+and after runs, so source growth degrades a full copy to `incomplete` without
+deleting files.
+
+## Promotion contract
+
+`PromotionState` contains:
+
+- promotion ID, destination identity and label, source label and volume;
+- status (`planned | verifying | verified | completed | failed | rolled_back`);
+- connected and identity-confirmed flags;
+- source/verified/shortfall/stale/missing/conflict/failed/only-on-drive counts;
+- old-source capacity and whether it still fits a full copy;
+- active partial destinations eligible for keep/retire;
+- `canPromote` and `blockedReason`;
+- `canRollback` and `rollbackBlockedReason`;
+- `newCatalog` after a completed promotion and the previous source volume for
+  opening the restored archive.
+
+`ApplyPromotionParams` contains:
+
+```ts
+interface ApplyPromotionParams {
+  destinationId: string;
+  deepVerify: boolean;
+  oldSourceFate: "full_copy" | "extend_coverage" | "retire";
+  partialFates: Array<{ destinationId: string; keep: boolean }>;
+  confirm: true;
+}
+```
+
+Promotion preflight requires a complete full copy, a connected destination, a
+confirmed identity, zero shortfall, no active run, and no scan or validation.
+Apply writes pre-promotion snapshots, merges catalog metadata, preserves
+`catalog_id`, dates, overrides, duplicate memberships, hashes, and replica
+coverage, demotes the old source, and registers it as a destination with the
+chosen fate. Rollback is allowed only before the first change on the new source;
+the rollback window is closed by scan, validation, date edits, adoption,
+destination changes, and backup runs.
+
 ## Destination persistence contract
 
 Catalog migration 7 adds:
@@ -292,23 +347,22 @@ mapped full-copy files become `source` rows. Destination-only files remain
 Destination library methods are separate from the source library methods. Local
 library data comes from the destination catalog. Only-on-drive data comes from
 the source catalog's `replica_orphans`; source-missing data comes from the
-source catalog's `replica_files` joined to missing source files.
-`replication.getDestinationFiles` composes the three filters. The renderer never
-joins two catalogs itself.
+source catalog's `replica_files` joined to missing source files. The renderer
+never joins two catalogs itself.
 
 | Method | Purpose |
 |---|---|
-| `destinationLibrary.getFiles` | Local library page |
-| `destinationLibrary.getItem` | File details for the destination page |
+| `destinationLibrary.getContext` | Destination catalog and cache paths |
 | `destinationLibrary.resolveMedia` | Resolve a destination file ID for media |
-| `destinationLibrary.resolveThumbnail` | Resolve or generate a destination thumbnail |
+| `destinationLibrary.resolveThumbnail` | Resolve a destination thumbnail |
 | `destinationLibrary.saveThumbnail` | Persist thumbnail cache state |
 | `destinationLibrary.resolvePreview` | Resolve a HEIC/preview for a destination file |
 | `destinationLibrary.savePreview` | Persist preview cache state |
-| `destinationLibrary.getContext` | Destination catalog and cache paths |
-| `destinationLibrary.upsertFiles` | Batch insert/update after adoption or copy |
-| `destinationLibrary.markMissing` | Mark local files missing after a reconnect scan |
+| `replication.upsertDestinationLibrary` | Batch insert/update after adoption |
+| `replication.saveDestinationLibraryFile` | Insert/update one copied file |
+| `replication.getDestinationLibraryStats` | Local library counts for destination detail |
 
+Destination file browsing/history APIs are not exposed in the current release.
 The source catalog is never used to answer destination-library queries.
 
 ## Media URLs
@@ -341,11 +395,9 @@ Add to `APP_ERROR_CODES` and the Zod enum:
 REPLICATION_RUN_ACTIVE
 REPLICATION_RUN_NOT_FOUND
 REPLICATION_STATE_INVALID
-REPLICATION_WORKLOAD_CONFLICT
+WORKLOAD_CONFLICT
 DESTINATION_NOT_FOUND
-DESTINATION_ALREADY_REGISTERED
 DESTINATION_OVERLAP
-DESTINATION_IDENTITY_UNCONFIRMED
 DESTINATION_FULL
 DESTINATION_WRITE_FAILED
 DESTINATION_DISCONNECTED

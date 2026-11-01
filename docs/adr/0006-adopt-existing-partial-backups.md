@@ -1,6 +1,6 @@
 # 0006 - Adopt existing partial backups across destination drives
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 Detailed feature specification:
