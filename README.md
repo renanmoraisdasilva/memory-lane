@@ -57,7 +57,7 @@ flowchart LR
     Catalog["1 · Catalog files<br/>paths + filesystem facts"]
     Metadata["2 · Metadata + dates<br/>ExifTool with fallbacks"]
     Thumbs["3 · Thumbnails<br/>Windows-native previews"]
-    Hashes["4 · SHA-256<br/>resumable integrity hashes"]
+    Hashes["4 · Hashes<br/>full SHA-256 + large-file fingerprints"]
     CatalogDB[("catalog.db")]
     Cache[(".memorylane/cache")]
 
@@ -166,6 +166,8 @@ The IPC and media contracts are in
 
 - **Four-stage scanning** with pause/resume, intensity control, incremental
   changes, missing/moved detection, and interruption recovery.
+- **Large-file lazy hashing** with sampled fingerprints for unique files and full
+  SHA-256 on duplicate, move, replication, or validation demand.
 - **Memory Lane** timeline with a virtualized grid, filters, density, year/month
   navigation, viewport-priority thumbnails, and a combined photo/video viewer.
 - **ExifTool dates** with EXIF/XMP/video extraction, a documented priority
@@ -183,7 +185,7 @@ The IPC and media contracts are in
 - **Partial and full backups**: adopted destination libraries, resumable partial
   runs, complete full copies, source-growth degradation, and metadata-only
   promotion with rollback.
-- **469 automated tests** across 118 files, 9 Electron E2E flows, and a packaged
+- **478 automated tests** across 121 files, 9 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   replication promotion.
 

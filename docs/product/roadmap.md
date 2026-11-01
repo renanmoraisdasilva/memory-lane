@@ -26,8 +26,8 @@ pass remains.
   partial runs, local destination libraries and media, complete full copies,
   shortfall/source-growth handling, and metadata-only promotion with rollback.
 
-Verification at the current integration point: 469 unit/component/integration
-tests across 118 files, 9 Electron E2E flows, 100k and 200k in-memory query
+Verification at the current integration point: 478 unit/component/integration
+tests across 121 files, 9 Electron E2E flows, 100k and 200k in-memory query
 passes, coverage above the configured floors, and a packaged smoke with SHA-256
 package checksums.
 

@@ -3,6 +3,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { APP_ERROR_CODES } from "@shared/domain/errors";
+import { QUICK_HASH_ALGORITHM } from "@shared/domain/hashing";
 import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
 import { WorkloadCoordinator } from "../../src/main/modules/workloads/application/workload-coordinator";
 import { createScanHarness, waitForComplete } from "./scan-harness";
@@ -144,6 +145,41 @@ describe("scan service integration", () => {
       } finally {
         db.close();
       }
+    } finally {
+      await harness.dispose();
+    }
+  });
+
+  it("uses quick hashes for large unique files and full hashes for duplicate candidates", async () => {
+    const harness = await createScanHarness({
+      hashPolicy: { thresholdBytes: 50, sampleBytes: 8 },
+    });
+    try {
+      const driveRoot = harness.drive.rootPath;
+      await writeFile(path.join(driveRoot, "small.png"), png(4, 4));
+      await writeFile(path.join(driveRoot, "unique.mp4"), Buffer.alloc(120, 1));
+      await writeFile(path.join(driveRoot, "dup-a.mp4"), Buffer.alloc(200, 2));
+      await writeFile(path.join(driveRoot, "dup-b.mp4"), Buffer.alloc(200, 2));
+
+      await harness.scanService.startScan(harness.drive.volumeId, "balanced");
+      await waitForComplete(harness.scanService, harness.drive);
+
+      expect(
+        countRows(
+          harness.catalogPath,
+          "SELECT COUNT(*) AS count FROM hashes WHERE status = 'complete'",
+        ),
+      ).toBe(3);
+      expect(countRows(harness.catalogPath, "SELECT COUNT(*) AS count FROM quick_hashes")).toBe(1);
+      expect(
+        countRows(
+          harness.catalogPath,
+          `SELECT COUNT(*) AS count FROM quick_hashes WHERE algorithm = '${QUICK_HASH_ALGORITHM}'`,
+        ),
+      ).toBe(1);
+      expect(countRows(harness.catalogPath, "SELECT COUNT(*) AS count FROM duplicate_groups")).toBe(
+        1,
+      );
     } finally {
       await harness.dispose();
     }

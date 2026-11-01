@@ -27,7 +27,7 @@ implemented.
 - Slice 1: adoption, coverage, and planning — implemented.
 - Slice 2: partial execution and run lifecycle — implemented.
 - Slice 3: full copy and promotion — implemented.
-- Verification: 469 tests across 118 files, 9 Electron E2E flows, and coverage
+- Verification: 478 tests across 121 files, 9 Electron E2E flows, and coverage
   above the configured floors. The physical-drive replication release pass is
   still tracked in the roadmap and release checklist.
 
@@ -503,6 +503,14 @@ Backfill rules:
 Set `CATALOG_SCHEMA_VERSION = 7`. Update every test fixture and assertion that
 currently expects 6.
 
+### 6.1a Catalog migration 8
+
+Add `quick_hashes` for sampled large-file fingerprints, a `files(size, state)`
+index, and triggers that delete a quick fingerprint when a full hash is saved.
+Set `CATALOG_SCHEMA_VERSION = 8`. Existing full hashes remain valid and are not
+downgraded. Quick fingerprints are resume markers and candidate filters, never
+coverage evidence; adoption and copying compute full SHA-256 on demand.
+
 ### 6.2 App migration 3
 
 Replace the unused `backup_destinations` table with
@@ -750,7 +758,8 @@ Failure path:
 | `src/main/modules/replication/application/*.test.ts` | adoption processing, destination service, run service, promotion state and markers |
 | `src/main/db/repositories/replication-*.test.ts` | destination, source, coverage, adoption, run, event, and promotion persistence |
 | `src/main/db/replication-db-handlers.test.ts` | registration, plan, run, and promotion handlers |
-| `src/main/db/migrations/catalog-replication-migration.test.ts` | schema 7 migration and backfill |
+| `src/main/db/migrations/catalog-replication-migration.test.ts` | schema 6 to 7 replication migration and backfill |
+| `src/main/db/migrations/catalog-quick-hash-migration.test.ts` | schema 7 to 8 quick-hash migration and triggers |
 | `src/main/db/catalog-registry.test.ts` | source + destination sessions, duplicate paths, locks |
 | `src/main/modules/workloads/application/workload-coordinator.test.ts` | exclusive leases and conflicts |
 | `src/renderer/src/features/replication/*.test.tsx` | overview, plan, run, destination, and promotion states |
@@ -768,7 +777,7 @@ Failure path:
 
 | ID | Criterion | Level | Evidence |
 |---|---|---|---|
-| R-01 | Fresh catalogs migrate to schema 7 | Integration | migration test |
+| R-01 | Fresh catalogs migrate to the current schema (8) | Integration | migration test |
 | R-02 | Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage | Integration | migration/backfill test |
 | R-03 | `archive_identity` has one stable `catalog_id` and `role = source` for existing archives | Integration | catalog repository test |
 | R-04 | `files.source_membership` defaults/backfills to `source` | Integration | migration test |
@@ -835,7 +844,7 @@ Failure path:
 | R-63 | Promotion is blocked while running or paused | Component/integration | promotion test |
 | R-64 | Source switching is blocked while running or paused | Integration/component | switch-guard test |
 | R-65 | Scan/validation and replication cannot run together | Integration | workload test |
-| R-66 | Copy writes to a temp file, hashes, then renames | Unit/integration | copier test |
+| R-66 | Copy writes to a temp file, hashes the stream once, checks source/size, then renames | Unit/integration | copier test |
 | R-67 | Source change during copy discards temp and retries once | Integration | fault test |
 | R-68 | Source hash unknown uses size/mtime and streamed hash | Integration | copier test |
 | R-69 | Hash mismatch discards temp and marks failed | Integration | copier test |

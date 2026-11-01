@@ -32,6 +32,8 @@ export interface PendingHashFile {
   id: number;
   path: string;
   size: number;
+  modifiedAtFs: string | null;
+  hasSizePeer: boolean;
 }
 
 export interface MetadataEntry {
@@ -91,6 +93,16 @@ export interface FileHasher {
   hash(filePath: string): Promise<string>;
 }
 
+export interface QuickHashResult {
+  algorithm: string;
+  digest: string;
+  sampleBytes: number;
+}
+
+export interface QuickFileHasher {
+  hash(filePath: string, sizeBytes: number, sampleBytes: number): Promise<QuickHashResult>;
+}
+
 export interface ThumbnailSaveItem {
   fileId: number;
   path: string;
@@ -98,8 +110,28 @@ export interface ThumbnailSaveItem {
   status: "ready" | "failed";
 }
 
-export interface HashSaveItem {
+export interface FullHashSaveItem {
   fileId: number;
+  status: "complete";
+  kind: "full";
   sha256: string;
-  status: "complete" | "failed";
 }
+
+export interface QuickHashSaveItem {
+  fileId: number;
+  status: "complete";
+  kind: "quick";
+  algorithm: string;
+  digest: string;
+  sampleBytes: number;
+  fileSize: number;
+  modifiedAtFs: string | null;
+}
+
+export interface FailedHashSaveItem {
+  fileId: number;
+  status: "failed";
+  sha256: "";
+}
+
+export type HashSaveItem = FullHashSaveItem | QuickHashSaveItem | FailedHashSaveItem;

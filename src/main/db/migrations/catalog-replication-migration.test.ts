@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import { ensureDriveIdentity } from "../repositories/catalog-repository";
+import { CATALOG_SCHEMA_VERSION } from "../schema-version";
 import { catalogMigrations } from "./catalog-migrations";
 import { runMigrations } from "./runner";
 
@@ -59,7 +60,7 @@ describe("catalog replication migration", () => {
     const fileId = insertFile(db);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(7);
+    expect(result.version).toBe(CATALOG_SCHEMA_VERSION);
 
     const identity = db.prepare("SELECT * FROM archive_identity WHERE id = 1").get() as {
       catalog_id: string;
@@ -72,7 +73,7 @@ describe("catalog replication migration", () => {
     expect(identity.role).toBe("source");
     expect(identity.source_root_relative).toBe("");
     expect(identity.active_source_volume_id).toBe(volumeId);
-    expect(identity.schema_version).toBe(7);
+    expect(identity.schema_version).toBe(CATALOG_SCHEMA_VERSION);
 
     const file = db
       .prepare("SELECT source_membership, relative_path FROM files WHERE id = ?")

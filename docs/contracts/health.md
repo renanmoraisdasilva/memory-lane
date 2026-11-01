@@ -27,6 +27,9 @@ Status: implemented in Phase 4. Types live in
 ## Duplicates
 
 - Exact SHA-256 duplicates across all present catalog files.
+- Sampled quick fingerprints are never duplicate evidence. A large file is fully
+  hashed when another present or fully hashed missing file shares its size, so
+  exact duplicate/move matching is preserved for those candidates.
 - `duplicate_groups` and `duplicate_members` are rebuilt after scan finalize,
   on duplicate query, and after validation completes.
 - Group ordering is total bytes descending, then group id.

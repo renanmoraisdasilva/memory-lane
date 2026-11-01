@@ -243,6 +243,12 @@ destinations. `full_copy_status` and its shortfall are refreshed when plans load
 and after runs, so source growth degrades a full copy to `incomplete` without
 deleting files.
 
+Copy verification is single-pass: SHA-256 is computed while the source streams
+to the temporary destination file, compared with the trusted source hash when
+one exists, and the final file size is checked after rename. The temporary file
+is not read back inline. Deep verification re-reads destination data later and
+is the path that catches post-write corruption or bit rot.
+
 ## Promotion contract
 
 `PromotionState` contains:
@@ -295,6 +301,12 @@ Catalog migration 7 adds:
 - `replication_run_events`;
 - `source_promotions`;
 - indexes and uniqueness constraints, including the single-active-run rule.
+
+Catalog migration 8 adds `quick_hashes` for sampled large-file fingerprints and
+a `files(size, state)` index. Quick fingerprints are never coverage evidence.
+Replication hashes a source file fully on demand when adoption or a copy needs a
+source hash, and a full hash clears the matching quick fingerprint. Existing
+full hashes from older catalogs remain valid and are not rewritten.
 
 App migration 3 replaces the unused `backup_destinations` table with a
 `replication_destination_cache` table. The cache holds volume ID, destination

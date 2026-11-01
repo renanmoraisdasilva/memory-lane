@@ -3,14 +3,15 @@ import { z } from "zod";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
 import type {
-  HashSaveItem,
   MetadataSaveItem,
-  PendingHashFile,
   PendingMetadataFile,
   PendingThumbnailFile,
   ThumbnailSaveItem,
 } from "../../modules/scanning/domain/scan-files";
 import { readDriveIdentity } from "./catalog-repository";
+import { resetFailedHashes } from "./scan-hash-repository";
+
+export { countPendingHashes, listPendingHashes, saveHashBatch } from "./scan-hash-repository";
 
 const MediaClassSchema = z.enum(["image", "video", "other"]);
 
@@ -28,12 +29,6 @@ const PendingThumbnailRowSchema = z.object({
   id: z.number().int().positive(),
   path: z.string(),
   media_class: MediaClassSchema,
-});
-
-const PendingHashRowSchema = z.object({
-  id: z.number().int().positive(),
-  path: z.string(),
-  size: z.number().int().nonnegative(),
 });
 
 function assertVolume(db: Database.Database, volumeId: string): void {
@@ -286,77 +281,6 @@ export function saveThumbnailBatch(
 
 export function resetFailedThumbnails(db: Database.Database): void {
   db.prepare("DELETE FROM cache_entries WHERE kind = 'thumbnail' AND status = 'failed'").run();
-}
-
-export function countPendingHashes(db: Database.Database, volumeId: string): number {
-  assertVolume(db, volumeId);
-  return countRows(
-    db,
-    `SELECT COUNT(*) AS count FROM files f
-     WHERE f.state = 'present'
-       AND NOT EXISTS (
-         SELECT 1 FROM hashes h
-         WHERE h.file_id = f.id AND h.status IN ('complete', 'failed')
-       )`,
-  );
-}
-
-export function listPendingHashes(
-  db: Database.Database,
-  volumeId: string,
-  limit: number,
-): PendingHashFile[] {
-  assertVolume(db, volumeId);
-  const rows = db
-    .prepare(
-      `SELECT f.id, f.path, f.size
-       FROM files f
-       WHERE f.state = 'present'
-         AND NOT EXISTS (
-           SELECT 1 FROM hashes h
-           WHERE h.file_id = f.id AND h.status IN ('complete', 'failed')
-         )
-       ORDER BY f.id
-       LIMIT ?`,
-    )
-    .all(limit);
-
-  return rows.map((row) => {
-    const parsed = PendingHashRowSchema.safeParse(row);
-    if (!parsed.success) {
-      throw new AppError(APP_ERROR_CODES.DB_ERROR, "Invalid pending hash row", {
-        issues: parsed.error.issues,
-      });
-    }
-    return { id: parsed.data.id, path: parsed.data.path, size: parsed.data.size };
-  });
-}
-
-export function saveHashBatch(
-  db: Database.Database,
-  volumeId: string,
-  items: HashSaveItem[],
-  now: string,
-): void {
-  assertVolume(db, volumeId);
-  const upsert = db.prepare(
-    `INSERT INTO hashes (file_id, sha256, hashed_at, status)
-     VALUES (?, ?, ?, ?)
-     ON CONFLICT(file_id) DO UPDATE SET
-       sha256 = excluded.sha256,
-       hashed_at = excluded.hashed_at,
-       status = excluded.status`,
-  );
-  const save = db.transaction(() => {
-    for (const item of items) {
-      upsert.run(item.fileId, item.sha256, now, item.status);
-    }
-  });
-  save();
-}
-
-export function resetFailedHashes(db: Database.Database): void {
-  db.prepare("DELETE FROM hashes WHERE status = 'failed'").run();
 }
 
 export function resetFailedStage(

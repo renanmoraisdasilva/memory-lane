@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { METADATA_EXTRACTOR_VERSION } from "@shared/domain/metadata";
+import { QUICK_HASH_ALGORITHM } from "@shared/domain/hashing";
 import { catalogMigrations } from "../migrations/catalog-migrations";
 import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
@@ -228,7 +229,7 @@ describe("scan stage repository", () => {
       db,
       volumeId,
       [
-        { fileId: first, sha256: "a".repeat(64), status: "complete" },
+        { fileId: first, kind: "full", sha256: "a".repeat(64), status: "complete" },
         { fileId: second, sha256: "", status: "failed" },
       ],
       now,
@@ -238,6 +239,93 @@ describe("scan stage repository", () => {
     resetFailedStage(db, "hashes");
     expect(countPendingHashes(db, volumeId)).toBe(2);
     expect(third).toBeGreaterThan(0);
+    db.close();
+  });
+
+  it("keeps full hashes, skips unique quick hashes, and rechecks quick hashes with size peers", () => {
+    const db = createDb();
+    const full = insertFile(db, { path: "C:\\archive\\full.jpg", size: 50 });
+    const quickUnique = insertFile(db, { path: "C:\\archive\\unique.mp4", size: 100 });
+    const unhashed = insertFile(db, { path: "C:\\archive\\new.mp4", size: 200 });
+    const quickPeerA = insertFile(db, { path: "C:\\archive\\peer-a.mp4", size: 300 });
+    const quickPeerB = insertFile(db, { path: "C:\\archive\\peer-b.mp4", size: 300 });
+
+    saveHashBatch(
+      db,
+      volumeId,
+      [
+        { fileId: full, kind: "full", sha256: "a".repeat(64), status: "complete" },
+        {
+          fileId: quickUnique,
+          kind: "quick",
+          algorithm: QUICK_HASH_ALGORITHM,
+          digest: "b".repeat(64),
+          sampleBytes: 16,
+          fileSize: 100,
+          modifiedAtFs: now,
+          status: "complete",
+        },
+        {
+          fileId: quickPeerA,
+          kind: "quick",
+          algorithm: QUICK_HASH_ALGORITHM,
+          digest: "c".repeat(64),
+          sampleBytes: 16,
+          fileSize: 300,
+          modifiedAtFs: now,
+          status: "complete",
+        },
+        {
+          fileId: quickPeerB,
+          kind: "quick",
+          algorithm: QUICK_HASH_ALGORITHM,
+          digest: "c".repeat(64),
+          sampleBytes: 16,
+          fileSize: 300,
+          modifiedAtFs: now,
+          status: "complete",
+        },
+      ],
+      now,
+    );
+
+    expect(countPendingHashes(db, volumeId)).toBe(3);
+    expect(listPendingHashes(db, volumeId, 10)).toMatchObject([
+      { id: unhashed, size: 200, hasSizePeer: false },
+      { id: quickPeerA, size: 300, hasSizePeer: true },
+      { id: quickPeerB, size: 300, hasSizePeer: true },
+    ]);
+    expect(db.prepare("SELECT COUNT(*) AS count FROM quick_hashes").get()).toEqual({ count: 3 });
+
+    saveHashBatch(
+      db,
+      volumeId,
+      [{ fileId: quickPeerA, kind: "full", sha256: "d".repeat(64), status: "complete" }],
+      now,
+    );
+    expect(countPendingHashes(db, volumeId)).toBe(2);
+    expect(
+      db.prepare("SELECT COUNT(*) AS count FROM quick_hashes WHERE file_id = ?").get(quickPeerA),
+    ).toEqual({ count: 0 });
+
+    saveHashBatch(
+      db,
+      volumeId,
+      [
+        {
+          fileId: unhashed,
+          kind: "quick",
+          algorithm: QUICK_HASH_ALGORITHM,
+          digest: "e".repeat(64),
+          sampleBytes: 16,
+          fileSize: 200,
+          modifiedAtFs: now,
+          status: "complete",
+        },
+      ],
+      now,
+    );
+    expect(countPendingHashes(db, volumeId)).toBe(1);
     db.close();
   });
 

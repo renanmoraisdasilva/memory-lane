@@ -2,7 +2,7 @@
 
 **Status:** Product baseline; Phases 0-5 implemented, Phase 6 automated hardening complete; post-v0.1 replication implemented\
 **Platform:** Windows desktop\
-**Version:** 0.7\
+**Version:** 0.8\
 **Date:** 2026-11-01\
 **Scope companion:** `scope-and-implementation.md`
 
@@ -203,7 +203,9 @@ Use a staged workflow:
 3.  **Generate thumbnails:** Generate photo and video thumbnails in the
     background.
 4.  **Calculate hashes:** Calculate SHA-256 hashes as a separate
-    background stage.
+    background stage. Large files without a same-size peer use a sampled
+    fingerprint instead; they are fully hashed when a duplicate/move candidate
+    or replication/validation needs a full source hash.
 
 Do not require all stages to finish before the user can browse the
 catalog. The catalog should become useful as early as possible.

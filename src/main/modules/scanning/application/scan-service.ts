@@ -3,6 +3,7 @@ import path from "node:path";
 import type { VolumeId } from "@shared/contracts/drives";
 import type { ScanIntensity, ScanState } from "@shared/contracts/scan";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { DEFAULT_SCAN_HASH_POLICY, type ScanHashPolicy } from "@shared/domain/hashing";
 import type { DbClient } from "../../../clients/db-client";
 import type { Logger } from "../../../logging/types";
 import type { DetectedDrive } from "../../drives/domain/drive";
@@ -14,6 +15,7 @@ import type {
 import type {
   FileHasher,
   FileMetadataExtractor,
+  QuickFileHasher,
   ThumbnailWorkScheduler,
 } from "../domain/scan-files";
 import { ScanRunner } from "./scan-runner";
@@ -21,20 +23,9 @@ import { assertDriveAvailable } from "./drive-availability";
 import { createPauseGate, defaultSleep } from "./pause-gate";
 import { isResumableScan, ScanStoppedError, type ActiveScan } from "./scan-active-state";
 import type { ScanRuntime } from "./scan-runtime";
+import type { ScanServiceDependencies } from "./scan-service-types";
 
-export interface ScanServiceDependencies {
-  db: DbClient;
-  listDetected: () => Promise<DetectedDrive[]>;
-  logger: Logger;
-  metadata: FileMetadataExtractor;
-  thumbnails: ThumbnailWorkScheduler;
-  hasher: FileHasher;
-  workloads?: WorkloadCoordinator;
-  now?: () => Date;
-  sleep?: (milliseconds: number) => Promise<void>;
-  batchDelayMs?: number;
-  checkDriveAvailable?: (rootPath: string) => Promise<void>;
-}
+export type { ScanServiceDependencies } from "./scan-service-types";
 
 export class ScanService {
   private readonly db: DbClient;
@@ -43,6 +34,8 @@ export class ScanService {
   private readonly metadata: FileMetadataExtractor;
   private readonly thumbnails: ThumbnailWorkScheduler;
   private readonly hasher: FileHasher;
+  private readonly quickHasher: QuickFileHasher | null;
+  private readonly hashPolicy: ScanHashPolicy;
   private readonly workloads: WorkloadCoordinator | undefined;
   private readonly nowDate: () => Date;
   private readonly sleep: (milliseconds: number) => Promise<void>;
@@ -57,6 +50,8 @@ export class ScanService {
     this.metadata = dependencies.metadata;
     this.thumbnails = dependencies.thumbnails;
     this.hasher = dependencies.hasher;
+    this.quickHasher = dependencies.quickHasher ?? null;
+    this.hashPolicy = dependencies.hashPolicy ?? DEFAULT_SCAN_HASH_POLICY;
     this.workloads = dependencies.workloads;
     this.nowDate = dependencies.now ?? (() => new Date());
     this.sleep = dependencies.sleep ?? defaultSleep;
@@ -294,6 +289,8 @@ export class ScanService {
       metadata: this.metadata,
       thumbnails: this.thumbnails,
       hasher: this.hasher,
+      quickHasher: this.quickHasher,
+      hashPolicy: this.hashPolicy,
       now: () => this.nowDate(),
       delay: async (milliseconds) => {
         const wait = milliseconds + this.batchDelayMs;

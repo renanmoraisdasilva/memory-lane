@@ -62,7 +62,8 @@ export const SCAN_STAGE_DESCRIPTIONS: Record<ScanStageId, string> = {
   catalog: "Enumerate directories and files, then record paths and filesystem metadata.",
   metadata: "Read photo and video metadata, then resolve dates and media types.",
   thumbnails: "Create grid thumbnails and video posters for the library.",
-  hashes: "Calculate SHA-256 hashes for duplicate detection and validation.",
+  hashes:
+    "Calculate SHA-256 for duplicate detection; large unique files use a sampled fingerprint.",
 };
 
 export const SCAN_INTENSITY_OPTIONS: ReadonlyArray<{

@@ -76,11 +76,31 @@ const ThumbnailSaveItemSchema = z.object({
   status: z.enum(["ready", "failed"]),
 });
 
-const HashSaveItemSchema = z.object({
-  fileId: z.number().int().positive(),
-  sha256: z.string(),
-  status: z.enum(["complete", "failed"]),
-});
+const HashSaveItemSchema = z.union([
+  z.discriminatedUnion("kind", [
+    z.object({
+      fileId: z.number().int().positive(),
+      status: z.literal("complete"),
+      kind: z.literal("full"),
+      sha256: z.string().length(64),
+    }),
+    z.object({
+      fileId: z.number().int().positive(),
+      status: z.literal("complete"),
+      kind: z.literal("quick"),
+      algorithm: z.string().min(1),
+      digest: z.string().length(64),
+      sampleBytes: z.number().int().nonnegative(),
+      fileSize: z.number().int().nonnegative(),
+      modifiedAtFs: z.string().nullable(),
+    }),
+  ]),
+  z.object({
+    fileId: z.number().int().positive(),
+    status: z.literal("failed"),
+    sha256: z.literal(""),
+  }),
+]);
 
 export const ScanVolumeDbParamsSchema = z.object({ volumeId: VolumeIdSchema });
 

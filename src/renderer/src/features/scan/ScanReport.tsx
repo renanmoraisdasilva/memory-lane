@@ -101,7 +101,10 @@ function ReportDetails({
         label="Thumbnails generated"
         value={formatCount(stageCount(state, "thumbnails"))}
       />
-      <ReportRow label="Hashes calculated" value={formatCount(stageCount(state, "hashes"))} />
+      <ReportRow
+        label="Hash/fingerprint records"
+        value={formatCount(stageCount(state, "hashes"))}
+      />
       <ReportRow label="Drive" value={driveLabel} />
       <ReportRow label="Started" value={formatDateTime(state.startedAt)} />
       <ReportRow label="Intensity" value={scanIntensityLabel(state.intensity)} />

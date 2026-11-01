@@ -4,6 +4,7 @@ import path from "node:path";
 import { vi } from "vitest";
 import type { CatalogSummary } from "@shared/contracts/drives";
 import type { ScanState } from "@shared/contracts/scan";
+import type { ScanHashPolicy } from "@shared/domain/hashing";
 import type { DbClient } from "../../src/main/clients/db-client";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
 import type { DbMethod } from "../../src/main/db/worker-protocol";
@@ -16,9 +17,11 @@ import { ScanService } from "../../src/main/modules/scanning/application/scan-se
 import type {
   FileHasher,
   FileMetadataExtractor,
+  QuickFileHasher,
   ThumbnailWorkScheduler,
 } from "../../src/main/modules/scanning/domain/scan-files";
 import { createFileHasher } from "../../src/main/modules/scanning/infrastructure/file-hasher";
+import { createQuickFileHasher } from "../../src/main/modules/scanning/infrastructure/quick-file-hasher";
 import { createFileMetadataExtractor } from "../../src/main/modules/scanning/infrastructure/file-metadata";
 
 export function testLogger(): Logger {
@@ -49,6 +52,8 @@ export interface ScanHarness {
 
 export interface ScanHarnessOptions {
   hasher?: FileHasher;
+  quickHasher?: QuickFileHasher;
+  hashPolicy?: ScanHashPolicy;
   metadata?: FileMetadataExtractor;
   checkDriveAvailable?: (rootPath: string) => Promise<void>;
   workloads?: WorkloadCoordinator;
@@ -78,6 +83,8 @@ export async function createScanHarness(options: ScanHarnessOptions = {}): Promi
     metadata: options.metadata ?? createFileMetadataExtractor({ exif: null, logger }),
     thumbnails: thumbnailGenerator(),
     hasher: options.hasher ?? createFileHasher(),
+    quickHasher: options.quickHasher ?? createQuickFileHasher(),
+    ...(options.hashPolicy === undefined ? {} : { hashPolicy: options.hashPolicy }),
     ...(options.workloads === undefined ? {} : { workloads: options.workloads }),
     ...(options.checkDriveAvailable === undefined
       ? {}

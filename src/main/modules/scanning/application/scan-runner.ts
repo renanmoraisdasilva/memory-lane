@@ -7,7 +7,6 @@ import {
   type ScanState,
 } from "@shared/contracts/scan";
 import type {
-  HashSaveItem,
   MetadataSaveItem,
   PendingHashFile,
   PendingMetadataFile,
@@ -16,6 +15,7 @@ import type {
 } from "../domain/scan-files";
 import { enumerateFiles } from "../infrastructure/file-enumerator";
 import { concurrencyFor, mapWithConcurrency } from "./concurrency";
+import { hashPendingFile } from "./scan-hash-operation";
 import { estimateEta, stageOf } from "./scan-runner-helpers";
 import type { ProgressUpdate, ScanRuntime } from "./scan-runtime";
 import type {
@@ -291,7 +291,13 @@ export class ScanRunner {
       const items = await mapWithConcurrency(
         batch,
         concurrencyFor(this.runtime.getIntensity()),
-        (file) => this.hashFile(file),
+        (file) =>
+          hashPendingFile(file, {
+            hasher: this.runtime.hasher,
+            quickHasher: this.runtime.quickHasher,
+            hashPolicy: this.runtime.hashPolicy,
+            logger: this.runtime.logger,
+          }),
       );
       await this.runtime.db.request("scan.saveHash", {
         volumeId: this.runtime.volumeId,
@@ -309,19 +315,6 @@ export class ScanRunner {
         etaSeconds: eta,
       });
       await this.runtime.delay(0);
-    }
-  }
-
-  private async hashFile(file: PendingHashFile): Promise<HashSaveItem> {
-    try {
-      const sha256 = await this.runtime.hasher.hash(file.path);
-      return { fileId: file.id, sha256, status: "complete" };
-    } catch (error) {
-      this.runtime.logger.warn("Hash calculation failed", {
-        path: file.path,
-        message: error instanceof Error ? error.message : String(error),
-      });
-      return { fileId: file.id, sha256: "", status: "failed" };
     }
   }
 

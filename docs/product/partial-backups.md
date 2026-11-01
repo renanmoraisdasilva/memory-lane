@@ -532,6 +532,12 @@ the same file is not hashed twice at the same time.
 This makes adoption also complete the source hash coverage. It is a one-time
 read cost, resumable, and never changes the source.
 
+Large files may have only a sampled quick fingerprint from a completed scan.
+That fingerprint is not coverage evidence. Adoption and copying compute the full
+SHA-256 on demand for the files they touch. Existing full hashes from older
+catalogs remain valid, so a fully hashed drive is not rehashed by the new scan
+policy.
+
 ### 6.2 Avoiding repeated hashing
 
 Each verification stores enough metadata to skip unchanged files on the next
@@ -1259,13 +1265,13 @@ For each planned file:
    differs, the source changed: delete the temporary file, mark `stale`, stop
    that file. If the source hash is unknown, use the size and modified-time
    check in §9.1.
-7. Hash the temporary file and compare it with the source hash, or with the
-   streamed hash when the source hash was just established.
-8. Rename the temporary file to the final path atomically on the same volume.
+7. Rename the temporary file to the final path atomically on the same volume.
    For a stale replacement, keep the old file until the new file is verified.
-9. Mark the replica `verified` only after rename and hash comparison.
-10. Update the destination’s free-space accounting.
-11. Update the destination’s local catalog and copy the source thumbnail or
+8. Mark the replica `verified` after rename, the final size check, and the
+   single-pass hash comparison. The temporary file is not read back inline;
+   deep verification reads destination data later when requested.
+9. Update the destination’s free-space accounting.
+10. Update the destination’s local catalog and copy the source thumbnail or
     preview cache when available (see §9.6).
 
 If the app exits or crashes, temporary files are cleaned on the next run and
@@ -2742,6 +2748,17 @@ step 10 remains tracked in the release checklist.
   duplicate copies on partial destinations remain future work.
 - Bit rot or tampering that preserves size and modified time is only detected
   by deep verification.
+- Copy verification is single-pass. A post-write corruption that survives the
+  destination size check is detected by a later deep verification, not inline.
+- A large file with only a quick fingerprint is fully hashed when a duplicate,
+  moved-file, adoption, or copy candidate needs it. A catalog-wide rehash is not
+  required, and existing full hashes are never downgraded.
+- Moved-file detection is exact only when both sides have full SHA-256 hashes.
+  Large quick-only files may require deep hashing before a move can be
+  confirmed.
+- Adoption matches reorganized copies by content hash. A large quick-only source
+  file may need its full hash before a renamed, reorganized copy can be matched
+  by content rather than by path or name.
 - Only one source catalog per archive identity may be active.
 - The source archive must be connected to plan or execute a run.
 - The feature does not back up the source catalog itself as a user file; the

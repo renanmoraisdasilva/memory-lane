@@ -5,8 +5,10 @@ import type { Logger } from "../../../logging/types";
 import type {
   FileHasher,
   FileMetadataExtractor,
+  QuickFileHasher,
   ThumbnailWorkScheduler,
 } from "../domain/scan-files";
+import type { ScanHashPolicy } from "@shared/domain/hashing";
 
 export interface ScanRuntime {
   db: DbClient;
@@ -17,6 +19,8 @@ export interface ScanRuntime {
   metadata: FileMetadataExtractor;
   thumbnails: ThumbnailWorkScheduler;
   hasher: FileHasher;
+  quickHasher: QuickFileHasher | null;
+  hashPolicy: ScanHashPolicy;
   now: () => Date;
   delay: (milliseconds: number) => Promise<void>;
   checkpoint: () => Promise<void>;

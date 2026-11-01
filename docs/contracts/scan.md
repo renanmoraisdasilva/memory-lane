@@ -89,7 +89,15 @@ The coordinator runs stages in this order:
 3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
-   hash records.
+   hash records. Large files without a same-size peer use a sampled quick
+   fingerprint instead; they are fully hashed when a duplicate or moved-file
+   candidate appears or when replication/validation needs a full source hash.
+
+The quick fingerprint reads the first, middle, and last 1 MiB of files larger
+than 64 MiB. It is a resume marker and candidate filter, never a substitute for
+a full SHA-256. Full hashes from older catalogs are preserved. A file with a
+valid quick fingerprint is skipped until it changes or a same-size peer appears.
+When a full hash is stored, the quick fingerprint is removed.
 
 Pause completes the current file or batch, persists progress, and stops
 scheduling new work. Resume continues from the saved per-stage progress. App
@@ -145,10 +153,14 @@ current drive letter differs from the last registered letter.
   from existing `media.frameRate` metadata entries.
 - Catalog migration 7 adds archive identity, replica destinations and files,
   adoption/run/promotion records, and queue/coverage indexes.
+- Catalog migration 8 adds `quick_hashes` for sampled large-file fingerprints,
+  a size/state index for pending-hash selection, and triggers that clear a
+  quick hash when a full hash is saved.
 
-The current catalog schema version is 7. Opening an older catalog applies
+The current catalog schema version is 8. Opening an older catalog applies
 pending migrations checksum-safely. A catalog upgraded from schema 6 receives a
 stable archive identity and defaults existing files to `source` membership.
+Existing full SHA-256 hashes remain valid; migration 8 does not rehash them.
 
 Metadata has its own extractor version independent of the catalog schema.
 Files below `METADATA_EXTRACTOR_VERSION` are treated as pending by the metadata

@@ -47,8 +47,9 @@ Verified at the Phase 6 automated integration point:
 - The packaged smoke resolves an EXIF date through the packaged ExifTool binary
   and covers Other files, Settings, backup, and cache clearing.
 
-Post-v0.1 replication adds 154 tests and two Electron E2E flows. Current totals
-are 469 tests across 118 files and 9 Electron E2E flows. See
+Post-v0.1 replication adds 154 tests and two Electron E2E flows. Lazy hashing
+and its migration coverage add 9 more tests. Current totals are 478 tests across
+121 files and 9 Electron E2E flows. See
 [`partial-backups.md`](partial-backups.md) and
 [`../contracts/replication.md`](../contracts/replication.md).
 
@@ -82,6 +83,9 @@ Known gaps:
 
 - Catalog every file type; browse photos and videos first.
 - Four independent stages: catalog, metadata, thumbnails, hashes.
+- Large unique files use a sampled quick fingerprint; full SHA-256 is computed
+  when a duplicate/move candidate or replication/validation needs it. Existing
+  full hashes are reused.
 - Explicit start, pause, resume, and intensity control.
 - Safe stop on app close or disconnect; resume is always explicit.
 - Incremental scans, missing-file marking, moved-candidate hashes, and a
@@ -294,7 +298,8 @@ Both databases are owned by the DB worker.
 | `file_metadata` | Extracted metadata with provenance |
 | `file_dates` | Resolved and extracted date, precision, source, confidence, original value, override flag |
 | `date_overrides` | Manual year/year-month assignments with revert history |
-| `hashes` | SHA-256 records |
+| `hashes` | Full SHA-256 records |
+| `quick_hashes` | Sampled fingerprints for large unique files |
 | `duplicate_groups`, `duplicate_members` | Hash-based duplicate structure |
 | `missing_files` | Current missing state |
 | `moved_candidates` | Hash-matched relocations |
@@ -308,7 +313,9 @@ undated lookup indexes. Migration 5 added validation progress, current level,
 error state, and per-result levels. Migration 6 added the video frame rate and
 backfills it from existing `media.frameRate` metadata. Migration 7 adds archive
 identity, replica destinations/files, adoption/run/promotion records, and their
-indexes for the post-v0.1 replication work. Phase 5 reuses the existing
+indexes for the post-v0.1 replication work. Migration 8 adds sampled quick
+hashes for large unique files; it does not invalidate existing full hashes.
+Phase 5 reuses the existing
 `backup_history` and `registered_drives.last_backup_at` fields and adds no
 catalog migration.
 
@@ -323,7 +330,8 @@ catalog migration.
    refreshed by the next incremental scan and surface as a library banner.
 3. **Generate thumbnails** - Electron `nativeImage` thumbnails into
    `.memorylane/cache/thumbs`.
-4. **Calculate hashes** - streamed SHA-256 with file-level resume.
+4. **Calculate hashes** - streamed SHA-256 with file-level resume; large unique
+   files store a sampled quick fingerprint until a full hash is needed.
 
 Browsing becomes available after the catalog stage. Interactive thumbnail
 requests use the same scheduler as bulk scan work and take priority. See

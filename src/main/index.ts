@@ -15,6 +15,7 @@ import { listDetectedDrives } from "./modules/drives/application/list-detected-d
 import { ScanService } from "./modules/scanning/application/scan-service";
 import { createElectronThumbnailGenerator } from "./modules/scanning/infrastructure/electron-thumbnail-generator";
 import { createFileHasher } from "./modules/scanning/infrastructure/file-hasher";
+import { createQuickFileHasher } from "./modules/scanning/infrastructure/quick-file-hasher";
 import { createFileMetadataExtractor } from "./modules/scanning/infrastructure/file-metadata";
 import { createThumbnailScheduler } from "./modules/media/thumbnail-scheduler";
 import { createHeicPreviewConverter, type PreviewConverter } from "./modules/media/heic-preview";
@@ -275,6 +276,7 @@ async function startServices(): Promise<void> {
     metadata,
     thumbnails,
     hasher: createFileHasher(),
+    quickHasher: createQuickFileHasher(),
     workloads,
   });
   scanService = scan;

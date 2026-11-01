@@ -56,6 +56,7 @@ function invalidateFile(db: Database.Database, fileId: number, filePath: string)
   db.prepare("DELETE FROM file_metadata WHERE file_id = ?").run(fileId);
   db.prepare("DELETE FROM file_dates WHERE file_id = ? AND is_override = 0").run(fileId);
   db.prepare("DELETE FROM hashes WHERE file_id = ?").run(fileId);
+  db.prepare("DELETE FROM quick_hashes WHERE file_id = ?").run(fileId);
   db.prepare("DELETE FROM cache_entries WHERE file_id = ?").run(fileId);
   db.prepare("DELETE FROM missing_files WHERE file_id = ?").run(fileId);
   db.prepare("DELETE FROM moved_candidates WHERE file_id = ? OR new_path = ?").run(
