@@ -479,4 +479,7 @@ Status: implemented after Phase 6 automation, before the manual release pass.
   extractor version are refreshed by the next incremental scan, and Memory Lane
   shows a banner with the stale count so users are not left guessing why newer
   details such as frame rate are absent.
+- Restore now pulls the window onto an active display if its saved bounds are
+  off-screen, and a temporary tray icon appears while the window is minimized as
+  a fallback when the Windows taskbar fails to restore it.
 

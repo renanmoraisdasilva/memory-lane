@@ -1,5 +1,5 @@
 import path from "node:path";
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, Menu, screen, Tray } from "electron";
 import { DbWorkerClient } from "./clients/db-client";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
@@ -34,6 +34,8 @@ let scanService: ScanService | null = null;
 let healthService: HealthService | null = null;
 let settingsService: SettingsService | null = null;
 let previewService: PreviewConverter | null = null;
+let tray: Tray | null = null;
+let trayPending = false;
 let shuttingDown = false;
 
 function createWindow(): void {
@@ -58,18 +60,30 @@ function createWindow(): void {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow?.show();
+    ensureWindowVisible();
   });
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+    destroyTray();
   });
 
   mainWindow.on("minimize", () => {
     logger.info("Main window minimized");
+    void showTrayFallback();
   });
 
   mainWindow.on("restore", () => {
-    logger.info("Main window restored");
+    destroyTray();
+    ensureWindowVisible();
+    logger.info("Main window restored", { bounds: mainWindow?.getBounds() });
+  });
+
+  mainWindow.on("focus", () => {
+    if (mainWindow?.isMinimized()) {
+      mainWindow.restore();
+    }
+    ensureWindowVisible();
   });
 
   mainWindow.on("unresponsive", () => {
@@ -92,15 +106,104 @@ function createWindow(): void {
   }
 }
 
+interface Bounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function intersects(left: Bounds, right: Bounds): boolean {
+  return (
+    left.x < right.x + right.width &&
+    left.x + left.width > right.x &&
+    left.y < right.y + right.height &&
+    left.y + left.height > right.y
+  );
+}
+
+function ensureWindowVisible(): void {
+  if (mainWindow === null) {
+    return;
+  }
+  const bounds = mainWindow.isMinimized() ? mainWindow.getNormalBounds() : mainWindow.getBounds();
+  if (screen.getAllDisplays().some((display) => intersects(bounds, display.workArea))) {
+    return;
+  }
+
+  const workArea = screen.getPrimaryDisplay().workArea;
+  const width = Math.min(bounds.width, workArea.width);
+  const height = Math.min(bounds.height, workArea.height);
+  const next = {
+    x: workArea.x + Math.round((workArea.width - width) / 2),
+    y: workArea.y + Math.round((workArea.height - height) / 2),
+    width,
+    height,
+  };
+  logger.warn("Main window was off-screen; moving it to the primary display", { bounds, next });
+  mainWindow.setBounds(next);
+}
+
+function destroyTray(): void {
+  tray?.destroy();
+  tray = null;
+}
+
+function canShowTray(): boolean {
+  return (
+    !shuttingDown &&
+    tray === null &&
+    !trayPending &&
+    mainWindow !== null &&
+    mainWindow.isMinimized()
+  );
+}
+
+function canAttachTray(): boolean {
+  return !shuttingDown && tray === null && mainWindow !== null && mainWindow.isMinimized();
+}
+
+async function showTrayFallback(): Promise<void> {
+  if (!canShowTray()) {
+    return;
+  }
+  trayPending = true;
+  try {
+    const icon = await app.getFileIcon(app.getPath("exe"), { size: "small" });
+    if (!canAttachTray()) {
+      return;
+    }
+    const next = new Tray(icon);
+    next.setToolTip("Memory Lane is minimized");
+    next.setContextMenu(
+      Menu.buildFromTemplate([
+        { label: "Show Memory Lane", click: restoreMainWindow },
+        { type: "separator" },
+        { label: "Quit Memory Lane", click: () => app.quit() },
+      ]),
+    );
+    next.on("click", restoreMainWindow);
+    tray = next;
+  } catch (error) {
+    logger.warn("Could not create the minimized-window tray fallback", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+  } finally {
+    trayPending = false;
+  }
+}
+
 function restoreMainWindow(): void {
   if (mainWindow === null) {
     createWindow();
     return;
   }
+  destroyTray();
   if (mainWindow.isMinimized()) {
     mainWindow.restore();
   }
   mainWindow.show();
+  ensureWindowVisible();
   mainWindow.focus();
   mainWindow.moveTop();
 }
@@ -179,6 +282,7 @@ async function startServices(): Promise<void> {
 }
 
 async function shutdown(): Promise<void> {
+  destroyTray();
   if (healthService !== null) {
     await healthService.shutdown();
   }
@@ -203,6 +307,8 @@ async function shutdown(): Promise<void> {
 
 async function bootstrap(): Promise<void> {
   installSecurityHandlers();
+  screen.on("display-removed", ensureWindowVisible);
+  screen.on("display-metrics-changed", ensureWindowVisible);
   await startServices();
 }
 
