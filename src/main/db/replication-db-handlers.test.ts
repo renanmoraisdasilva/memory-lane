@@ -244,6 +244,9 @@ describe("replication database handlers", () => {
       destinationId: created.id,
       now,
     });
+    expect(harness.handler.handle("replication.listAdoptions", {})).toMatchObject([
+      { destinationKey: "dest-1", status: "scanning" },
+    ]);
     harness.handler.handle("replication.saveAdoptionBatch", {
       destinationId: created.id,
       replicas: [

@@ -10,6 +10,7 @@ import {
   finishAdoption,
   getAdoptionByKey,
   getAdoptionByRowId,
+  listAdoptions,
   markInterruptedAdoptions,
   setAdoptionStatus,
 } from "./replication-adoption-repository";
@@ -182,6 +183,18 @@ describe("replication adoption files repository", () => {
       status: "interrupted",
       finishedAt: "2026-11-02T00:00:00.000Z",
     });
+    db.close();
+  });
+
+  it("lists adoption records for the activity indicator", () => {
+    const { db, destinationId } = createDb();
+    expect(listAdoptions(db)).toEqual([
+      expect.objectContaining({ destinationKey: "dest-1", status: "idle" }),
+    ]);
+    beginAdoption(db, destinationId, now);
+    expect(listAdoptions(db)).toEqual([
+      expect.objectContaining({ destinationKey: "dest-1", status: "scanning", startedAt: now }),
+    ]);
     db.close();
   });
 });

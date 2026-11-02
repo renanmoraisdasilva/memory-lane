@@ -129,6 +129,7 @@ function createApi(): MemoryLaneApi {
       registerDestination: libraryFailure,
       updateDestination: libraryFailure,
       getAdoptionState: libraryFailure,
+      getActiveAdoptions: vi.fn(async () => ok([])),
       startAdoption: libraryFailure,
       pauseAdoption: libraryFailure,
       resumeAdoption: libraryFailure,

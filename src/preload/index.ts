@@ -192,6 +192,10 @@ const api: MemoryLaneApi = {
       ipcRenderer.invoke(REPLICATION_CHANNELS.getAdoptionState, { destinationId }) as Promise<
         IpcResult<AdoptionState>
       >,
+    getActiveAdoptions: () =>
+      ipcRenderer.invoke(REPLICATION_CHANNELS.getActiveAdoptions) as Promise<
+        IpcResult<AdoptionState[]>
+      >,
     startAdoption: (destinationId: string) =>
       ipcRenderer.invoke(REPLICATION_CHANNELS.startAdoption, { destinationId }) as Promise<
         IpcResult<AdoptionState>

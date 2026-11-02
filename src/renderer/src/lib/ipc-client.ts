@@ -147,6 +147,8 @@ export const api = {
       unwrap(getApi().replication.updateDestination(params)),
     getAdoptionState: (destinationId: string): Promise<AdoptionState> =>
       unwrap(getApi().replication.getAdoptionState(destinationId)),
+    getActiveAdoptions: (): Promise<AdoptionState[]> =>
+      unwrap(getApi().replication.getActiveAdoptions()),
     startAdoption: (destinationId: string): Promise<AdoptionState> =>
       unwrap(getApi().replication.startAdoption(destinationId)),
     pauseAdoption: (destinationId: string): Promise<AdoptionState> =>

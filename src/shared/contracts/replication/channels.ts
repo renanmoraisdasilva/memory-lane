@@ -6,6 +6,7 @@ export const REPLICATION_CHANNELS = {
   registerDestination: "replication:register-destination",
   updateDestination: "replication:update-destination",
   getAdoptionState: "replication:get-adoption-state",
+  getActiveAdoptions: "replication:get-active-adoptions",
   startAdoption: "replication:start-adoption",
   pauseAdoption: "replication:pause-adoption",
   resumeAdoption: "replication:resume-adoption",

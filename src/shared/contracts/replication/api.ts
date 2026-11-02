@@ -29,6 +29,7 @@ export interface ReplicationApi {
   registerDestination(params: RegisterDestinationParams): Promise<IpcResult<DestinationDetail>>;
   updateDestination(params: UpdateDestinationParams): Promise<IpcResult<DestinationDetail>>;
   getAdoptionState(destinationId: string): Promise<IpcResult<AdoptionState>>;
+  getActiveAdoptions(): Promise<IpcResult<AdoptionState[]>>;
   startAdoption(destinationId: string): Promise<IpcResult<AdoptionState>>;
   pauseAdoption(destinationId: string): Promise<IpcResult<AdoptionState>>;
   resumeAdoption(destinationId: string): Promise<IpcResult<AdoptionState>>;

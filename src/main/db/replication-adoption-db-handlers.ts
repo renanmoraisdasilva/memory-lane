@@ -6,6 +6,7 @@ import {
   beginAdoption,
   finishAdoption,
   getAdoptionByKey,
+  listAdoptions,
   markInterruptedAdoptions,
   setAdoptionStatus,
 } from "./repositories/replication-adoption-repository";
@@ -32,6 +33,7 @@ export function createReplicationAdoptionDbHandlers(
       const parsed = ReplicationAdoptionKeyParamsSchema.parse(params);
       return getAdoptionByKey(options.getCatalog(), parsed.destinationId);
     },
+    "replication.listAdoptions": () => listAdoptions(options.getCatalog()),
     "replication.beginAdoption": (params) => {
       const parsed = ReplicationBeginAdoptionDbParamsSchema.parse(params);
       return beginAdoption(options.getCatalog(), parsed.destinationId, parsed.now);

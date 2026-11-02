@@ -350,6 +350,7 @@ export function createReplicationFixtureClient(
     registerDestination: vi.fn(() => Promise.resolve(replicationDetail)),
     updateDestination: vi.fn(() => Promise.resolve(replicationDetail)),
     getAdoptionState: vi.fn(() => Promise.resolve(completeAdoption)),
+    getActiveAdoptions: vi.fn(() => Promise.resolve([])),
     startAdoption: vi.fn(() => Promise.resolve(completeAdoption)),
     pauseAdoption: vi.fn(() => Promise.resolve(pausedAdoption)),
     resumeAdoption: vi.fn(() => Promise.resolve(completeAdoption)),

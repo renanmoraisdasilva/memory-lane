@@ -89,6 +89,11 @@ export function getAdoptionByRowId(
   return parseAdoption(row);
 }
 
+export function listAdoptions(db: Database.Database): ReplicationAdoptionRecord[] {
+  const rows = db.prepare(`${SELECT_ADOPTION} ORDER BY a.id ASC`).all();
+  return rows.map(parseAdoption);
+}
+
 export function beginAdoption(
   db: Database.Database,
   destinationRowId: number,

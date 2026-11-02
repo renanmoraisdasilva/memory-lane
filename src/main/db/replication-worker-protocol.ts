@@ -20,6 +20,7 @@ export const REPLICATION_DB_METHODS = [
   "replication.listSourceFiles",
   "replication.saveSourceHash",
   "replication.getAdoption",
+  "replication.listAdoptions",
   "replication.beginAdoption",
   "replication.updateAdoptionStatus",
   "replication.finishAdoption",

@@ -165,6 +165,12 @@ function registerDestinationHandlers({
     }),
   );
 
+  ipcMain.handle(REPLICATION_CHANNELS.getActiveAdoptions, (event) =>
+    respond<AdoptionState[]>(event, REPLICATION_CHANNELS.getActiveAdoptions, logger, () =>
+      adoptionService.listActive(),
+    ),
+  );
+
   ipcMain.handle(REPLICATION_CHANNELS.startAdoption, (event, params: unknown) =>
     respond<AdoptionState>(event, REPLICATION_CHANNELS.startAdoption, logger, async () => {
       const parsed = AdoptionDestinationParamsSchema.parse(params);

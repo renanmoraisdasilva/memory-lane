@@ -71,6 +71,25 @@ export function useAdoptionState(destinationId: string) {
   });
 }
 
+function activeAdoptionPollInterval(states: AdoptionState[] | undefined): number | false {
+  if (states === undefined) {
+    return false;
+  }
+  return states.some((state) => state.status === "scanning" || state.status === "hashing")
+    ? 2_000
+    : false;
+}
+
+export function useActiveAdoptions() {
+  const client = useReplicationClient();
+  return useQuery({
+    queryKey: queryKeys.replicationAdoptions,
+    queryFn: () => client.getActiveAdoptions(),
+    refetchInterval: (query) => activeAdoptionPollInterval(query.state.data),
+    staleTime: 0,
+  });
+}
+
 export function useReplicationInvalidation() {
   const queryClient = useQueryClient();
   return async (): Promise<void> => {
@@ -80,6 +99,7 @@ export function useReplicationInvalidation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.replicationDestinations }),
       queryClient.invalidateQueries({ queryKey: ["replication", "destination"] }),
       queryClient.invalidateQueries({ queryKey: ["replication", "adoption"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.replicationAdoptions }),
       queryClient.invalidateQueries({ queryKey: queryKeys.replicationRun }),
       queryClient.invalidateQueries({ queryKey: ["replication", "run-events"] }),
       queryClient.invalidateQueries({ queryKey: ["replication", "promotion"] }),

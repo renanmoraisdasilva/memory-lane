@@ -17,7 +17,7 @@ function isVisible(state: ReplicationRunState | null | undefined): state is Repl
 }
 
 function chipText(state: ReplicationRunState): string {
-  if (state.status === "running") return `Backup · ${String(Math.round(state.percent))}%`;
+  if (state.status === "running") return `Backing up · ${String(Math.round(state.percent))}%`;
   if (state.status === "stopping") return "Stopping backup";
   if (state.status === "paused") return "Backup paused";
   return "Backup interrupted";

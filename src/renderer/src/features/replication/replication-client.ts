@@ -29,6 +29,7 @@ export interface ReplicationClient {
   registerDestination(params: RegisterDestinationParams): Promise<DestinationDetail>;
   updateDestination(params: UpdateDestinationParams): Promise<DestinationDetail>;
   getAdoptionState(destinationId: string): Promise<AdoptionState>;
+  getActiveAdoptions(): Promise<AdoptionState[]>;
   startAdoption(destinationId: string): Promise<AdoptionState>;
   pauseAdoption(destinationId: string): Promise<AdoptionState>;
   resumeAdoption(destinationId: string): Promise<AdoptionState>;
@@ -56,6 +57,7 @@ export function createReplicationClient(): ReplicationClient {
     registerDestination: (params) => api.replication.registerDestination(params),
     updateDestination: (params) => api.replication.updateDestination(params),
     getAdoptionState: (destinationId) => api.replication.getAdoptionState(destinationId),
+    getActiveAdoptions: () => api.replication.getActiveAdoptions(),
     startAdoption: (destinationId) => api.replication.startAdoption(destinationId),
     pauseAdoption: (destinationId) => api.replication.pauseAdoption(destinationId),
     resumeAdoption: (destinationId) => api.replication.resumeAdoption(destinationId),

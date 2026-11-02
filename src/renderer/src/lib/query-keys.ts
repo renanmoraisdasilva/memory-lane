@@ -24,6 +24,7 @@ export const queryKeys = {
     ["replication", "destination", destinationId] as const,
   replicationAdoption: (destinationId: string) =>
     ["replication", "adoption", destinationId] as const,
+  replicationAdoptions: ["replication", "adoptions"] as const,
   replicationCoverage: ["replication", "coverage"] as const,
   replicationRun: ["replication", "run"] as const,
   replicationRunEvents: (runId: number) => ["replication", "run-events", runId] as const,

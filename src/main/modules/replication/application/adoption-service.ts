@@ -58,6 +58,13 @@ function canResumeAdoption(status: ReplicationAdoptionRecord["status"]): boolean
   return status === "paused" || status === "interrupted";
 }
 
+const ACTIVE_ADOPTION_STATUSES = new Set<ReplicationAdoptionRecord["status"]>([
+  "scanning",
+  "hashing",
+  "paused",
+  "interrupted",
+]);
+
 export class AdoptionService {
   private readonly nowDate: () => Date;
   private readonly active = new Map<string, ActiveAdoption>();
@@ -69,6 +76,16 @@ export class AdoptionService {
   async getState(destinationKey: string): Promise<AdoptionState> {
     const record = await this.adoption(destinationKey);
     return this.toState(record, this.active.get(destinationKey) ?? null);
+  }
+
+  async listActive(): Promise<AdoptionState[]> {
+    const records = await this.dependencies.db.request<ReplicationAdoptionRecord[]>(
+      "replication.listAdoptions",
+      {},
+    );
+    return records
+      .filter((record) => ACTIVE_ADOPTION_STATUSES.has(record.status))
+      .map((record) => this.toState(record, this.active.get(record.destinationKey) ?? null));
   }
 
   async start(destinationKey: string): Promise<AdoptionState> {
