@@ -8,6 +8,7 @@ import catalogReplication from "./catalog/0007-replication.sql?raw";
 import catalogQuickHashes from "./catalog/0008-quick-hashes.sql?raw";
 import catalogVideoProxies from "./catalog/0009-video-proxies.sql?raw";
 import catalogMissingDismissals from "./catalog/0010-missing-dismissals.sql?raw";
+import catalogCleanup from "./catalog/0011-cleanup.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -60,5 +61,10 @@ export const catalogMigrations: Migration[] = [
     version: 10,
     name: "missing file dismissals",
     sql: catalogMissingDismissals,
+  },
+  {
+    version: 11,
+    name: "duplicate quarantine runs and hard-link counts",
+    sql: catalogCleanup,
   },
 ];

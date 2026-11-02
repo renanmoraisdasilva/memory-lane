@@ -1,6 +1,6 @@
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 
-export type WorkloadKind = "scan" | "validation" | "replication";
+export type WorkloadKind = "scan" | "validation" | "replication" | "cleanup";
 
 export interface WorkloadLease {
   readonly kind: WorkloadKind;
@@ -16,7 +16,16 @@ interface ActiveWorkload {
 }
 
 function labelFor(kind: WorkloadKind): string {
-  return kind === "scan" ? "scan" : kind === "validation" ? "validation" : "backup";
+  switch (kind) {
+    case "scan":
+      return "scan";
+    case "validation":
+      return "validation";
+    case "cleanup":
+      return "cleanup";
+    case "replication":
+      return "backup";
+  }
 }
 
 export class WorkloadCoordinator {

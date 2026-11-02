@@ -165,6 +165,24 @@
     </div>
 
     <div class="index-section">
+      <h2>Duplicate quarantine</h2>
+      <div class="index-callout">
+        <span class="icon">info</span>
+        <p><strong>Implemented in the duplicate quarantine release.</strong> One button keeps one copy per exact SHA-256 group and moves the rest to <span class="mono">E:\.memorylane_quarantine\&lt;run-id&gt;\</span>. Files are renamed, never permanently deleted. Back up and remove the folder manually, then rescan.</p>
+      </div>
+      <div class="screen-grid">
+        <a class="screen-card" href="duplicate-quarantine.html">
+          <div class="screen-card__icon"><span class="icon">drive_file_move</span></div>
+          <div>
+            <h3>Duplicate quarantine</h3>
+            <p>One screen: KEEP/MOVE badges, one move button, then confirmation, progress, and completion.</p>
+            <div class="screen-card__file">duplicate-quarantine.html</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="index-section">
       <h2>Screen states</h2>
       <div class="list-links">
         <a href="media-viewer.html?type=photo">Viewer · photo</a>
@@ -172,6 +190,7 @@
         <a href="library-health.html#missing">Health · missing files</a>
         <a href="library-health.html#duplicates">Health · duplicates</a>
         <a href="library-health.html#validation">Health · validation</a>
+        <a href="duplicate-quarantine.html">Quarantine &middot; duplicates</a>
         <a href="scan-processing-dashboard.html?state=idle">Scan · idle</a>
         <a href="scan-processing-dashboard.html?state=active">Scan · active</a>
         <a href="scan-processing-dashboard.html?state=paused">Scan · paused</a>
@@ -212,7 +231,7 @@
 
     <div class="index-callout">
       <span class="icon">verified_user</span>
-      <p><strong>Read-only by design:</strong> every screen uses catalog-only language. Actions that would touch the real filesystem show a prototype toast instead. The production app has no IPC channel for deleting, moving, renaming, or editing original files.</p>
+      <p><strong>Read-only by design (v0.1):</strong> every v0.1 screen uses catalog-only language. Actions that would touch the real filesystem show a prototype toast instead. Duplicate quarantine is the one implemented exception: it renames files into a quarantine folder only after explicit confirmation. The normal app remains read-only.</p>
     </div>
 
     <div class="flow" style="margin-top:8px">

@@ -44,6 +44,7 @@ function scannedFile(filePath: string, overrides: Partial<ScannedFile> = {}): Sc
     size: 100,
     createdAtFs: now,
     modifiedAtFs: now,
+    linkCount: 1,
     mediaClass: "image",
     format: "JPG",
     mime: "image/jpeg",

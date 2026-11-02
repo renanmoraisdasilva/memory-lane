@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import type Database from "better-sqlite3";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { createCatalogRegistry } from "./catalog-registry";
 import { openDatabase } from "./connection";
@@ -13,6 +14,8 @@ import { createLibraryDbHandlers } from "./library-db-handlers";
 import { LIBRARY_DB_METHODS, type LibraryDbMethod } from "./library-worker-protocol";
 import { createHealthDbHandlers } from "./health-db-handlers";
 import { HEALTH_DB_METHODS, type HealthDbMethod } from "./health-worker-protocol";
+import { createCleanupDbHandlers } from "./cleanup-db-handlers";
+import { CLEANUP_DB_METHODS, type CleanupDbMethod } from "./cleanup-worker-protocol";
 import { createSettingsDbHandlers } from "./settings-db-handlers";
 import { SETTINGS_DB_METHODS, type SettingsDbMethod } from "./settings-worker-protocol";
 import { createReplicationDbHandlers } from "./replication-db-handlers";
@@ -40,6 +43,7 @@ function createDomainHandlerMap(handlers: {
   scan: ReturnType<typeof createScanDbHandlers>;
   library: ReturnType<typeof createLibraryDbHandlers>;
   health: ReturnType<typeof createHealthDbHandlers>;
+  cleanup: ReturnType<typeof createCleanupDbHandlers>;
   settings: ReturnType<typeof createSettingsDbHandlers>;
   replication: ReturnType<typeof createReplicationDbHandlers>;
 }): Map<string, (params: unknown) => unknown> {
@@ -53,6 +57,9 @@ function createDomainHandlerMap(handlers: {
   for (const method of HEALTH_DB_METHODS as readonly string[]) {
     map.set(method, (params) => handlers.health.handle(method as HealthDbMethod, params));
   }
+  for (const method of CLEANUP_DB_METHODS as readonly string[]) {
+    map.set(method, (params) => handlers.cleanup.handle(method as CleanupDbMethod, params));
+  }
   for (const method of SETTINGS_DB_METHODS as readonly string[]) {
     map.set(method, (params) => handlers.settings.handle(method as SettingsDbMethod, params));
   }
@@ -62,37 +69,43 @@ function createDomainHandlerMap(handlers: {
   return map;
 }
 
+function createCatalogHandlers(
+  catalogs: ReturnType<typeof createCatalogRegistry>,
+  appDb: Database.Database,
+): Map<string, (params: unknown) => unknown> {
+  return createDomainHandlerMap({
+    scan: createScanDbHandlers({
+      getCatalog: () => catalogs.getSource(),
+      getAppDb: () => appDb,
+    }),
+    library: createLibraryDbHandlers({
+      getCatalog: () => catalogs.getSource(),
+      getCatalogPath: () => catalogs.getSourcePath(),
+    }),
+    health: createHealthDbHandlers({
+      getCatalog: () => catalogs.getSource(),
+    }),
+    cleanup: createCleanupDbHandlers({
+      getCatalog: () => catalogs.getSource(),
+      getCatalogPath: () => catalogs.getSourcePath(),
+    }),
+    settings: createSettingsDbHandlers({
+      getAppDb: () => appDb,
+      getCatalog: () => catalogs.getSource(),
+    }),
+    replication: createReplicationDbHandlers({
+      getCatalog: () => catalogs.getSource(),
+      getCatalogPath: () => catalogs.getSourcePath(),
+      getRegistry: () => catalogs,
+    }),
+  });
+}
+
 export function createDbWorkerHandler(options: { appDbPath: string }): DbWorkerHandler {
   const appDb = openDatabase(options.appDbPath);
   runMigrations(appDb, appMigrations);
   const catalogs = createCatalogRegistry();
-  const scanHandlers = createScanDbHandlers({
-    getCatalog: () => catalogs.getSource(),
-    getAppDb: () => appDb,
-  });
-  const libraryHandlers = createLibraryDbHandlers({
-    getCatalog: () => catalogs.getSource(),
-    getCatalogPath: () => catalogs.getSourcePath(),
-  });
-  const healthHandlers = createHealthDbHandlers({
-    getCatalog: () => catalogs.getSource(),
-  });
-  const settingsHandlers = createSettingsDbHandlers({
-    getAppDb: () => appDb,
-    getCatalog: () => catalogs.getSource(),
-  });
-  const replicationHandlers = createReplicationDbHandlers({
-    getCatalog: () => catalogs.getSource(),
-    getCatalogPath: () => catalogs.getSourcePath(),
-    getRegistry: () => catalogs,
-  });
-  const domainHandlers = createDomainHandlerMap({
-    scan: scanHandlers,
-    library: libraryHandlers,
-    health: healthHandlers,
-    settings: settingsHandlers,
-    replication: replicationHandlers,
-  });
+  const domainHandlers = createCatalogHandlers(catalogs, appDb);
 
   const handleCreateCatalog = (params: unknown): unknown => {
     const parsed = CatalogCreateParamsSchema.parse(params);

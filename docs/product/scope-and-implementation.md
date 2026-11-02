@@ -18,7 +18,8 @@ phases as if they were already built.
 The guiding rule remains:
 
 > Every control in the UI must map to a planned, testable feature that preserves
-> the read-only archive promise.
+> the source safety promise. Source files are read-only except for the explicit,
+> journaled duplicate quarantine mover.
 
 ---
 
@@ -223,9 +224,11 @@ Rules:
 - The preload exposes only typed, Zod-validated operations.
 - The DB worker is the single SQLite writer for both databases.
 - The main process never opens SQLite directly.
-- Source files are opened read-only.
+- Source files are opened read-only, except by the reviewed duplicate quarantine
+  mover.
 - Reveal/open actions resolve a catalog file ID to a path in the main process.
-- There is no IPC channel for delete, move, rename, or source mutation.
+- There is no IPC channel for delete, general move, rename, or source mutation.
+  The only source-moving channel is the confirmed duplicate cleanup.
 
 ### 5.2 Repository layout
 
@@ -257,18 +260,20 @@ Main-process modules follow `domain` / `application` / `infrastructure` where a
 module has enough behavior to justify the split. The renderer is feature-based
 under `src/renderer/src/features`.
 
-### 5.3 Read-only enforcement
+### 5.3 Source safety enforcement
 
-- Source files are opened with read access only.
+- Source files are opened with read access only, except by the quarantine mover.
 - Writable roots are limited to app-managed locations:
   - `<drive>\.memorylane`;
+  - `<drive>\.memorylane_quarantine`;
   - `%LOCALAPPDATA%\MemoryLane` or `MemoryLane-dev`;
   - application logs and backups.
-- No UI verb implies source modification.
+- No UI verb implies source modification except the explicit duplicate cleanup.
 - Path guards validate catalog-owned roots and catalog IDs.
 - `scripts/check-read-only.mjs` fails the quality gate if direct filesystem
-  write APIs appear outside the reviewed cache/lock/backup allowlist.
-- Tests cover the read-only IPC surface, path boundaries, and recovery.
+  write APIs appear outside the reviewed cache/lock/backup/quarantine allowlist.
+- Tests cover the read-only IPC surface, duplicate quarantine, path boundaries,
+  and recovery.
 
 Windows access-time updates are not currently suppressed. Whether to suppress
 them remains an open decision; the current app does not write file contents or

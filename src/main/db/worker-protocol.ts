@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { DriveIdentitySchema } from "@shared/contracts/drives";
 import type { AppErrorPayload } from "@shared/domain/errors";
+import type { CleanupDbMethod } from "./cleanup-worker-protocol";
 import type { HealthDbMethod } from "./health-worker-protocol";
 import type { LibraryDbMethod } from "./library-worker-protocol";
 import type { ScanDbMethod } from "./scan-worker-protocol";
@@ -33,6 +34,7 @@ export type DbMethod =
   | ScanDbMethod
   | LibraryDbMethod
   | HealthDbMethod
+  | CleanupDbMethod
   | SettingsDbMethod
   | ReplicationDbMethod;
 

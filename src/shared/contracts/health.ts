@@ -1,10 +1,18 @@
 import { z } from "zod";
+import {
+  DUPLICATE_CLEANUP_KEEPER_RULE,
+  DUPLICATE_CLEANUP_SKIP_REASONS,
+} from "../domain/duplicate-cleanup";
 import { LibraryItemSchema } from "./library";
 
 export const HealthFileSchema = LibraryItemSchema.extend({
   mediaClass: z.enum(["image", "video", "other"]),
   path: z.string().min(1),
   folder: z.string(),
+  createdAtFs: z.string().min(1).nullable(),
+  modifiedAtFs: z.string().min(1).nullable(),
+  hasVerifiedReplica: z.boolean(),
+  hasDateOverride: z.boolean(),
 });
 export type HealthFile = z.infer<typeof HealthFileSchema>;
 
@@ -14,6 +22,11 @@ export const DuplicateGroupSchema = z.object({
   fileCount: z.number().int().nonnegative(),
   totalBytes: z.number().int().nonnegative(),
   files: z.array(HealthFileSchema),
+  keeperFileId: z.number().int().positive(),
+  keeperReason: z.string().min(1),
+  eligible: z.boolean(),
+  skipReason: z.enum(DUPLICATE_CLEANUP_SKIP_REASONS).nullable(),
+  excessBytes: z.number().int().nonnegative(),
 });
 export type DuplicateGroup = z.infer<typeof DuplicateGroupSchema>;
 
@@ -22,6 +35,7 @@ export const DuplicateGroupsPageSchema = z.object({
   totalGroups: z.number().int().nonnegative(),
   totalFiles: z.number().int().nonnegative(),
   totalBytes: z.number().int().nonnegative(),
+  totalExcessBytes: z.number().int().nonnegative(),
 });
 export type DuplicateGroupsPage = z.infer<typeof DuplicateGroupsPageSchema>;
 
@@ -30,6 +44,138 @@ export const DuplicateGroupsParamsSchema = z.object({
   limit: z.number().int().min(1).max(100).optional(),
 });
 export type DuplicateGroupsParams = z.infer<typeof DuplicateGroupsParamsSchema>;
+
+export const DuplicateCleanupSkipCountsSchema = z.object({
+  notAGroup: z.number().int().nonnegative(),
+  empty: z.number().int().nonnegative(),
+  belowMinimumSize: z.number().int().nonnegative(),
+  keeperNotCovered: z.number().int().nonnegative(),
+  candidateDateOverride: z.number().int().nonnegative(),
+  multipleDateOverrides: z.number().int().nonnegative(),
+  hardLink: z.number().int().nonnegative(),
+});
+export type DuplicateCleanupSkipCounts = z.infer<typeof DuplicateCleanupSkipCountsSchema>;
+
+export const DuplicateCleanupSummarySchema = z.object({
+  totalGroups: z.number().int().nonnegative(),
+  totalFiles: z.number().int().nonnegative(),
+  totalDuplicateBytes: z.number().int().nonnegative(),
+  eligibleGroups: z.number().int().nonnegative(),
+  skippedGroups: z.number().int().nonnegative(),
+  filesToMove: z.number().int().nonnegative(),
+  bytesToMove: z.number().int().nonnegative(),
+  keepers: z.number().int().nonnegative(),
+  skipCounts: DuplicateCleanupSkipCountsSchema,
+  minimumFileSizeBytes: z.number().int().positive(),
+  rootPath: z.string().min(1),
+  quarantineRoot: z.string().min(1),
+});
+export type DuplicateCleanupSummary = z.infer<typeof DuplicateCleanupSummarySchema>;
+
+export const DuplicateCleanupFileSchema = z.object({
+  fileId: z.number().int().positive(),
+  name: z.string().min(1),
+  path: z.string().min(1),
+  sizeBytes: z.number().int().nonnegative(),
+  createdAtFs: z.string().min(1).nullable(),
+  modifiedAtFs: z.string().min(1).nullable(),
+});
+export type DuplicateCleanupFile = z.infer<typeof DuplicateCleanupFileSchema>;
+
+export const DuplicateCleanupGroupSchema = z.object({
+  groupId: z.number().int().positive(),
+  sha256: z.string().min(1),
+  keeper: DuplicateCleanupFileSchema,
+  candidates: z.array(DuplicateCleanupFileSchema).min(1),
+  excessBytes: z.number().int().nonnegative(),
+});
+export type DuplicateCleanupGroup = z.infer<typeof DuplicateCleanupGroupSchema>;
+
+export const DuplicateCleanupPlanSchema = z.object({
+  rootPath: z.string().min(1),
+  keeperRule: z.literal(DUPLICATE_CLEANUP_KEEPER_RULE),
+  summary: DuplicateCleanupSummarySchema,
+  groups: z.array(DuplicateCleanupGroupSchema),
+});
+export type DuplicateCleanupPlan = z.infer<typeof DuplicateCleanupPlanSchema>;
+
+export const DuplicateCleanupStatusSchema = z.enum([
+  "idle",
+  "running",
+  "complete",
+  "cancelled",
+  "failed",
+]);
+
+export const DuplicateCleanupStateSchema = z.object({
+  runId: z.number().int().positive().nullable(),
+  status: DuplicateCleanupStatusSchema,
+  groupsTotal: z.number().int().nonnegative(),
+  groupsProcessed: z.number().int().nonnegative(),
+  groupsSkipped: z.number().int().nonnegative(),
+  filesTotal: z.number().int().nonnegative(),
+  filesMoved: z.number().int().nonnegative(),
+  filesSkipped: z.number().int().nonnegative(),
+  bytesTotal: z.number().int().nonnegative(),
+  bytesMoved: z.number().int().nonnegative(),
+  currentPath: z.string().min(1).nullable(),
+  quarantinePath: z.string().min(1).nullable(),
+  cancelRequested: z.boolean(),
+  errorMessage: z.string().min(1).nullable(),
+  startedAt: z.string().min(1).nullable(),
+  finishedAt: z.string().min(1).nullable(),
+});
+export type DuplicateCleanupState = z.infer<typeof DuplicateCleanupStateSchema>;
+
+export const DuplicateCleanupMoveSchema = z.object({
+  fileId: z.number().int().positive(),
+  sourcePath: z.string().min(1),
+  quarantinePath: z.string().min(1),
+  sha256: z.string().regex(/^[0-9a-f]{64}$/),
+  sizeBytes: z.number().int().nonnegative(),
+  createdAtFs: z.string().min(1).nullable(),
+  modifiedAtFs: z.string().min(1).nullable(),
+  keeperFileId: z.number().int().positive(),
+  keeperPath: z.string().min(1),
+  movedAt: z.string().min(1),
+});
+export type DuplicateCleanupMove = z.infer<typeof DuplicateCleanupMoveSchema>;
+
+export const DuplicateCleanupRunParamsSchema = z.object({
+  startedAt: z.string().min(1),
+  keeperRule: z.literal(DUPLICATE_CLEANUP_KEEPER_RULE),
+  rootPath: z.string().min(1),
+  groupsTotal: z.number().int().nonnegative(),
+  filesTotal: z.number().int().nonnegative(),
+  bytesTotal: z.number().int().nonnegative(),
+  quarantinePath: z.string().min(1),
+  journalPath: z.string().min(1),
+});
+export type DuplicateCleanupRunParams = z.infer<typeof DuplicateCleanupRunParamsSchema>;
+
+export const DuplicateCleanupMovesParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  moves: z.array(DuplicateCleanupMoveSchema).min(1).max(1000),
+});
+
+export const DuplicateCleanupApplyResultSchema = z.object({
+  recorded: z.number().int().nonnegative(),
+  removed: z.number().int().nonnegative(),
+});
+export type DuplicateCleanupApplyResult = z.infer<typeof DuplicateCleanupApplyResultSchema>;
+
+export const DuplicateCleanupFinishParamsSchema = z.object({
+  runId: z.number().int().positive(),
+  status: z.enum(["complete", "cancelled", "failed"]),
+  groupsProcessed: z.number().int().nonnegative(),
+  groupsSkipped: z.number().int().nonnegative(),
+  filesMoved: z.number().int().nonnegative(),
+  filesSkipped: z.number().int().nonnegative(),
+  bytesMoved: z.number().int().nonnegative(),
+  finishedAt: z.string().min(1),
+  errorMessage: z.string().min(1).nullable(),
+});
+export type DuplicateCleanupFinishParams = z.infer<typeof DuplicateCleanupFinishParamsSchema>;
 
 export const MissingFileSchema = z.object({
   fileId: z.number().int().positive(),

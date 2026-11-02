@@ -6,7 +6,11 @@ import type { ScannedFile } from "../domain/scan-files";
 import { classifyFile } from "./file-metadata";
 
 const DEFAULT_BATCH_SIZE = 500;
-const SYSTEM_DIRECTORIES = new Set(["System Volume Information", "$RECYCLE.BIN"]);
+const SYSTEM_DIRECTORIES = new Set([
+  "System Volume Information",
+  "$RECYCLE.BIN",
+  ".memorylane_quarantine",
+]);
 
 export interface EnumerateOptions {
   batchSize?: number;
@@ -46,6 +50,7 @@ function toScannedFile(fullPath: string, stats: Stats): ScannedFile {
     size: stats.size,
     createdAtFs: stats.birthtimeMs > 0 ? stats.birthtime.toISOString() : null,
     modifiedAtFs: stats.mtime.toISOString(),
+    linkCount: stats.nlink,
     mediaClass: classification.mediaClass,
     format: classification.format,
     mime: classification.mime,

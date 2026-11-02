@@ -1,21 +1,154 @@
-import { Copy, ExternalLink } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { formatBytes, formatCount } from "../../lib/format";
-import { viewerPath } from "../library/library-url";
-import { useHealthDuplicates } from "./use-health";
+import { formatCount } from "../../lib/format";
+import { DuplicateCleanupBar } from "./DuplicateCleanupBar";
+import {
+  CleanupCompleteDialog,
+  CleanupConfirmDialog,
+  CleanupProgressDialog,
+} from "./DuplicateCleanupDialog";
+import { DuplicateGroupCard } from "./DuplicateGroupCard";
+import { skippedSummary } from "./duplicate-cleanup-labels";
+import {
+  useCancelCleanup,
+  useCleanupState,
+  useCleanupSummary,
+  useHealthDuplicates,
+  useRevealCleanupQuarantine,
+  useStartCleanup,
+} from "./use-health";
 import styles from "./HealthPage.module.css";
 
-function mediaLink(fileId: number, mediaClass: "image" | "video" | "other"): string | null {
-  return mediaClass === "other" ? null : viewerPath(fileId, "all", "comfortable");
+type Dialog = "confirm" | "progress" | "complete" | null;
+
+function shownDialog(dialog: Dialog, status: string): Dialog {
+  if (status === "running") {
+    return "progress";
+  }
+  if (dialog === "progress") {
+    return status === "idle" ? "progress" : "complete";
+  }
+  return dialog;
+}
+
+function DuplicatePager({
+  offset,
+  limit,
+  total,
+  shown,
+  summary,
+  onOffset,
+}: {
+  offset: number;
+  limit: number;
+  total: number;
+  shown: number;
+  summary: ReturnType<typeof useCleanupSummary>["data"];
+  onOffset: (offset: number) => void;
+}): React.JSX.Element {
+  const page = Math.floor(offset / limit) + 1;
+  const pageCount = Math.max(1, Math.ceil(total / limit));
+  return (
+    <>
+      <p className={styles.cleanupFooterNote}>
+        Showing {formatCount(offset + 1)}–{formatCount(offset + shown)} of {formatCount(total)}{" "}
+        groups.{summary === undefined ? "" : ` ${skippedSummary(summary)}`}
+      </p>
+      <div className={styles.pagination}>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          disabled={offset === 0}
+          onClick={() => onOffset(Math.max(0, offset - limit))}
+        >
+          Previous
+        </button>
+        <span className={styles.muted}>
+          Page {page} of {pageCount}
+        </span>
+        <button
+          className={styles.secondaryButton}
+          type="button"
+          disabled={offset + limit >= total}
+          onClick={() => onOffset(offset + limit)}
+        >
+          Next
+        </button>
+      </div>
+    </>
+  );
+}
+
+function CleanupDialogs({
+  dialog,
+  summary,
+  state,
+  start,
+  cancel,
+  reveal,
+  onDialog,
+  onCloseCompletion,
+}: {
+  dialog: Dialog;
+  summary: ReturnType<typeof useCleanupSummary>["data"];
+  state: ReturnType<typeof useCleanupState>["data"];
+  start: ReturnType<typeof useStartCleanup>;
+  cancel: ReturnType<typeof useCancelCleanup>;
+  reveal: ReturnType<typeof useRevealCleanupQuarantine>;
+  onDialog: (dialog: Dialog) => void;
+  onCloseCompletion: () => void;
+}): React.JSX.Element | null {
+  if (dialog === "confirm" && summary !== undefined) {
+    return (
+      <CleanupConfirmDialog
+        summary={summary}
+        pending={start.isPending}
+        error={start.error}
+        onClose={() => onDialog(null)}
+        onStart={() =>
+          start.mutate(undefined, {
+            onSuccess: () => onDialog("progress"),
+          })
+        }
+      />
+    );
+  }
+  if (dialog === "progress" && state !== undefined) {
+    return (
+      <CleanupProgressDialog
+        state={state}
+        cancelling={cancel.isPending}
+        onCancel={() => cancel.mutate()}
+      />
+    );
+  }
+  if (dialog === "complete" && state !== undefined) {
+    return (
+      <CleanupCompleteDialog
+        state={state}
+        revealing={reveal.isPending}
+        onClose={onCloseCompletion}
+        onReveal={() => reveal.mutate()}
+      />
+    );
+  }
+  return null;
 }
 
 export function DuplicatesTab({ limit }: { limit: number }): React.JSX.Element {
-  const [pageSize, setPageSize] = useState(limit);
-  const query = useHealthDuplicates({ limit: pageSize });
+  const [offset, setOffset] = useState(0);
+  const [dialog, setDialog] = useState<Dialog>(null);
+  const query = useHealthDuplicates({ offset, limit });
+  const summary = useCleanupSummary();
+  const cleanup = useCleanupState();
+  const start = useStartCleanup();
+  const cancel = useCancelCleanup();
+  const reveal = useRevealCleanupQuarantine();
+  const status = cleanup.data?.status ?? "idle";
+  const visibleDialog = shownDialog(dialog, status);
 
-  if (query.isLoading) {
+  if (query.isLoading || summary.isLoading) {
     return <p className={styles.muted}>Finding exact duplicate files…</p>;
   }
   if (query.isError) {
@@ -32,62 +165,52 @@ export function DuplicatesTab({ limit }: { limit: number }): React.JSX.Element {
         title="No exact duplicates"
         action={null}
       >
-        No two cataloged files share the same SHA-256 hash. Duplicate detection is informational; no
-        copy is ever deleted or moved.
+        No two cataloged files share the same full SHA-256 hash. Duplicate detection stays
+        informational until a verified keeper copy exists.
       </EmptyState>
     );
   }
 
+  const total = query.data.totalGroups;
+  const cleanupSummary = summary.data;
+
   return (
     <div className={styles.stack}>
-      <div className={styles.statsRow}>
-        <span>{formatCount(query.data.totalGroups)} duplicate groups</span>
-        <span>{formatCount(query.data.totalFiles)} files</span>
-        <span>
-          {formatBytes(query.data.totalBytes)} recoverable if copies are removed externally
-        </span>
-      </div>
+      <DuplicateCleanupBar
+        summary={cleanupSummary}
+        error={summary.error}
+        totalGroups={total}
+        totalFiles={query.data.totalFiles}
+        totalBytes={query.data.totalBytes}
+        totalExcessBytes={query.data.totalExcessBytes}
+        running={status === "running"}
+        starting={start.isPending}
+        onStart={() => setDialog("confirm")}
+      />
       {query.data.groups.map((group) => (
-        <article className={styles.groupCard} key={group.groupId}>
-          <header className={styles.groupHead}>
-            <div>
-              <h2>{formatCount(group.fileCount)} exact copies</h2>
-              <p>
-                SHA-256 {group.sha256.slice(0, 16)}… · {formatBytes(group.totalBytes)} total
-              </p>
-            </div>
-            <span className={styles.groupSize}>{formatBytes(group.totalBytes)}</span>
-          </header>
-          <div className={styles.fileList}>
-            {group.files.map((file) => {
-              const link = mediaLink(file.fileId, file.mediaClass);
-              return (
-                <div className={styles.fileRow} key={file.fileId}>
-                  <span className={styles.fileCopy}>
-                    <span className={styles.fileName}>{file.name}</span>
-                    <span className={styles.filePath}>{file.path}</span>
-                  </span>
-                  <span className={styles.fileSize}>{formatBytes(file.sizeBytes)}</span>
-                  {link === null ? null : (
-                    <Link className={styles.openLink} to={link} aria-label={`Open ${file.name}`}>
-                      <ExternalLink size={13} aria-hidden="true" />
-                    </Link>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </article>
+        <DuplicateGroupCard group={group} key={group.groupId} />
       ))}
-      {pageSize < query.data.totalGroups ? (
-        <button
-          className={styles.secondaryButton}
-          type="button"
-          onClick={() => setPageSize((current) => current + limit)}
-        >
-          Load more groups
-        </button>
-      ) : null}
+      <DuplicatePager
+        offset={offset}
+        limit={limit}
+        total={total}
+        shown={query.data.groups.length}
+        summary={cleanupSummary}
+        onOffset={setOffset}
+      />
+      <CleanupDialogs
+        dialog={visibleDialog}
+        summary={cleanupSummary}
+        state={cleanup.data}
+        start={start}
+        cancel={cancel}
+        reveal={reveal}
+        onDialog={setDialog}
+        onCloseCompletion={() => {
+          setDialog(null);
+          setOffset(0);
+        }}
+      />
     </div>
   );
 }

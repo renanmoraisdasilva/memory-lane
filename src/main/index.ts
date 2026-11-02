@@ -1,6 +1,7 @@
 import path from "node:path";
 import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import { DbWorkerClient } from "./clients/db-client";
+import { createHealthServices } from "./bootstrap/health-services";
 import { createSettingsService } from "./bootstrap/settings-services";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
@@ -27,7 +28,6 @@ import { VideoProxyService } from "./modules/media/video-proxy";
 import { registerMediaProtocol, registerMediaScheme } from "./modules/media/media-protocol";
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
-import { HealthService } from "./modules/health/application/health-service";
 import type { SettingsService } from "./modules/settings/application/settings-service";
 import { WorkloadCoordinator } from "./modules/workloads/application/workload-coordinator";
 
@@ -42,7 +42,8 @@ const logger = configureLogging(paths.logPath);
 let mainWindow: BrowserWindow | null = null;
 let dbClient: DbWorkerClient | null = null;
 let scanService: ScanService | null = null;
-let healthService: HealthService | null = null;
+let healthService: ReturnType<typeof createHealthServices>["health"] | null = null;
+let cleanupService: ReturnType<typeof createHealthServices>["cleanup"] | null = null;
 let settingsService: SettingsService | null = null;
 let adoptionService: ReplicationServices["adoptionService"] | null = null;
 let runService: ReplicationServices["runService"] | null = null;
@@ -230,14 +231,12 @@ async function startServices(): Promise<void> {
   const workerPath = path.join(__dirname, "db-worker.js");
   const db = new DbWorkerClient(workerPath, paths.appDbPath);
   dbClient = db;
-
   try {
     await db.start();
     logger.info("Database worker ready", { appDbPath: paths.appDbPath });
   } catch (error) {
     logger.error("Database worker failed to start", error);
   }
-
   const appService = new AppService({
     db,
     appDbPath: paths.appDbPath,
@@ -250,7 +249,6 @@ async function startServices(): Promise<void> {
   });
   const settings = createSettingsService({ db, appService, paths, logger });
   settingsService = settings;
-
   const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());
   const previews = createHeicPreviewConverter({ logger });
   previewService = previews;
@@ -286,31 +284,33 @@ async function startServices(): Promise<void> {
     workloads,
   });
   scanService = scan;
-  const health = new HealthService({
+  const healthServices = createHealthServices({
     db,
     hasher: createFileHasher(),
     metadata,
     logger,
+    shellActions: createShellActions(),
     workloads,
   });
-  healthService = health;
-
+  healthService = healthServices.health;
+  cleanupService = healthServices.cleanup;
   const driveService = new DriveService({
     db,
     listDetected: listDetectedDrives,
     logger,
     onBeforeCatalogChange: async () => {
+      healthServices.cleanup.assertCanChangeCatalog();
       await replication.runService.assertCanChangeSource();
       await scan.interruptActive();
     },
   });
-
   registerIpcHandlers({
     appService,
     driveService,
     scanService: scan,
     libraryService,
-    healthService: health,
+    healthService: healthServices.health,
+    cleanupService: healthServices.cleanup,
     settingsService: settings,
     videoProxyService: videoProxies,
     ...replication,
@@ -334,6 +334,7 @@ async function shutdown(): Promise<void> {
     adoptionService,
     runService,
     healthService,
+    cleanupService,
     scanService,
     settingsService,
     previewService,

@@ -13,6 +13,7 @@ export interface ShutdownDependencies {
   adoptionService: Shutdownable | null;
   runService: Shutdownable | null;
   healthService: Shutdownable | null;
+  cleanupService: Shutdownable | null;
   scanService: Shutdownable | null;
   settingsService: Shutdownable | null;
   previewService: Shutdownable | null;
@@ -23,26 +24,18 @@ export interface ShutdownDependencies {
 
 export async function shutdownServices(dependencies: ShutdownDependencies): Promise<void> {
   dependencies.destroyTray();
-  if (dependencies.adoptionService !== null) {
-    await dependencies.adoptionService.shutdown();
-  }
-  if (dependencies.runService !== null) {
-    await dependencies.runService.shutdown();
-  }
-  if (dependencies.healthService !== null) {
-    await dependencies.healthService.shutdown();
-  }
-  if (dependencies.scanService !== null) {
-    await dependencies.scanService.shutdown();
-  }
-  if (dependencies.settingsService !== null) {
-    await dependencies.settingsService.shutdown();
-  }
-  if (dependencies.previewService !== null) {
-    await dependencies.previewService.shutdown();
-  }
-  if (dependencies.videoProxyService !== null) {
-    await dependencies.videoProxyService.shutdown();
+  const services: Array<Shutdownable | null> = [
+    dependencies.adoptionService,
+    dependencies.runService,
+    dependencies.healthService,
+    dependencies.cleanupService,
+    dependencies.scanService,
+    dependencies.settingsService,
+    dependencies.previewService,
+    dependencies.videoProxyService,
+  ];
+  for (const service of services) {
+    await service?.shutdown();
   }
   if (dependencies.dbClient !== null) {
     try {

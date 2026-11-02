@@ -123,6 +123,10 @@ test("reports duplicate groups and runs a catalog validation", async () => {
     await expect(page.getByText("2 exact copies")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText("a.jpg", { exact: true })).toBeVisible();
     await expect(page.getByText("b.jpg", { exact: true })).toBeVisible();
+    await expect(page.getByText(/skipped: files under 1 KB/)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Move duplicates to quarantine" }),
+    ).toBeDisabled();
 
     await page.getByRole("tab", { name: "Validation" }).click();
     await page.getByLabel("Metadata revalidation").uncheck();

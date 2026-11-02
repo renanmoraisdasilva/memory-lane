@@ -92,19 +92,20 @@ export function applyCatalogBatch(
   );
   const insertFile = db.prepare(
     `INSERT INTO files (
-      path, name, extension, size, created_at_fs, modified_at_fs,
+      path, name, extension, size, created_at_fs, modified_at_fs, link_count,
       media_class, format, mime, state, last_seen_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'present', ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'present', ?)`,
   );
   const updateFile = db.prepare(
     `UPDATE files SET
       name = ?, extension = ?, size = ?, created_at_fs = ?, modified_at_fs = ?,
-      media_class = ?, format = ?, mime = ?, state = 'present',
+      link_count = ?, media_class = ?, format = ?, mime = ?, state = 'present',
       missing_since = NULL, last_seen_at = ?
      WHERE id = ?`,
   );
   const touchFile = db.prepare(
-    `UPDATE files SET state = 'present', missing_since = NULL, last_seen_at = ?
+    `UPDATE files SET state = 'present', missing_since = NULL, last_seen_at = ?,
+       link_count = ?
      WHERE id = ?`,
   );
 
@@ -119,6 +120,7 @@ export function applyCatalogBatch(
           file.size,
           file.createdAtFs,
           file.modifiedAtFs,
+          file.linkCount,
           file.mediaClass,
           file.format,
           file.mime,
@@ -142,6 +144,7 @@ export function applyCatalogBatch(
           file.size,
           file.createdAtFs,
           file.modifiedAtFs,
+          file.linkCount,
           file.mediaClass,
           file.format,
           file.mime,
@@ -151,7 +154,7 @@ export function applyCatalogBatch(
         invalidateFile(db, id, file.path);
         changedFiles += 1;
       } else {
-        touchFile.run(input.seenAt, id);
+        touchFile.run(input.seenAt, file.linkCount, id);
       }
     }
 

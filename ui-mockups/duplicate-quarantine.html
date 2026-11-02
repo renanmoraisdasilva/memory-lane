@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Duplicate quarantine</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <style>
+    .cleanup-bar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(242, 179, 92, 0.26);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(242, 179, 92, 0.07), rgba(242, 179, 92, 0.02));
+    }
+
+    .cleanup-bar h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -0.015em;
+    }
+
+    .cleanup-bar p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    .cleanup-bar .cleanup-bar__hint {
+      color: var(--faint);
+      font-size: 10px;
+    }
+
+    .cleanup-bar__actions {
+      flex: 0 0 auto;
+    }
+
+    .cleanup-rule {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 7px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .cleanup-rule .icon {
+      color: var(--amber);
+      font-size: 15px;
+      margin-top: 1px;
+    }
+
+    .cleanup-rule strong {
+      color: var(--text-2);
+    }
+
+    .cleanup-group {
+      margin-bottom: 10px;
+      overflow: hidden;
+      border: 1px solid var(--line-soft);
+      border-radius: 9px;
+      background: var(--panel);
+    }
+
+    .cleanup-group__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--panel-2);
+    }
+
+    .cleanup-group__title {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .cleanup-group__title h3 {
+      margin: 0;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .cleanup-group__meta {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 8.5px;
+    }
+
+    .cleanup-group__badges {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .cleanup-row {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr) 70px;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .cleanup-row:last-child {
+      border-bottom: 0;
+    }
+
+    .cleanup-row.is-move {
+      background: rgba(242, 179, 92, 0.018);
+    }
+
+    .cleanup-row__copy {
+      min-width: 0;
+    }
+
+    .cleanup-row__name {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 10.5px;
+      font-weight: 600;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cleanup-row__path {
+      overflow: hidden;
+      margin-top: 1px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 8.5px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cleanup-row__size {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 9px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .cleanup-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      height: 17px;
+      padding: 0 5px;
+      border-radius: 999px;
+      font-size: 8px;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+    }
+
+    .cleanup-badge .icon {
+      font-size: 10px;
+    }
+
+    .cleanup-badge--keep {
+      border: 1px solid rgba(86, 229, 169, 0.22);
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .cleanup-badge--move {
+      border: 1px solid rgba(242, 179, 92, 0.24);
+      background: var(--amber-soft);
+      color: var(--amber-2);
+    }
+
+    .cleanup-footer-note {
+      margin-top: 10px;
+      color: var(--faint);
+      font-size: 9px;
+      line-height: 1.55;
+    }
+
+    .cleanup-modal {
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+
+    .cleanup-modal .modal__body {
+      overflow-y: auto;
+    }
+
+    .cleanup-summary-line {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .cleanup-summary-line strong {
+      color: var(--text);
+      font-family: var(--mono);
+    }
+
+    .cleanup-rule-card {
+      padding: 10px 11px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 7px;
+      background: var(--panel-2);
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.55;
+    }
+
+    .cleanup-rule-card strong {
+      color: var(--text-2);
+    }
+
+    .cleanup-path {
+      margin-bottom: 12px;
+    }
+
+    .cleanup-path .path-box {
+      margin-top: 4px;
+    }
+
+    .cleanup-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      padding: 8px 9px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(242, 179, 92, 0.14);
+      border-radius: 6px;
+      background: rgba(242, 179, 92, 0.035);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .cleanup-warning .icon {
+      color: var(--amber);
+      font-size: 14px;
+      margin-top: 1px;
+    }
+
+    .cleanup-warning strong {
+      color: var(--text-2);
+    }
+
+    .cleanup-ack {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 9px 10px;
+      border: 1px solid rgba(242, 179, 92, 0.28);
+      border-radius: 7px;
+      background: var(--amber-soft);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+      cursor: pointer;
+    }
+
+    .cleanup-ack input {
+      width: 14px;
+      height: 14px;
+      margin-top: 1px;
+      accent-color: var(--amber);
+      flex: 0 0 auto;
+    }
+
+    .cleanup-ack strong {
+      display: block;
+      color: var(--text-2);
+      font-size: 10.5px;
+      font-weight: 600;
+    }
+
+    .cleanup-progress-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .cleanup-progress-head strong {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+    }
+
+    .cleanup-current {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border: 1px solid var(--line-soft);
+      border-radius: 6px;
+      background: var(--bg-deep);
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 8.5px;
+      overflow-wrap: anywhere;
+    }
+
+    .cleanup-note {
+      margin: 10px 0 0;
+      color: var(--faint);
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .cleanup-next {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.8;
+    }
+
+    .cleanup-next strong {
+      color: var(--text-2);
+    }
+
+    @media (max-width: 720px) {
+      .cleanup-row {
+        grid-template-columns: 64px minmax(0, 1fr);
+      }
+
+      .cleanup-row__size {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body data-page="health" data-crumb="Library / Library health" data-scan-chip="off" data-drive-name="Demo Archive (X:)" data-drive-state="Connected · Catalog-only" data-drive-meta="640 GB / 1 TB" data-drive-percent="64%" data-drive-bar="64%">
+  <div class="app">
+    <aside id="sidebar"></aside>
+    <div class="workspace">
+      <header id="topbar"></header>
+      <main class="page">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Integrity and reconciliation</div>
+            <h1>Library health</h1>
+            <p>Exact duplicates, with one cleanup action. Keep one copy per group and move the rest to quarantine.</p>
+          </div>
+          <div class="page-head__actions">
+            <span class="pill pill--green"><span class="icon">verified</span> Full SHA-256</span>
+            <span class="pill pill--amber"><span class="icon">science</span> Cleanup</span>
+          </div>
+        </div>
+
+        <div data-tab-container>
+          <div class="tabs" data-tabs data-sync-hash role="tablist" aria-label="Library health sections">
+            <button class="tab" type="button" data-tab="missing" role="tab" aria-selected="false">
+              <span class="icon icon--sm">file_copy_off</span> Missing files <span class="pill pill--amber">8</span>
+            </button>
+            <button class="tab" type="button" data-tab="duplicates" role="tab" aria-selected="true">
+              <span class="icon icon--sm">content_copy</span> Duplicates <span class="pill">128</span>
+            </button>
+            <button class="tab" type="button" data-tab="validation" role="tab" aria-selected="false">
+              <span class="icon icon--sm">fact_check</span> Validation
+            </button>
+          </div>
+
+          <section class="tab-panel" data-panel="missing" role="tabpanel">
+            <div class="callout callout--amber">
+              <span class="icon">info</span>
+              <div>
+                <div class="callout__title">This preview focuses on duplicates</div>
+                <div class="callout__body">Missing files are shown in the full Library health mockup.</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-panel is-active" data-panel="duplicates" role="tabpanel">
+            <div class="cleanup-bar">
+              <div>
+                <h2>128 duplicate groups</h2>
+                <p>342 files · 6.4 GB in duplicate copies · ~3.1 GB excess</p>
+                <p class="cleanup-bar__hint">One keeper per group. The rest move to quarantine. Nothing is deleted.</p>
+              </div>
+              <div class="cleanup-bar__actions">
+                <button class="btn btn--primary" type="button" data-modal-open="cleanup-confirm">
+                  <span class="icon">drive_file_move</span> Move duplicates to quarantine
+                </button>
+              </div>
+            </div>
+
+            <div class="cleanup-rule">
+              <span class="icon">rule</span>
+              <div><strong>Keep:</strong> oldest copy → older modified time → shallower and shorter path → shorter name. Groups without a verified keeper backup, with date overrides, hard links, empty files, or files under 1 KB are skipped.</div>
+            </div>
+
+            <article class="cleanup-group">
+              <header class="cleanup-group__head">
+                <div class="cleanup-group__title">
+                  <h3>3 copies</h3>
+                  <span class="cleanup-group__meta">sample-photo.jpg · 36.0 MB</span>
+                </div>
+                <div class="cleanup-group__badges">
+                  <span class="cleanup-badge cleanup-badge--keep"><span class="icon">check</span> 1 KEEP</span>
+                  <span class="cleanup-badge cleanup-badge--move"><span class="icon">drive_file_move</span> 2 MOVE</span>
+                </div>
+              </header>
+              <div class="cleanup-row">
+                <span class="cleanup-badge cleanup-badge--keep"><span class="icon">check</span> KEEP</span>
+                <div class="cleanup-row__copy">
+                  <div class="cleanup-row__name">sample-photo.jpg</div>
+                  <div class="cleanup-row__path">X:\Demo\Archive\sample-photo.jpg</div>
+                </div>
+                <span class="cleanup-row__size">12.0 MB</span>
+              </div>
+              <div class="cleanup-row is-move">
+                <span class="cleanup-badge cleanup-badge--move"><span class="icon">drive_file_move</span> MOVE</span>
+                <div class="cleanup-row__copy">
+                  <div class="cleanup-row__name">sample-photo.jpg</div>
+                  <div class="cleanup-row__path">X:\Demo\Backup\sample-photo.jpg</div>
+                </div>
+                <span class="cleanup-row__size">12.0 MB</span>
+              </div>
+              <div class="cleanup-row is-move">
+                <span class="cleanup-badge cleanup-badge--move"><span class="icon">drive_file_move</span> MOVE</span>
+                <div class="cleanup-row__copy">
+                  <div class="cleanup-row__name">sample-photo.jpg</div>
+                  <div class="cleanup-row__path">X:\Demo\Phone\sample-photo.jpg</div>
+                </div>
+                <span class="cleanup-row__size">12.0 MB</span>
+              </div>
+            </article>
+
+            <article class="cleanup-group">
+              <header class="cleanup-group__head">
+                <div class="cleanup-group__title">
+                  <h3>2 copies</h3>
+                  <span class="cleanup-group__meta">sample-clip.mp4 · 800 MB</span>
+                </div>
+                <div class="cleanup-group__badges">
+                  <span class="cleanup-badge cleanup-badge--keep"><span class="icon">check</span> 1 KEEP</span>
+                  <span class="cleanup-badge cleanup-badge--move"><span class="icon">drive_file_move</span> 1 MOVE</span>
+                </div>
+              </header>
+              <div class="cleanup-row">
+                <span class="cleanup-badge cleanup-badge--keep"><span class="icon">check</span> KEEP</span>
+                <div class="cleanup-row__copy">
+                  <div class="cleanup-row__name">sample-clip.mp4</div>
+                  <div class="cleanup-row__path">X:\Demo\Video\sample-clip.mp4</div>
+                </div>
+                <span class="cleanup-row__size">400 MB</span>
+              </div>
+              <div class="cleanup-row is-move">
+                <span class="cleanup-badge cleanup-badge--move"><span class="icon">drive_file_move</span> MOVE</span>
+                <div class="cleanup-row__copy">
+                  <div class="cleanup-row__name">sample-clip.mp4</div>
+                  <div class="cleanup-row__path">X:\Demo\Projects\sample-clip.mp4</div>
+                </div>
+                <span class="cleanup-row__size">400 MB</span>
+              </div>
+            </article>
+
+            <p class="cleanup-footer-note">Groups with no verified backup, conflicting dates, or candidate-only coverage are skipped. Empty files are excluded; 1 KB+ files are included. Showing 2 of 128 groups.</p>
+          </section>
+
+          <section class="tab-panel" data-panel="validation" role="tabpanel">
+            <div class="callout">
+              <span class="icon">fact_check</span>
+              <div>
+                <div class="callout__title">Validation is unchanged</div>
+                <div class="callout__body">See the Library health mockup for the four validation levels.</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Confirmation -->
+  <div class="modal-backdrop" data-modal="cleanup-confirm">
+    <div class="modal modal--wide cleanup-modal" role="dialog" aria-modal="true" aria-labelledby="cleanup-confirm-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="cleanup-confirm-title">Move duplicates to quarantine?</h2>
+          <p>This is the only Memory Lane action that moves archive files. Nothing is deleted.</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="cleanup-summary-line">
+          <strong>128</strong> keepers stay · <strong>214</strong> files move · about <strong>3.1 GB</strong>
+        </div>
+        <div class="cleanup-rule-card">
+          <strong>Keep one copy per group:</strong> oldest created, then older modified, then
+          shallower and shorter path, then shorter name.
+        </div>
+        <div class="cleanup-path">
+          <div class="kv"><span>Quarantine folder</span><span>X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</span></div>
+          <div class="path-box">X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</div>
+        </div>
+        <div class="cleanup-warning">
+          <span class="icon">warning</span>
+          <div><strong>Groups with no verified backup, conflicting dates, or candidate-only coverage are skipped.</strong> Empty files are excluded; 1 KB+ files are included.</div>
+        </div>
+        <label class="cleanup-ack">
+          <input type="checkbox" id="cleanup-ack">
+          <span><strong>These files will be moved, not deleted.</strong> I understand the quarantine folder must be backed up and removed manually.</span>
+        </label>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-modal-close>Cancel</button>
+        <button class="btn btn--primary" type="button" id="cleanup-start" disabled><span class="icon">drive_file_move</span> Move 214 files</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="modal-backdrop" data-modal="cleanup-progress">
+    <div class="modal cleanup-modal" role="dialog" aria-modal="true" aria-labelledby="cleanup-progress-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="cleanup-progress-title">Moving duplicates to quarantine</h2>
+          <p>Nothing is deleted. The journal records every move.</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="cleanup-progress-head">
+          <span><strong id="cleanup-progress-percent">38%</strong> · <span id="cleanup-progress-count">81 of 214 files</span></span>
+          <span id="cleanup-progress-bytes">1.2 GB</span>
+        </div>
+        <div class="progress"><span id="cleanup-progress-bar" style="width:38%"></span></div>
+        <div class="cleanup-current">X:\Demo\Backup\sample-photo.jpg</div>
+        <p class="cleanup-note">Same-volume rename. The journal records every move.</p>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" id="cleanup-cancel">Cancel after current file</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completion -->
+  <div class="modal-backdrop" data-modal="cleanup-complete">
+    <div class="modal modal--wide cleanup-modal" role="dialog" aria-modal="true" aria-labelledby="cleanup-complete-title">
+      <div class="modal__head">
+        <div>
+          <h2 id="cleanup-complete-title">Cleanup complete</h2>
+          <p>208 files moved · 3.0 GB · 6 skipped</p>
+        </div>
+        <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
+      </div>
+      <div class="modal__body">
+        <div class="callout callout--green">
+          <span class="icon">check_circle</span>
+          <div>
+            <div class="callout__title">The keepers are still in the archive</div>
+            <div class="callout__body">Nothing was permanently deleted. The journal in the quarantine folder maps every source path.</div>
+          </div>
+        </div>
+        <div class="cleanup-path" style="margin-top:12px">
+          <div class="kv"><span>Quarantine folder</span><span>X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</span></div>
+          <div class="path-box">X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</div>
+        </div>
+        <ol class="cleanup-next">
+          <li><strong>Back up</strong> the quarantine folder to your spare drive.</li>
+          <li><strong>Remove</strong> the quarantine folder from this drive.</li>
+          <li><strong>Run Scan again</strong> so the catalog reflects the final state.</li>
+        </ol>
+      </div>
+      <div class="modal__foot">
+        <button class="btn" type="button" data-toast="Prototype only — would open the quarantine folder."><span class="icon">folder_open</span> Open folder</button>
+        <button class="btn btn--primary" type="button" data-modal-close><span class="icon">done</span> Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (!location.hash) history.replaceState(null, "", "#duplicates");
+  </script>
+  <script src="assets/app.js"></script>
+  <script>
+    (() => {
+      const $ = (sel) => document.querySelector(sel);
+      const ack = $("#cleanup-ack");
+      const start = $("#cleanup-start");
+      const progressBar = $("#cleanup-progress-bar");
+      const progressPercent = $("#cleanup-progress-percent");
+      const progressCount = $("#cleanup-progress-count");
+      const progressBytes = $("#cleanup-progress-bytes");
+      let timer = null;
+      let value = 0;
+
+      const syncStart = () => {
+        start.disabled = !ack.checked;
+      };
+
+      const setProgress = (next) => {
+        value = Math.min(100, Math.max(0, next));
+        const filesDone = Math.round(214 * (value / 100));
+        progressBar.style.width = `${value}%`;
+        progressPercent.textContent = `${value}%`;
+        progressCount.textContent = `${filesDone.toLocaleString()} of 214 files`;
+        progressBytes.textContent = `${(3.1 * (value / 100)).toFixed(1)} GB`;
+      };
+
+      const stopTimer = () => {
+        if (timer !== null) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      };
+
+      const finish = () => {
+        stopTimer();
+        ML.closeModal("cleanup-progress");
+        ML.openModal("cleanup-complete");
+      };
+
+      const startCleanup = () => {
+        stopTimer();
+        setProgress(0);
+        ML.closeModal("cleanup-confirm");
+        ML.openModal("cleanup-progress");
+        timer = window.setInterval(() => {
+          setProgress(value + 4);
+          if (value >= 100) finish();
+        }, 220);
+      };
+
+      ack.addEventListener("change", syncStart);
+      syncStart();
+      start.addEventListener("click", () => {
+        if (!start.disabled) startCleanup();
+      });
+      $("#cleanup-cancel").addEventListener("click", () => {
+        stopTimer();
+        ML.closeModal("cleanup-progress");
+        ML.toast("Prototype only — no files were moved.", "warning");
+      });
+
+      const state = new URLSearchParams(location.search).get("state");
+      if (state === "confirm") {
+        ML.openModal("cleanup-confirm");
+      } else if (state === "progress") {
+        setProgress(38);
+        ML.openModal("cleanup-progress");
+      } else if (state === "complete") {
+        ML.openModal("cleanup-complete");
+      }
+
+      const setCatalogShell = () => {
+        const pill = document.querySelector(".readonly-pill");
+        if (pill && !pill.textContent.includes("Catalog-only")) {
+          pill.innerHTML = '<span class="icon">shield</span> Catalog-only';
+        }
+        const healthLink = Array.from(document.querySelectorAll(".nav-item")).find((item) =>
+          item.textContent.includes("Library health"),
+        );
+        const badge = healthLink ? healthLink.querySelector(".nav-badge") : null;
+        if (badge) badge.textContent = "8";
+      };
+
+      setCatalogShell();
+      window.addEventListener("load", setCatalogShell);
+      window.setTimeout(setCatalogShell, 120);
+    })();
+  </script>
+</body>
+</html>

@@ -25,7 +25,7 @@ function HealthHeader({ summary }: { summary: ReturnType<typeof useHealthSummary
         <div className={styles.titleRow}>
           <h1>Integrity information</h1>
           <Pill tone="green" icon={<ShieldCheck size={11} aria-hidden="true" />}>
-            Read-only
+            Catalog-only
           </Pill>
         </div>
         <p className={styles.summary}>

@@ -1,5 +1,6 @@
 import path from "node:path";
 import type Database from "better-sqlite3";
+import { z } from "zod";
 import type {
   DuplicateGroup,
   DuplicateGroupsPage,
@@ -8,15 +9,61 @@ import type {
   MovedActionResult,
 } from "@shared/contracts/health";
 import { DuplicateGroupsPageSchema, HealthSummarySchema } from "@shared/contracts/health";
-import { AppError } from "@shared/domain/errors";
-import { parseLibraryRow, toLibraryItem } from "./library-query";
+import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { LibraryRowSchema, thumbnailUrlFor } from "./library-query";
+import { loadDuplicateEvaluations, type DuplicateEvaluationGroup } from "./duplicate-evaluation";
 
-function parseHealthFile(row: ReturnType<typeof parseLibraryRow>): HealthFile {
+const HealthRowSchema = LibraryRowSchema.extend({
+  media_class: z.enum(["image", "video", "other"]),
+  created_at_fs: z.string().nullable(),
+  modified_at_fs: z.string().nullable(),
+  has_verified_replica: z.number().int().min(0).max(1),
+  has_date_override: z.number().int().min(0).max(1),
+});
+
+type HealthRow = z.infer<typeof HealthRowSchema>;
+
+function parseHealthRow(row: unknown): HealthRow {
+  const parsed = HealthRowSchema.safeParse(row);
+  if (!parsed.success) {
+    throw new AppError(APP_ERROR_CODES.DB_ERROR, "Invalid health file row", {
+      issues: parsed.error.issues,
+    });
+  }
+  return parsed.data;
+}
+
+function toHealthFile(row: HealthRow): HealthFile {
+  const thumbnailStatus = row.thumbnail_status ?? "pending";
   return {
-    ...toLibraryItem(row),
+    fileId: row.id,
+    name: row.name,
     mediaClass: row.media_class,
+    format: row.format,
+    sizeBytes: row.size,
+    width: row.width === 0 ? null : row.width,
+    height: row.height === 0 ? null : row.height,
+    durationSeconds: row.duration_seconds,
+    frameRate: row.frame_rate,
+    date:
+      row.resolved_date === null
+        ? { value: null, precision: null, source: null, isOverride: false }
+        : {
+            value: row.resolved_date,
+            precision: row.precision,
+            source: row.source,
+            isOverride: row.is_override === 1,
+          },
+    thumbnailStatus,
+    thumbnailUrl: thumbnailUrlFor(row.id, thumbnailStatus),
+    isMissing: row.state === "missing",
+    isDuplicate: row.is_duplicate === 1,
     path: row.file_path,
     folder: path.dirname(row.file_path),
+    createdAtFs: row.created_at_fs,
+    modifiedAtFs: row.modified_at_fs,
+    hasVerifiedReplica: row.has_verified_replica === 1,
+    hasDateOverride: row.has_date_override === 1,
   };
 }
 
@@ -89,13 +136,29 @@ function readDuplicateFiles(db: Database.Database, groupIds: number[]): Map<numb
          f.duration_seconds,
          f.frame_rate,
          f.state,
+         f.created_at_fs,
+         f.modified_at_fs,
          fd.resolved_date,
          fd.precision,
          fd.source,
          fd.is_override,
          1 AS is_duplicate,
          c.status AS thumbnail_status,
-         f.path AS file_path
+         f.path AS file_path,
+         EXISTS(
+           SELECT 1
+           FROM replica_files rf
+           JOIN replica_destinations d ON d.id = rf.replica_id
+           WHERE rf.file_id = f.id
+             AND rf.status = 'verified'
+             AND d.status = 'active'
+             AND rf.source_size_at_verify = f.size
+             AND rf.source_modified_at_fs_at_verify IS f.modified_at_fs
+         ) AS has_verified_replica,
+         EXISTS(
+           SELECT 1 FROM date_overrides o
+           WHERE o.file_id = f.id AND o.reverted_at IS NULL
+         ) AS has_date_override
        FROM duplicate_members dm
        JOIN files f ON f.id = dm.file_id
        LEFT JOIN file_dates fd ON fd.file_id = f.id
@@ -107,12 +170,31 @@ function readDuplicateFiles(db: Database.Database, groupIds: number[]): Map<numb
 
   for (const row of rows) {
     const groupId = row.group_id;
-    const parsed = parseLibraryRow(row);
     const files = result.get(groupId) ?? [];
-    files.push(parseHealthFile(parsed));
+    files.push(toHealthFile(parseHealthRow(row)));
     result.set(groupId, files);
   }
   return result;
+}
+
+function toDuplicateGroup(
+  group: { id: number; sha256: string; file_count: number; total_bytes: number },
+  evaluation: DuplicateEvaluationGroup,
+  files: HealthFile[],
+): DuplicateGroup {
+  const decision = evaluation.decision;
+  return {
+    groupId: group.id,
+    sha256: group.sha256,
+    fileCount: group.file_count,
+    totalBytes: group.total_bytes,
+    files,
+    keeperFileId: decision.keeper.fileId,
+    keeperReason: decision.keeperReason,
+    eligible: decision.eligible,
+    skipReason: decision.skipReason,
+    excessBytes: decision.excessBytes,
+  };
 }
 
 export function getDuplicateGroups(
@@ -121,18 +203,30 @@ export function getDuplicateGroups(
   limit: number,
 ): DuplicateGroupsPage {
   rebuildDuplicateGroups(db);
+  const evaluations = loadDuplicateEvaluations(db);
   const groupRows = readGroupRows(db, offset, limit);
   const filesByGroup = readDuplicateFiles(
     db,
     groupRows.map((group) => group.id),
   );
-  const groups: DuplicateGroup[] = groupRows.map((group) => ({
-    groupId: group.id,
-    sha256: group.sha256,
-    fileCount: group.file_count,
-    totalBytes: group.total_bytes,
-    files: filesByGroup.get(group.id) ?? [],
-  }));
+  const groups: DuplicateGroup[] = groupRows.map((group) => {
+    const evaluation = evaluations.get(group.id);
+    if (evaluation === undefined) {
+      return {
+        groupId: group.id,
+        sha256: group.sha256,
+        fileCount: group.file_count,
+        totalBytes: group.total_bytes,
+        files: filesByGroup.get(group.id) ?? [],
+        keeperFileId: group.id,
+        keeperReason: "stable tiebreaker",
+        eligible: false,
+        skipReason: "not-a-group",
+        excessBytes: 0,
+      };
+    }
+    return toDuplicateGroup(group, evaluation, filesByGroup.get(group.id) ?? []);
+  });
   const totals = db
     .prepare(
       `SELECT COUNT(*) AS groups,
@@ -141,11 +235,16 @@ export function getDuplicateGroups(
        FROM duplicate_groups`,
     )
     .get() as { groups: number; files: number; bytes: number };
+  const totalExcessBytes = [...evaluations.values()].reduce(
+    (sum, group) => sum + (group.decision.eligible ? group.decision.excessBytes : 0),
+    0,
+  );
   return DuplicateGroupsPageSchema.parse({
     groups,
     totalGroups: totals.groups,
     totalFiles: totals.files,
     totalBytes: totals.bytes,
+    totalExcessBytes,
   });
 }
 

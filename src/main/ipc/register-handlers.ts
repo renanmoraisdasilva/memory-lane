@@ -10,6 +10,8 @@ import {
 import {
   DuplicateGroupsParamsSchema,
   MissingDuplicatesParamsSchema,
+  type DuplicateCleanupState,
+  type DuplicateCleanupSummary,
   MissingFileTargetsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
@@ -36,6 +38,7 @@ import {
 } from "@shared/contracts/settings";
 import type { AppService } from "../modules/app/application/app-service";
 import type { DriveService } from "../modules/drives/application/drive-service";
+import type { CleanupService } from "../modules/health/application/cleanup-service";
 import type { HealthService } from "../modules/health/application/health-service";
 import type { LibraryService } from "../modules/library/application/library-service";
 import type { DestinationService } from "../modules/replication/application/destination-service";
@@ -59,6 +62,7 @@ export interface IpcServices {
   scanService: ScanService;
   libraryService: LibraryService;
   healthService: HealthService;
+  cleanupService: CleanupService;
   settingsService: SettingsService;
   destinationService: DestinationService;
   adoptionService: AdoptionService;
@@ -76,6 +80,7 @@ export function registerIpcHandlers(services: IpcServices): void {
     scanService,
     libraryService,
     healthService,
+    cleanupService,
     settingsService,
     destinationService,
     adoptionService,
@@ -124,6 +129,7 @@ export function registerIpcHandlers(services: IpcServices): void {
     logger,
   });
   registerHealthHandlers(healthService, logger, () => promotionService.closeRollbackWindow());
+  registerCleanupHandlers(cleanupService, logger, () => promotionService.closeRollbackWindow());
   registerSettingsHandlers(settingsService, logger);
   registerOtherFilesHandler(libraryService, logger);
   registerFileActionHandlers(libraryService, logger);
@@ -232,6 +238,44 @@ function registerHealthHandlers(
       await onSourceMutation?.();
       return state;
     }),
+  );
+}
+
+function registerCleanupHandlers(
+  cleanupService: CleanupService,
+  logger: Logger,
+  onSourceMutation?: () => Promise<void>,
+): void {
+  ipcMain.handle(IPC_CHANNELS.getCleanupSummary, (event) =>
+    respond<DuplicateCleanupSummary>(event, IPC_CHANNELS.getCleanupSummary, logger, () =>
+      cleanupService.getSummary(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getCleanupState, (event) =>
+    respond<DuplicateCleanupState>(event, IPC_CHANNELS.getCleanupState, logger, () =>
+      cleanupService.getState(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.startCleanup, (event) =>
+    respond<DuplicateCleanupState>(event, IPC_CHANNELS.startCleanup, logger, async () => {
+      const state = await cleanupService.start();
+      await onSourceMutation?.();
+      return state;
+    }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.cancelCleanup, (event) =>
+    respond<DuplicateCleanupState>(event, IPC_CHANNELS.cancelCleanup, logger, () =>
+      cleanupService.cancel(),
+    ),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.revealCleanupQuarantine, (event) =>
+    respond<void>(event, IPC_CHANNELS.revealCleanupQuarantine, logger, () =>
+      cleanupService.revealQuarantine(),
+    ),
   );
 }
 

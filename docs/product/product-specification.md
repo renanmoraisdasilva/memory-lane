@@ -8,7 +8,7 @@
 
 ## 1. Product vision
 
-Memory Lane is a local-first, read-only archive catalog designed to help
+Memory Lane is a local-first, catalog-first archive manager designed to help
 people rediscover personal memories stored across large, messy external
 hard drives.
 
@@ -16,8 +16,10 @@ Its primary experience is a chronological visual library of photos and
 videos. It should feel like revisiting memories, not managing a
 conventional file system.
 
-The app indexes files in place. It does not reorganize the archive or
-modify original files.
+The app indexes files in place. It does not reorganize the archive or modify
+original files. The single exception is the explicit duplicate quarantine
+action: one keeper per exact group stays in place and the other copies move to
+`X:\.memorylane_quarantine\`. Nothing is deleted or edited.
 
 ## 2. Goals
 
@@ -68,20 +70,27 @@ API is required.
     Node services.
 -   The renderer must not have unrestricted Node.js access.
 -   Expose a narrow, validated preload/IPC API.
--   Do not expose source-file mutation operations.
--   Keep source-drive operations read-only by design.
+-   Keep source-drive operations read-only except for the reviewed duplicate
+    quarantine mover.
 
-## 5. Fundamental read-only guarantee
+## 5. Source safety guarantee
 
-The original archive is strictly read-only from the app's perspective.
+The original archive is read-only from the app's perspective, with one explicit
+and audited exception: confirmed exact duplicates may be moved to the
+root-level `.memorylane_quarantine` folder.
 
 The app must never provide or invoke functionality to:
 
 -   Delete source files or folders.
--   Move source files or folders.
--   Rename source files or folders.
+-   Move source files or folders except into `.memorylane_quarantine`.
+-   Rename source files or folders outside the quarantine mover.
 -   Edit source file contents.
--   Create folders or sidecar files inside original archive folders.
+-   Create folders or sidecar files inside original archive folders outside
+    `.memorylane_quarantine`.
+
+The quarantine mover must re-hash every source file immediately before the
+same-volume rename, preserve relative paths, write a journal entry for every
+move, and keep one verified keeper per group.
 
 Allowed operations include:
 
@@ -91,6 +100,8 @@ Allowed operations include:
 -   Opening an original file's containing folder in Windows Explorer.
 -   Opening a file externally through the operating system, where
     appropriate.
+-   Moving eligible duplicate copies to the quarantine folder after an explicit
+    confirmation.
 
 The app may write its own catalog database, cache, logs, and backup
 files in designated application-managed locations. These must remain
@@ -281,10 +292,16 @@ The UI should:
 -   Display a **Has duplicates** flag on matching files.
 -   Open a popup or detail view listing every matching copy.
 -   Show the location of each copy.
--   Preserve all copies.
+-   Mark one copy `KEEP` and the others `MOVE` when the group is eligible.
+-   Report skipped groups and the reason instead of silently dropping them.
 
-Duplicate detection is informational only. It must not offer delete,
-move, rename, or automatic cleanup of originals.
+Duplicate cleanup is an explicit, confirmed action. Keep one copy per exact
+group and move the rest to `X:\.memorylane_quarantine\<run>\`. Never delete,
+rename, or edit an original. Re-hash every file immediately before the
+same-volume rename, write a journal entry for every move, and delete only the
+moved catalog rows after a successful batch. Groups are skipped when the keeper
+does not have verified backup coverage, a copy has a conflicting date override,
+a file is a hard link, or files are empty or under 1 KB.
 
 Hashing should be a separate, resumable background stage because hashing
 a large archive can take substantial time.
@@ -701,7 +718,8 @@ The initial release should not be considered complete unless:
     letter.
 -   A drive-letter change triggers confirmation before updating the root
     path.
--   The app never moves, renames, edits, or deletes original files.
+-   The app never deletes or edits original files. It only moves confirmed
+    duplicate copies into `.memorylane_quarantine` after a full re-hash.
 -   The catalog database and media cache live in app-managed locations
     on the external drive.
 -   The SQLite catalog is backed up to the PC every 15 minutes while

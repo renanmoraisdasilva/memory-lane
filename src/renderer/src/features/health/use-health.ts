@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  DuplicateCleanupState,
   DuplicateGroupsParams,
   MissingFileTargets,
   MissingFilesParams,
@@ -27,6 +28,69 @@ export function useHealthDuplicates(params: DuplicateGroupsParams) {
     queryKey: queryKeys.healthDuplicates(params.offset ?? 0, params.limit ?? 25),
     queryFn: () => client.getDuplicates(params),
     staleTime: 10_000,
+  });
+}
+
+export function useCleanupSummary() {
+  const client = useLibraryClient();
+  return useQuery({
+    queryKey: queryKeys.cleanupSummary,
+    queryFn: () => client.getCleanupSummary(),
+    staleTime: 10_000,
+  });
+}
+
+export function useCleanupState() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: queryKeys.cleanupState,
+    queryFn: () => client.getCleanupState(),
+    refetchInterval: (current) => (current.state.data?.status === "running" ? 750 : false),
+    staleTime: 0,
+  });
+
+  useEffect(() => {
+    const status = query.data?.status;
+    if (status !== "complete" && status !== "cancelled" && status !== "failed") {
+      return;
+    }
+    void queryClient.invalidateQueries({ queryKey: ["health"] });
+    void queryClient.invalidateQueries({ queryKey: ["library"] });
+    void queryClient.invalidateQueries({ queryKey: ["replication"] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
+  }, [query.data?.status, queryClient]);
+
+  return query;
+}
+
+export function useStartCleanup() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => client.startCleanup(),
+    onSuccess: (state) => {
+      queryClient.setQueryData<DuplicateCleanupState>(queryKeys.cleanupState, state);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
+    },
+  });
+}
+
+export function useCancelCleanup() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => client.cancelCleanup(),
+    onSuccess: (state) => {
+      queryClient.setQueryData<DuplicateCleanupState>(queryKeys.cleanupState, state);
+    },
+  });
+}
+
+export function useRevealCleanupQuarantine() {
+  const client = useLibraryClient();
+  return useMutation({
+    mutationFn: () => client.revealCleanupQuarantine(),
   });
 }
 

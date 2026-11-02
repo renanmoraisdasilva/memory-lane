@@ -39,6 +39,7 @@ export const ScannedFileSchema = z.object({
   size: z.number().int().nonnegative(),
   createdAtFs: z.string().nullable(),
   modifiedAtFs: z.string().min(1),
+  linkCount: z.number().int().positive().default(1),
   mediaClass: MediaClassSchema,
   format: z.string().nullable(),
   mime: z.string().nullable(),

@@ -1,4 +1,6 @@
 import type {
+  DuplicateCleanupState,
+  DuplicateCleanupSummary,
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
@@ -57,6 +59,11 @@ export interface LibraryClient {
   getMoved(params: MovedCandidatesParams): Promise<MovedCandidatesPage>;
   confirmMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
   dismissMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
+  getCleanupSummary(): Promise<DuplicateCleanupSummary>;
+  getCleanupState(): Promise<DuplicateCleanupState>;
+  startCleanup(): Promise<DuplicateCleanupState>;
+  cancelCleanup(): Promise<DuplicateCleanupState>;
+  revealCleanupQuarantine(): Promise<void>;
   getValidationState(): Promise<ValidationState>;
   startValidation(params: ValidationStartParams): Promise<ValidationState>;
   pauseValidation(): Promise<ValidationState>;
@@ -93,6 +100,11 @@ export function createLibraryClient(): LibraryClient {
     getMoved: (params) => api.getHealthMoved(params),
     confirmMoved: (params) => api.confirmHealthMoved(params),
     dismissMoved: (params) => api.dismissHealthMoved(params),
+    getCleanupSummary: () => api.getCleanupSummary(),
+    getCleanupState: () => api.getCleanupState(),
+    startCleanup: () => api.startCleanup(),
+    cancelCleanup: () => api.cancelCleanup(),
+    revealCleanupQuarantine: () => api.revealCleanupQuarantine(),
     getValidationState: () => api.getValidationState(),
     startValidation: (params) => api.startValidation(params),
     pauseValidation: () => api.pauseValidation(),

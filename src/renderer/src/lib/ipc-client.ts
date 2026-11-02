@@ -2,6 +2,8 @@ import type { CatalogSummary, DriveInfo } from "@shared/contracts/drives";
 import type { IpcResult } from "@shared/contracts/ipc";
 import type { MemoryLaneApi } from "@shared/contracts/api";
 import type {
+  DuplicateCleanupState,
+  DuplicateCleanupSummary,
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
@@ -135,6 +137,11 @@ export const api = {
     unwrap(getApi().confirmHealthMoved(params)),
   dismissHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>
     unwrap(getApi().dismissHealthMoved(params)),
+  getCleanupSummary: (): Promise<DuplicateCleanupSummary> => unwrap(getApi().getCleanupSummary()),
+  getCleanupState: (): Promise<DuplicateCleanupState> => unwrap(getApi().getCleanupState()),
+  startCleanup: (): Promise<DuplicateCleanupState> => unwrap(getApi().startCleanup()),
+  cancelCleanup: (): Promise<DuplicateCleanupState> => unwrap(getApi().cancelCleanup()),
+  revealCleanupQuarantine: (): Promise<void> => unwrap(getApi().revealCleanupQuarantine()),
   getValidationState: (): Promise<ValidationState> => unwrap(getApi().getValidationState()),
   startValidation: (params: ValidationStartParams): Promise<ValidationState> =>
     unwrap(getApi().startValidation(params)),

@@ -10,6 +10,8 @@ import type {
   OpenCatalogParams,
 } from "@shared/contracts/ipc";
 import type {
+  DuplicateCleanupState,
+  DuplicateCleanupSummary,
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
@@ -163,6 +165,18 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.dismissHealthMoved, params) as Promise<
       IpcResult<MovedActionResult>
     >,
+  getCleanupSummary: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getCleanupSummary) as Promise<
+      IpcResult<DuplicateCleanupSummary>
+    >,
+  getCleanupState: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.getCleanupState) as Promise<IpcResult<DuplicateCleanupState>>,
+  startCleanup: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.startCleanup) as Promise<IpcResult<DuplicateCleanupState>>,
+  cancelCleanup: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.cancelCleanup) as Promise<IpcResult<DuplicateCleanupState>>,
+  revealCleanupQuarantine: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.revealCleanupQuarantine) as Promise<IpcResult<void>>,
   getValidationState: () =>
     ipcRenderer.invoke(IPC_CHANNELS.getValidationState) as Promise<IpcResult<ValidationState>>,
   startValidation: (params: ValidationStartParams) =>

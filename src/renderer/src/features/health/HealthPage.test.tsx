@@ -5,6 +5,9 @@ import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
+  DuplicateCleanupState,
+  DuplicateCleanupSummary,
+  DuplicateGroupsPage,
   MissingFile,
   MissingFilesPage,
   MovedCandidatesPage,
@@ -169,6 +172,133 @@ describe("HealthPage", () => {
     await userEvent.click(screen.getByRole("button", { name: "Restore selected (1)" }));
     await waitFor(() => {
       expect(restoreMissing).toHaveBeenCalledWith({ fileIds: [7] });
+    });
+  });
+
+  it("shows keeper badges and starts a confirmed cleanup", async () => {
+    const client = createLibraryFixtureClient();
+    const firstDate = "2020-01-01T00:00:00.000Z";
+    const secondDate = "2024-01-01T00:00:00.000Z";
+    const page: DuplicateGroupsPage = {
+      groups: [
+        {
+          groupId: 1,
+          sha256: "a".repeat(64),
+          fileCount: 2,
+          totalBytes: 4096,
+          files: [
+            {
+              fileId: 1,
+              name: "sample-photo.jpg",
+              mediaClass: "image",
+              format: "JPG",
+              sizeBytes: 2048,
+              width: 100,
+              height: 100,
+              durationSeconds: null,
+              date: { value: null, precision: null, source: null, isOverride: false },
+              thumbnailStatus: "ready",
+              thumbnailUrl: null,
+              isMissing: false,
+              isDuplicate: true,
+              path: "X:\\Demo\\Archive\\sample-photo.jpg",
+              folder: "X:\\Demo\\Archive",
+              createdAtFs: firstDate,
+              modifiedAtFs: firstDate,
+              hasVerifiedReplica: true,
+              hasDateOverride: false,
+            },
+            {
+              fileId: 2,
+              name: "sample-photo.jpg",
+              mediaClass: "image",
+              format: "JPG",
+              sizeBytes: 2048,
+              width: 100,
+              height: 100,
+              durationSeconds: null,
+              date: { value: null, precision: null, source: null, isOverride: false },
+              thumbnailStatus: "ready",
+              thumbnailUrl: null,
+              isMissing: false,
+              isDuplicate: true,
+              path: "X:\\Demo\\Backup\\sample-photo.jpg",
+              folder: "X:\\Demo\\Backup",
+              createdAtFs: secondDate,
+              modifiedAtFs: secondDate,
+              hasVerifiedReplica: false,
+              hasDateOverride: false,
+            },
+          ],
+          keeperFileId: 1,
+          keeperReason: "oldest created",
+          eligible: true,
+          skipReason: null,
+          excessBytes: 2048,
+        },
+      ],
+      totalGroups: 1,
+      totalFiles: 2,
+      totalBytes: 4096,
+      totalExcessBytes: 2048,
+    };
+    const summary: DuplicateCleanupSummary = {
+      totalGroups: 1,
+      totalFiles: 2,
+      totalDuplicateBytes: 4096,
+      eligibleGroups: 1,
+      skippedGroups: 0,
+      filesToMove: 1,
+      bytesToMove: 2048,
+      keepers: 1,
+      skipCounts: {
+        notAGroup: 0,
+        empty: 0,
+        belowMinimumSize: 0,
+        keeperNotCovered: 0,
+        candidateDateOverride: 0,
+        multipleDateOverrides: 0,
+        hardLink: 0,
+      },
+      minimumFileSizeBytes: 1024,
+      rootPath: "X:\\Demo",
+      quarantineRoot: "X:\\Demo\\.memorylane_quarantine",
+    };
+    const running: DuplicateCleanupState = {
+      runId: 1,
+      status: "running",
+      groupsTotal: 1,
+      groupsProcessed: 0,
+      groupsSkipped: 0,
+      filesTotal: 1,
+      filesMoved: 0,
+      filesSkipped: 0,
+      bytesTotal: 2048,
+      bytesMoved: 0,
+      currentPath: null,
+      quarantinePath: "X:\\Demo\\.memorylane_quarantine\\run-1",
+      cancelRequested: false,
+      errorMessage: null,
+      startedAt: "2026-11-02T12:00:00.000Z",
+      finishedAt: null,
+    };
+    client.getDuplicates = async () => page;
+    client.getCleanupSummary = async () => summary;
+    const start = vi.spyOn(client, "startCleanup").mockResolvedValue(running);
+    renderHealth(client);
+
+    await userEvent.click(await screen.findByRole("tab", { name: /Duplicates/ }));
+    expect(await screen.findByText("2 exact copies")).toBeVisible();
+    expect(screen.getByText("KEEP")).toBeVisible();
+    expect(screen.getByText("MOVE")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Move duplicates to quarantine" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Move duplicates to quarantine?" }),
+    ).toBeVisible();
+    await userEvent.click(screen.getByRole("checkbox"));
+    await userEvent.click(screen.getByRole("button", { name: /Move 1 file/ }));
+    await waitFor(() => {
+      expect(start).toHaveBeenCalledTimes(1);
     });
   });
 

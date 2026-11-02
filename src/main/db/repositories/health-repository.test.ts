@@ -232,6 +232,7 @@ describe("health repository", () => {
       totalGroups: 0,
       totalFiles: 0,
       totalBytes: 0,
+      totalExcessBytes: 0,
     });
     db.close();
   });

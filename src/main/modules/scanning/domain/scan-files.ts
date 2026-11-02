@@ -7,6 +7,7 @@ export interface ScannedFile {
   size: number;
   createdAtFs: string | null;
   modifiedAtFs: string;
+  linkCount: number;
   mediaClass: MediaClass;
   format: string | null;
   mime: string | null;

@@ -23,6 +23,11 @@ Status: implemented in Phase 4. Types live in
 | `health:get-moved` | `getHealthMoved` | `{ offset?, limit? }` | `MovedCandidatesPage` |
 | `health:confirm-moved` | `confirmHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:dismiss-moved` | `dismissHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
+| `cleanup:get-summary` | `getCleanupSummary` | none | `DuplicateCleanupSummary` |
+| `cleanup:get-state` | `getCleanupState` | none | `DuplicateCleanupState` |
+| `cleanup:start` | `startCleanup` | none | `DuplicateCleanupState` |
+| `cleanup:cancel` | `cancelCleanup` | none | `DuplicateCleanupState` |
+| `cleanup:reveal-quarantine` | `revealCleanupQuarantine` | none | none |
 | `health:get-validation-state` | `getValidationState` | none | `ValidationState` |
 | `health:start-validation` | `startValidation` | `{ levels }` | `ValidationState` |
 | `health:pause-validation` | `pauseValidation` | none | `ValidationState` |
@@ -38,8 +43,40 @@ Status: implemented in Phase 4. Types live in
   on duplicate query, and after validation completes.
 - Group ordering is total bytes descending, then group id.
 - Each `HealthFile` includes path, folder, media metadata, date, thumbnail URL,
-  missing state, and duplicate state.
-- Duplicate detection is informational only.
+  missing state, duplicate state, filesystem timestamps, verified-backup state,
+  and active date-override state.
+- Each group reports its keeper, keeper reason, eligibility, skip reason, and
+  excess bytes. Page totals include the excess bytes for all eligible groups.
+
+## Duplicate quarantine
+
+This is the only Memory Lane action that moves archive files. It never deletes
+them.
+
+- The page shows `KEEP` / `MOVE` badges for eligible groups and `SKIP` plus the
+  reason for groups that fail a gate.
+- The keeper is the oldest created file, then oldest modified, then shallower and
+  shorter path, then shorter name, then lower file ID.
+- A group is eligible only when at least two present files have the same full
+  SHA-256, every file is at least 1 KB, no file is a hard link, at most one copy
+  has an active date override, and the chosen keeper has verified backup
+  coverage.
+- The confirmation requires an explicit acknowledgement. The move button is live;
+  there is no preview-only phase or settings toggle.
+- A cleanup run gets its own folder:
+  `X:\.memorylane_quarantine\run-<timestamp>-<random>\` with `manifest.json` and
+  `journal.jsonl`.
+- The mover re-checks the keeper and every candidate with full SHA-256
+  immediately before the same-volume rename. Changed, missing, hard-linked,
+  outside-root, and rename-failed candidates are journaled and skipped.
+- Moves are applied to the catalog in batches. The moved `files` rows are deleted,
+  `cleanup_moves` keeps the audit record, duplicate groups are rebuilt, and
+  destination adoption counters are refreshed. A rescan therefore does not treat
+  the moved files as missing.
+- Cancel stops after the current file. The run remains auditable if it is
+  cancelled, fails, or is interrupted by an app restart.
+- Scans exclude `.memorylane_quarantine`; the read-only guard allows only the
+  quarantine mover to rename source files.
 
 ## Missing and moved
 
@@ -129,11 +166,17 @@ Catalog migration 5:
 
 Catalog migration 10 adds `missing_files.dismissed_at` and its index.
 
-Catalog schema version: 10.
+Catalog migration 11 adds `files.link_count`, `cleanup_runs`, `cleanup_moves`, and
+their indexes.
+
+Catalog schema version: 11.
 
 ## Tests
 
 Repository, handler, service, and renderer tests cover duplicate rebuild,
-missing/moved actions, missing dismissal and restore, missing-duplicate cleanup,
-validation progress, hash update, metadata refresh, and the health UI. E2E
-tests cover the missing-duplicate cleanup and validation flows.
+keeper eligibility, skip reasons, quarantine moves and journaling, catalog apply
+and adoption-counter refresh, missing/moved actions, missing dismissal and
+restore, missing-duplicate cleanup, validation progress, hash update, metadata
+refresh, and the health UI. E2E tests cover the missing-duplicate cleanup,
+duplicate skip badges, disabled cleanup without verified keeper coverage, and
+validation flows.

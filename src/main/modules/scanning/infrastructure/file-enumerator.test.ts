@@ -27,10 +27,12 @@ describe("file enumerator", () => {
     const root = await createTempDirectory();
     await mkdir(path.join(root, "nested"), { recursive: true });
     await mkdir(path.join(root, ".memorylane", "cache"), { recursive: true });
+    await mkdir(path.join(root, ".memorylane_quarantine", "run-1"), { recursive: true });
     await mkdir(path.join(root, "System Volume Information"), { recursive: true });
     await writeFile(path.join(root, "photo.jpg"), "image");
     await writeFile(path.join(root, "nested", "notes.txt"), "text");
     await writeFile(path.join(root, ".memorylane", "catalog.db"), "db");
+    await writeFile(path.join(root, ".memorylane_quarantine", "run-1", "moved.jpg"), "moved");
     await writeFile(path.join(root, "System Volume Information", "index"), "system");
 
     const batches: ScannedFile[][] = [];
@@ -46,7 +48,10 @@ describe("file enumerator", () => {
     expect(result).toEqual({ fileCount: 2, hadErrors: false });
     expect(paths.sort()).toEqual([path.join("nested", "notes.txt"), "photo.jpg"]);
     expect(batches).toHaveLength(2);
-    expect(batches.flat().find((file) => file.name === "photo.jpg")?.mediaClass).toBe("image");
+    expect(batches.flat().find((file) => file.name === "photo.jpg")).toMatchObject({
+      mediaClass: "image",
+      linkCount: 1,
+    });
   });
 
   it("rejects a missing scan root", async () => {

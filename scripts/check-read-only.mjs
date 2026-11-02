@@ -13,6 +13,7 @@ const ALLOWED = new Set(
     "src/main/db/settings-db-handlers.ts",
     "src/main/db/source-index-writer.ts",
     "src/main/modules/drives/application/drive-service.ts",
+    "src/main/modules/health/infrastructure/quarantine-mover.ts",
     "src/main/modules/media/media-request-handler.ts",
     "src/main/modules/media/video-proxy.ts",
     "src/main/modules/replication/infrastructure/destination-writer.ts",

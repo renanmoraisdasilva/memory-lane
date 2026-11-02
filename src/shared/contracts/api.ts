@@ -7,6 +7,8 @@ import type {
   OpenCatalogParams,
 } from "./ipc";
 import type {
+  DuplicateCleanupState,
+  DuplicateCleanupSummary,
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
@@ -82,6 +84,11 @@ export interface MemoryLaneApi {
   getHealthMoved(params: MovedCandidatesParams): Promise<IpcResult<MovedCandidatesPage>>;
   confirmHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
   dismissHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
+  getCleanupSummary(): Promise<IpcResult<DuplicateCleanupSummary>>;
+  getCleanupState(): Promise<IpcResult<DuplicateCleanupState>>;
+  startCleanup(): Promise<IpcResult<DuplicateCleanupState>>;
+  cancelCleanup(): Promise<IpcResult<DuplicateCleanupState>>;
+  revealCleanupQuarantine(): Promise<IpcResult<void>>;
   getValidationState(): Promise<IpcResult<ValidationState>>;
   startValidation(params: ValidationStartParams): Promise<IpcResult<ValidationState>>;
   pauseValidation(): Promise<IpcResult<ValidationState>>;
