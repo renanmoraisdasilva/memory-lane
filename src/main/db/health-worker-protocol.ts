@@ -4,6 +4,7 @@ import {
   MissingDuplicatesParamsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
+  MovedDismissTargetsSchema,
   PurgeMissingDuplicatesParamsSchema,
   ValidationLevelSchema,
   ValidationStartParamsSchema,
@@ -78,7 +79,7 @@ export const HealthValidationSaveDbParamsSchema = z.object({
 export const HealthConfirmMovedDbParamsSchema = MovedCandidateTargetsSchema.extend({
   now: z.string().min(1),
 });
-export const HealthDismissMovedDbParamsSchema = MovedCandidateTargetsSchema;
+export const HealthDismissMovedDbParamsSchema = MovedDismissTargetsSchema;
 export const HealthValidationStartDbParamsSchema = ValidationStartParamsSchema.extend({
   now: z.string().min(1),
 });

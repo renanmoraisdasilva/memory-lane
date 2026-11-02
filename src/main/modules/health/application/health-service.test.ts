@@ -113,18 +113,23 @@ describe("HealthService", () => {
   });
 
   it("forwards missing duplicate discovery and cleanup", async () => {
+    const purge = vi.fn((params: { fileIds: number[]; includePendingMoves: boolean }) => ({
+      removed: params.fileIds.length,
+      skipped: 0,
+      dismissedMovedCandidates: params.includePendingMoves ? 1 : 0,
+    }));
     const db = createDb({
       "health.getMissingDuplicates": {
         items: [],
         total: 0,
         candidateFileIds: [],
+        readyFileIds: [],
+        withPendingMoves: 0,
+        pendingMovedCandidates: 0,
         withVerifiedReplicas: 0,
         withDateOverride: 0,
       },
-      "health.purgeMissingDuplicates": (params: { fileIds: number[] }) => ({
-        removed: params.fileIds.length,
-        skipped: 0,
-      }),
+      "health.purgeMissingDuplicates": purge,
     });
     const service = new HealthService({
       db,
@@ -137,7 +142,15 @@ describe("HealthService", () => {
     await expect(service.purgeMissingDuplicates([1, 2])).resolves.toEqual({
       removed: 2,
       skipped: 0,
+      dismissedMovedCandidates: 0,
     });
+    expect(purge).toHaveBeenLastCalledWith({ fileIds: [1, 2], includePendingMoves: false });
+    await expect(service.purgeMissingDuplicates([3], true)).resolves.toEqual({
+      removed: 1,
+      skipped: 0,
+      dismissedMovedCandidates: 1,
+    });
+    expect(purge).toHaveBeenLastCalledWith({ fileIds: [3], includePendingMoves: true });
   });
 
   it("blocks missing duplicate cleanup while a workload is active", async () => {

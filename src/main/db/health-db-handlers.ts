@@ -68,7 +68,7 @@ export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthD
     },
     "health.purgeMissingDuplicates": (params) => {
       const parsed = HealthPurgeMissingDuplicatesDbParamsSchema.parse(params);
-      return purgeMissingDuplicates(catalog(), parsed.fileIds);
+      return purgeMissingDuplicates(catalog(), parsed.fileIds, parsed.includePendingMoves);
     },
     "health.getMoved": () => getMovedCandidates(catalog()),
     "health.confirmMoved": (params) => {

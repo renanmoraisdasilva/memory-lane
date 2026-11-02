@@ -1,6 +1,10 @@
 import { AlertTriangle, ArrowRight, DatabaseBackup, Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { MissingDuplicate, MissingDuplicatesPage } from "@shared/contracts/health";
+import type {
+  MissingDuplicate,
+  MissingDuplicatesPage,
+  PurgeMissingDuplicatesResult,
+} from "@shared/contracts/health";
 import { Spinner } from "../../components/ui/Callout";
 import { Modal } from "../../components/ui/Modal";
 import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
@@ -25,7 +29,16 @@ function DuplicateItem({ item }: { item: MissingDuplicate }): React.JSX.Element 
           <ArrowRight size={12} aria-hidden="true" />
           <span>{item.duplicatePath}</span>
         </span>
-        <span className={styles.filePath}>Last seen {formatDateTime(item.lastSeenAt)}</span>
+        <span className={styles.filePath}>
+          Last seen {formatDateTime(item.lastSeenAt)}
+          {item.pendingMovedCandidates > 0 ? (
+            <span className={styles.suggestionText}>
+              {" · "}
+              {formatCount(item.pendingMovedCandidates)} move{" "}
+              {item.pendingMovedCandidates === 1 ? "suggestion" : "suggestions"}
+            </span>
+          ) : null}
+        </span>
       </span>
       <span className={styles.fileSize}>{formatBytes(item.sizeBytes)}</span>
     </div>
@@ -48,11 +61,21 @@ function MissingDuplicatesCard({
           <h2 id="missing-duplicates-title">Missing duplicates</h2>
           <p>
             {formatCount(data.total)} missing catalog {entryWord} {matchPhrase} still in the
-            archive. These entries can be removed from the catalog without touching any drive.
+            archive.
+            {data.withPendingMoves > 0
+              ? ` The scan also suggested ${formatCount(data.pendingMovedCandidates)} new ${data.pendingMovedCandidates === 1 ? "path" : "paths"} for ${formatCount(data.withPendingMoves)} of them.`
+              : ""}
           </p>
         </div>
         <span className={styles.countBadge}>{formatCount(data.total)}</span>
       </header>
+      {data.withPendingMoves > 0 ? (
+        <p className={styles.tableNote}>
+          <AlertTriangle size={13} aria-hidden="true" /> If the missing copies were duplicates
+          deleted outside Memory Lane, remove them here instead of confirming the moves. This
+          dismisses the suggestions and keeps the files at their current paths.
+        </p>
+      ) : null}
       {data.withVerifiedReplicas > 0 ? (
         <p className={styles.tableNote}>
           {formatCount(data.withVerifiedReplicas)}{" "}
@@ -81,6 +104,80 @@ function MissingDuplicatesCard({
   );
 }
 
+function PendingMoveChoice({
+  data,
+  includePending,
+  pending,
+  onChange,
+}: {
+  data: MissingDuplicatesPage;
+  includePending: boolean;
+  pending: boolean;
+  onChange: (value: boolean) => void;
+}): React.JSX.Element {
+  return (
+    <>
+      <p className={styles.tableNote}>
+        <AlertTriangle size={13} aria-hidden="true" /> {formatCount(data.withPendingMoves)} of these
+        entries have {formatCount(data.pendingMovedCandidates)} move suggestions. Removing them
+        dismisses those suggestions. Only include them if the missing copies were duplicates deleted
+        outside Memory Lane, not files you moved.
+      </p>
+      <label
+        className={styles.levelRow}
+        htmlFor="missing-duplicates-include-pending"
+        aria-label="These missing copies were duplicates, not moved files"
+      >
+        <input
+          id="missing-duplicates-include-pending"
+          type="checkbox"
+          checked={includePending}
+          disabled={pending}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+        <span>
+          <strong>These missing copies were duplicates, not moved files</strong>
+          <small>
+            Include {formatCount(data.withPendingMoves)}{" "}
+            {data.withPendingMoves === 1 ? "entry" : "entries"} and dismiss{" "}
+            {formatCount(data.pendingMovedCandidates)} move{" "}
+            {data.pendingMovedCandidates === 1 ? "suggestion" : "suggestions"}.
+          </small>
+        </span>
+      </label>
+    </>
+  );
+}
+
+function DuplicateList({ data }: { data: MissingDuplicatesPage }): React.JSX.Element {
+  return (
+    <>
+      <div className={styles.movedList}>
+        {data.items.map((item) => (
+          <DuplicateItem item={item} key={item.fileId} />
+        ))}
+      </div>
+      {data.total > data.items.length ? (
+        <p className={styles.tableNote}>
+          Showing the first {formatCount(data.items.length)} of {formatCount(data.total)}.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function confirmLabel(selectedCount: number, dismissCount: number, pending: boolean): string {
+  if (pending) {
+    return "Removing…";
+  }
+  if (selectedCount === 0) {
+    return "Select entries to remove";
+  }
+  return `Remove ${formatCount(selectedCount)} ${selectedCount === 1 ? "entry" : "entries"}${
+    dismissCount > 0 ? ` and dismiss ${formatCount(dismissCount)} suggestions` : ""
+  }`;
+}
+
 function MissingDuplicatesDialog({
   data,
   pending,
@@ -92,9 +189,12 @@ function MissingDuplicatesDialog({
   pending: boolean;
   error: unknown;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (includePendingMoves: boolean) => void;
 }): React.JSX.Element {
-  const entryWord = data.total === 1 ? "entry" : "entries";
+  const [includePending, setIncludePending] = useState(false);
+  const selectedCount = (includePending ? data.candidateFileIds : data.readyFileIds).length;
+  const dismissCount = includePending ? data.pendingMovedCandidates : 0;
+
   return (
     <Modal
       title="Remove missing duplicates"
@@ -115,31 +215,30 @@ function MissingDuplicatesDialog({
           <button
             className={styles.primaryButton}
             type="button"
-            disabled={pending}
-            onClick={onConfirm}
+            disabled={pending || selectedCount === 0}
+            onClick={() => onConfirm(includePending)}
           >
             {pending ? <Spinner /> : <Trash2 size={14} aria-hidden="true" />}
-            {pending ? "Removing…" : `Remove ${formatCount(data.total)} ${entryWord}`}
+            {confirmLabel(selectedCount, dismissCount, pending)}
           </button>
         </>
       }
     >
       <p className={styles.tableNote}>
         <AlertTriangle size={13} aria-hidden="true" /> This changes only the catalog. It does not
-        delete or move files on the source or backup drives. If a missing duplicate has verified
-        backup copies, those coverage links will also be removed; the backup files remain on the
-        drive.
+        delete or move files on the source or backup drives, including files in deduplicator trash
+        folders. If a missing duplicate has verified backup copies, those coverage links will also
+        be removed; the backup files remain on the drive.
       </p>
-      <div className={styles.movedList}>
-        {data.items.map((item) => (
-          <DuplicateItem item={item} key={item.fileId} />
-        ))}
-      </div>
-      {data.total > data.items.length ? (
-        <p className={styles.tableNote}>
-          Showing the first {formatCount(data.items.length)} of {formatCount(data.total)}.
-        </p>
+      {data.withPendingMoves > 0 ? (
+        <PendingMoveChoice
+          data={data}
+          includePending={includePending}
+          pending={pending}
+          onChange={setIncludePending}
+        />
       ) : null}
+      <DuplicateList data={data} />
       {error === null || error === undefined ? null : (
         <p className={styles.error} role="alert">
           {error instanceof Error ? error.message : "The catalog entries could not be removed."}
@@ -149,19 +248,35 @@ function MissingDuplicatesDialog({
   );
 }
 
+function RemovedMessage({
+  result,
+}: {
+  result: PurgeMissingDuplicatesResult | null;
+}): React.JSX.Element | null {
+  if (result === null) {
+    return null;
+  }
+  return (
+    <p className={styles.tableNote} role="status">
+      Removed {formatCount(result.removed)} missing duplicate catalog{" "}
+      {result.removed === 1 ? "entry" : "entries"}
+      {result.dismissedMovedCandidates > 0
+        ? ` and dismissed ${formatCount(result.dismissedMovedCandidates)} move ${
+            result.dismissedMovedCandidates === 1 ? "suggestion" : "suggestions"
+          }`
+        : ""}
+      . No files on any drive were changed.
+    </p>
+  );
+}
+
 export function MissingDuplicates(): React.JSX.Element | null {
   const query = useHealthMissingDuplicates();
   const purge = usePurgeMissingDuplicates();
   const [open, setOpen] = useState(false);
-  const [removed, setRemoved] = useState<number | null>(null);
+  const [result, setResult] = useState<PurgeMissingDuplicatesResult | null>(null);
   const data = query.data;
-  const removedMessage =
-    removed === null ? null : (
-      <p className={styles.tableNote} role="status">
-        Removed {formatCount(removed)} missing duplicate catalog{" "}
-        {removed === 1 ? "entry" : "entries"}. No files on any drive were changed.
-      </p>
-    );
+  const removedMessage = <RemovedMessage result={result} />;
 
   if (data === undefined) {
     if (query.error !== null && query.error !== undefined) {
@@ -179,15 +294,17 @@ export function MissingDuplicates(): React.JSX.Element | null {
     return removedMessage;
   }
 
-  function confirmPurge(): void {
-    if (data === undefined) {
+  const page = data;
+  function confirmPurge(includePendingMoves: boolean): void {
+    const fileIds = includePendingMoves ? page.candidateFileIds : page.readyFileIds;
+    if (fileIds.length === 0) {
       return;
     }
     purge.mutate(
-      { fileIds: data.candidateFileIds },
+      { fileIds, includePendingMoves },
       {
-        onSuccess: (result) => {
-          setRemoved(result.removed);
+        onSuccess: (purged) => {
+          setResult(purged);
           setOpen(false);
         },
       },
@@ -197,10 +314,10 @@ export function MissingDuplicates(): React.JSX.Element | null {
   return (
     <>
       {removedMessage}
-      <MissingDuplicatesCard data={data} onReview={() => setOpen(true)} />
+      <MissingDuplicatesCard data={page} onReview={() => setOpen(true)} />
       {open ? (
         <MissingDuplicatesDialog
-          data={data}
+          data={page}
           pending={purge.isPending}
           error={purge.error}
           onClose={() => setOpen(false)}

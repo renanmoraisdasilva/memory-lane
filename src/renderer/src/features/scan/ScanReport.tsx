@@ -154,9 +154,9 @@ function ReportSide({ report }: { report: ScanReportData }): React.JSX.Element {
               icon={<Info size={17} aria-hidden="true" />}
               title={`${formatCount(duplicateCount)} missing duplicates`}
             >
-              These missing files are exact duplicates of files still in the archive. You can remove
-              their catalog entries without touching any drive.{" "}
-              <Link to="/health?tab=missing">Review missing duplicates</Link>
+              These missing files are exact duplicates of files still in the archive. Some also have
+              move suggestions. Review them before deciding whether to confirm the moves or remove
+              the duplicate entries. <Link to="/health?tab=missing">Review missing duplicates</Link>
             </Callout>
           </div>
         ) : null}

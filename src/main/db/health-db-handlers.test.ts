@@ -113,6 +113,9 @@ describe("health DB handlers", () => {
     expect(handler.handle("health.getMissingDuplicates", {})).toMatchObject({
       total: 1,
       candidateFileIds: [duplicate.id],
+      readyFileIds: [duplicate.id],
+      withPendingMoves: 0,
+      pendingMovedCandidates: 0,
     });
     expect(handler.handle("health.getMissingDuplicates", { offset: 0, limit: 1 })).toMatchObject({
       total: 1,
@@ -120,6 +123,7 @@ describe("health DB handlers", () => {
     expect(handler.handle("health.purgeMissingDuplicates", { fileIds: [duplicate.id] })).toEqual({
       removed: 1,
       skipped: 0,
+      dismissedMovedCandidates: 0,
     });
     expect(db.prepare("SELECT id FROM files WHERE id = ?").get(duplicate.id)).toBeUndefined();
     expect(db.prepare("SELECT id FROM files WHERE id = ?").get(fileId)).toBeDefined();

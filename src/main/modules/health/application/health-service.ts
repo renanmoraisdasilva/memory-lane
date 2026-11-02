@@ -83,7 +83,10 @@ export class HealthService {
     });
   }
 
-  async purgeMissingDuplicates(fileIds: number[]): Promise<PurgeMissingDuplicatesResult> {
+  async purgeMissingDuplicates(
+    fileIds: number[],
+    includePendingMoves = false,
+  ): Promise<PurgeMissingDuplicatesResult> {
     const active = this.dependencies.workloads?.current();
     if (active !== undefined && active !== null) {
       throw new AppError(
@@ -94,7 +97,7 @@ export class HealthService {
     }
     return this.dependencies.db.request<PurgeMissingDuplicatesResult>(
       "health.purgeMissingDuplicates",
-      { fileIds },
+      { fileIds, includePendingMoves },
     );
   }
 

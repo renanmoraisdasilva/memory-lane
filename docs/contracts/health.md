@@ -17,7 +17,7 @@ Status: implemented in Phase 4. Types live in
 | `health:get-duplicates` | `getHealthDuplicates` | `{ offset?, limit? }` | `DuplicateGroupsPage` |
 | `health:get-missing` | `getHealthMissing` | `{ offset?, limit? }` | `MissingFilesPage` |
 | `health:get-missing-duplicates` | `getHealthMissingDuplicates` | `{ offset?, limit? }` | `MissingDuplicatesPage` |
-| `health:purge-missing-duplicates` | `purgeHealthMissingDuplicates` | `{ fileIds }` | `{ removed, skipped }` |
+| `health:purge-missing-duplicates` | `purgeHealthMissingDuplicates` | `{ fileIds, includePendingMoves? }` | `{ removed, skipped, dismissedMovedCandidates }` |
 | `health:get-moved` | `getHealthMoved` | none | `MovedCandidatesPage` |
 | `health:confirm-moved` | `confirmHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:dismiss-moved` | `dismissHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
@@ -61,14 +61,23 @@ remains cataloged as `missing` and can still participate in adoption matching.
   and modified time still describe the missing file, or a legacy hash whose
   timestamp is not older than the file's recorded modification time.
 - A present file with the same full SHA-256 and size must still exist.
-- Pending moved candidates are excluded. A possible move must be reviewed as a
-  move, not removed as a duplicate.
+- The preview includes candidates that also have pending moved candidates. It
+  reports how many such files exist and how many move suggestions they carry.
+- The default cleanup removes only candidates without pending move suggestions.
+  Candidates with pending move suggestions are removed only when
+  `includePendingMoves` is true.
+- Removing a candidate with pending move suggestions deletes the missing catalog
+  row, so its move suggestions are deleted by the catalog foreign key. The file
+  at the suggested path remains present and cataloged. This is appropriate only
+  when the missing copy was a duplicate deleted outside Memory Lane. If the file
+  was actually moved, confirm the move instead so the catalog keeps its dates,
+  overrides, and backup links.
 - The preview reports how many candidates have verified backup replicas and how
   many have active date overrides.
 - Cleanup removes only the missing catalog rows. Hashes, dates, metadata,
-  overrides, cache entries, replica links, and missing records attached to those
-  rows are removed by the catalog foreign keys. Source and destination files are
-  never touched.
+  overrides, cache entries, replica links, moved candidates, and missing records
+  attached to those rows are removed by the catalog foreign keys. Source and
+  destination files are never touched.
 - Destination adoption counters are refreshed for every affected destination.
 - The action is always explicit and confirmed. It is available in Library health
   → Missing, and a scan-complete callout points to it when candidates exist.

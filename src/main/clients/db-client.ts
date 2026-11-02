@@ -26,6 +26,8 @@ const MAINTENANCE_METHODS: ReadonlySet<DbMethod> = new Set<DbMethod>([
   "settings.clearCache",
   "settings.recordBackup",
   "health.purgeMissingDuplicates",
+  "health.confirmMoved",
+  "health.dismissMoved",
   "replication.listSourceFiles",
   "replication.saveSourceHash",
   "replication.registerDestination",

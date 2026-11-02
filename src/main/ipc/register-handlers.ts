@@ -12,6 +12,7 @@ import {
   MissingDuplicatesParamsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
+  MovedDismissTargetsSchema,
   PurgeMissingDuplicatesParamsSchema,
   ValidationStartParamsSchema,
   type DuplicateGroupsPage,
@@ -183,7 +184,7 @@ function registerHealthHandlers(
 
   ipcMain.handle(IPC_CHANNELS.dismissHealthMoved, (event, params: unknown) =>
     respond<MovedActionResult>(event, IPC_CHANNELS.dismissHealthMoved, logger, () =>
-      healthService.dismissMoved(MovedCandidateTargetsSchema.parse(params).candidateIds),
+      healthService.dismissMoved(MovedDismissTargetsSchema.parse(params).candidateIds),
     ),
   );
 

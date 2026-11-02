@@ -218,6 +218,10 @@
   white-space: nowrap;
 }
 
+.suggestionText {
+  color: var(--amber-2);
+}
+
 .fileSize {
   flex: 0 0 auto;
   color: var(--muted);

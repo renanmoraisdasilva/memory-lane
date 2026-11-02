@@ -240,7 +240,7 @@ The IPC and media contracts are in
   degradation, and metadata-only promotion with rollback.
 - **Backup activity** in the top bar for adoption and run progress, paused, and
   interrupted states.
-- **539 automated tests** across 135 files, 10 Electron E2E flows, and a packaged
+- **543 automated tests** across 137 files, 10 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   WMV compatible playback.
 
