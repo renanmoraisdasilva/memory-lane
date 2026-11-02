@@ -1,17 +1,12 @@
-import { mkdir, stat } from "node:fs/promises";
-import path from "node:path";
 import type Database from "better-sqlite3";
-import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import {
-  BackupResultSchema,
   BackupStateSchema,
   CacheStatsSchema,
-  type BackupResult,
   type BackupState,
   type CacheStats,
 } from "@shared/contracts/settings";
 import type { SettingsDbHandler, SettingsDbHandlerOptions } from "./settings-worker-protocol";
-import { SettingsBackupDbParamsSchema } from "./settings-worker-protocol";
+import { SettingsRecordBackupDbParamsSchema } from "./settings-worker-protocol";
 import { readDriveIdentity } from "./repositories/catalog-repository";
 
 interface DriveBackupRow {
@@ -54,52 +49,30 @@ function readCacheStats(catalog: Database.Database): CacheStats {
   return CacheStatsSchema.parse(row);
 }
 
-async function runBackup(
+function recordBackup(
   appDb: Database.Database,
-  catalog: Database.Database,
-  backupDir: string,
-  now: string,
-): Promise<BackupResult> {
-  const volumeId = readDriveIdentity(catalog).volumeId;
-  const catalogBackup = path.join(backupDir, "catalog.db");
-  const appBackup = path.join(backupDir, "app.db");
-  try {
-    await mkdir(backupDir, { recursive: true });
-    await catalog.backup(catalogBackup);
-    await appDb.backup(appBackup);
-    const bytes = (await stat(catalogBackup)).size + (await stat(appBackup)).size;
+  input: {
+    volumeId: string;
+    path: string;
+    bytes: number;
+    now: string;
+    status: "success" | "failed";
+  },
+): void {
+  appDb.transaction(() => {
     appDb
       .prepare(
         `INSERT INTO backup_history
            (drive_volume_id, path, bytes, created_at, status)
-         VALUES (?, ?, ?, ?, 'success')`,
+         VALUES (?, ?, ?, ?, ?)`,
       )
-      .run(volumeId, catalogBackup, bytes, now);
-    appDb
-      .prepare("UPDATE registered_drives SET last_backup_at = ? WHERE volume_id = ?")
-      .run(now, volumeId);
-    return BackupResultSchema.parse({
-      path: catalogBackup,
-      bytes,
-      createdAt: now,
-      status: "success",
-    });
-  } catch (error) {
-    try {
+      .run(input.volumeId, input.path, input.bytes, input.now, input.status);
+    if (input.status === "success") {
       appDb
-        .prepare(
-          `INSERT INTO backup_history
-             (drive_volume_id, path, bytes, created_at, status)
-           VALUES (?, ?, 0, ?, 'failed')`,
-        )
-        .run(volumeId, backupDir, now);
-    } catch {
-      // Keep the original backup error.
+        .prepare("UPDATE registered_drives SET last_backup_at = ? WHERE volume_id = ?")
+        .run(input.now, input.volumeId);
     }
-    throw new AppError(APP_ERROR_CODES.DB_ERROR, "Database backup failed", {
-      message: error instanceof Error ? error.message : String(error),
-    });
-  }
+  })();
 }
 
 export function createSettingsDbHandlers(options: SettingsDbHandlerOptions): SettingsDbHandler {
@@ -110,9 +83,10 @@ export function createSettingsDbHandlers(options: SettingsDbHandlerOptions): Set
           return readBackupState(options.getAppDb(), options.getCatalog());
         case "settings.getCacheStats":
           return readCacheStats(options.getCatalog());
-        case "settings.backup": {
-          const parsed = SettingsBackupDbParamsSchema.parse(params);
-          return runBackup(options.getAppDb(), options.getCatalog(), parsed.backupDir, parsed.now);
+        case "settings.recordBackup": {
+          const parsed = SettingsRecordBackupDbParamsSchema.parse(params);
+          recordBackup(options.getAppDb(), parsed);
+          return { saved: true };
         }
         case "settings.clearCache":
           return {

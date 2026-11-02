@@ -1,6 +1,7 @@
 import path from "node:path";
 import { app, BrowserWindow, Menu, nativeImage, screen, Tray } from "electron";
 import { DbWorkerClient } from "./clients/db-client";
+import { createSettingsService } from "./bootstrap/settings-services";
 import { configureLogging } from "./logging/logger";
 import { installSecurityHandlers } from "./bootstrap/security";
 import { configureUserData } from "./bootstrap/user-data";
@@ -27,7 +28,7 @@ import { registerMediaProtocol, registerMediaScheme } from "./modules/media/medi
 import { LibraryService } from "./modules/library/application/library-service";
 import { createShellActions } from "./modules/library/infrastructure/shell-actions";
 import { HealthService } from "./modules/health/application/health-service";
-import { SettingsService } from "./modules/settings/application/settings-service";
+import type { SettingsService } from "./modules/settings/application/settings-service";
 import { WorkloadCoordinator } from "./modules/workloads/application/workload-coordinator";
 
 registerMediaScheme();
@@ -247,7 +248,7 @@ async function startServices(): Promise<void> {
     platform: process.platform,
     isPackaged: app.isPackaged,
   });
-  const settings = new SettingsService({ db, appService, paths, logger });
+  const settings = createSettingsService({ db, appService, paths, logger });
   settingsService = settings;
 
   const thumbnails = createThumbnailScheduler(createElectronThumbnailGenerator());

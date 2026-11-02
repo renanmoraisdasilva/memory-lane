@@ -20,6 +20,7 @@ import {
 import type { AdoptionIndex } from "../domain/adoption-matcher";
 
 const BATCH_SIZE = 20;
+const LIBRARY_FLUSH_FILES = 1_000;
 
 export interface AdoptionControl {
   paused: boolean;
@@ -55,6 +56,7 @@ interface RunContext {
   sourceHashes: Map<number, string | null>;
   seenFileIds: Set<number>;
   seenOrphanPathKeys: Set<string>;
+  pendingLibraryFiles: DestinationLibraryFileInput[];
   scan: DestinationScanResult;
   startedMs: number;
 }
@@ -63,7 +65,6 @@ interface BatchResult {
   replicas: AdoptionReplicaWrite[];
   orphans: AdoptionOrphanWrite[];
   touchedReplicaFileIds: number[];
-  libraryFiles: DestinationLibraryFileInput[];
   stopped: AdoptionRunStatus | null;
 }
 
@@ -101,6 +102,7 @@ async function createContext(
     sourceHashes: new Map(),
     seenFileIds: new Set(),
     seenOrphanPathKeys: new Set(),
+    pendingLibraryFiles: [],
     scan,
     startedMs: dependencies.now().getTime(),
   };
@@ -116,7 +118,6 @@ async function processBatch(
     replicas: [],
     orphans: [],
     touchedReplicaFileIds: [],
-    libraryFiles: [],
     stopped: null,
   };
   for (const file of batch) {
@@ -151,7 +152,7 @@ async function processBatch(
       result.orphans.push(processed.orphan);
       context.seenOrphanPathKeys.add(processed.orphan.relativePathKey);
     }
-    result.libraryFiles.push(processed.library);
+    context.pendingLibraryFiles.push(processed.library);
   }
   return result;
 }
@@ -168,17 +169,29 @@ async function persistBatch(
     touchedReplicaFileIds: result.touchedReplicaFileIds,
     now: input.runStartedAt,
   });
+}
+
+async function flushDestinationLibrary(
+  dependencies: AdoptionRunDependencies,
+  input: AdoptionRunInput,
+  context: RunContext,
+): Promise<void> {
+  if (context.pendingLibraryFiles.length === 0) {
+    return;
+  }
+  const files = context.pendingLibraryFiles.splice(0);
   try {
     await dependencies.db.request("replication.upsertDestinationLibrary", {
       destinationId: input.destinationRowId,
       destinationRoot: input.destinationRoot,
       runStartedAt: input.runStartedAt,
       now: input.runStartedAt,
-      files: result.libraryFiles,
+      files,
     });
   } catch (error) {
     dependencies.logger.warn("Destination library update failed during adoption", {
       message: error instanceof Error ? error.message : String(error),
+      files: files.length,
     });
   }
 }
@@ -229,6 +242,7 @@ export async function runAdoption(
   for (let start = 0; start < files.length; start += BATCH_SIZE) {
     const stop = stopStatus(control);
     if (stop !== null) {
+      await flushDestinationLibrary(dependencies, input, context);
       return stop;
     }
     const batch = files.slice(start, start + BATCH_SIZE);
@@ -238,7 +252,11 @@ export async function runAdoption(
     }
     await persistBatch(dependencies, input, result);
     if (result.stopped !== null) {
+      await flushDestinationLibrary(dependencies, input, context);
       return result.stopped;
+    }
+    if (context.pendingLibraryFiles.length >= LIBRARY_FLUSH_FILES) {
+      await flushDestinationLibrary(dependencies, input, context);
     }
     updateEta({
       control,
@@ -249,6 +267,7 @@ export async function runAdoption(
     });
   }
 
+  await flushDestinationLibrary(dependencies, input, context);
   await dependencies.db.request("replication.markUnseenReplicasMissing", {
     destinationId: input.destinationRowId,
     seenFileIds: [...context.seenFileIds],

@@ -370,7 +370,6 @@ function readLastValidationAt(db: Database.Database): string | null {
 }
 
 export function getHealthSummary(db: Database.Database): HealthSummary {
-  rebuildDuplicateGroups(db);
   const duplicates = readDuplicateTotals(db);
   return HealthSummarySchema.parse({
     duplicateGroups: duplicates.groups,

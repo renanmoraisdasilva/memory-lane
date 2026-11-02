@@ -48,8 +48,8 @@ Verified at the Phase 6 automated integration point:
   and covers Other files, Settings, backup, and cache clearing.
 
 Post-v0.1 replication adds 154 tests and two Electron E2E flows. Lazy hashing,
-video-proxy, UI control, and drive-root regression coverage add 26 more tests.
-Current totals are 495 tests across 127 files and 10 Electron E2E flows. See
+video-proxy, UI control, and drive-root regression coverage add 44 more tests.
+Current totals are 513 tests across 131 files and 10 Electron E2E flows. See
 [`partial-backups.md`](partial-backups.md),
 [`../contracts/replication.md`](../contracts/replication.md),
 [`../contracts/library.md`](../contracts/library.md), and

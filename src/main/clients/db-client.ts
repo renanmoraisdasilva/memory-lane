@@ -13,14 +13,44 @@ export interface DbClient {
 }
 
 const REQUEST_TIMEOUT_MS = 10_000;
-const BACKUP_TIMEOUT_MS = 120_000;
+const MAINTENANCE_TIMEOUT_MS = 60_000;
+const PROMOTION_TIMEOUT_MS = 120_000;
+
+const MAINTENANCE_METHODS: ReadonlySet<DbMethod> = new Set<DbMethod>([
+  "scan.applyCatalogBatch",
+  "scan.finishCatalog",
+  "scan.saveHash",
+  "scan.saveMetadata",
+  "scan.saveThumbnail",
+  "scan.finalize",
+  "settings.clearCache",
+  "settings.recordBackup",
+  "replication.listSourceFiles",
+  "replication.saveSourceHash",
+  "replication.registerDestination",
+  "replication.updateDestination",
+  "replication.updateFullCopyStatus",
+  "replication.beginAdoption",
+  "replication.updateAdoptionStatus",
+  "replication.finishAdoption",
+  "replication.listAdoptionReplicas",
+  "replication.saveAdoptionBatch",
+  "replication.markUnseenReplicasMissing",
+  "replication.writeSourceIndex",
+  "replication.upsertDestinationLibrary",
+  "replication.getDestinationLibraryStats",
+  "replication.saveDestinationLibraryFile",
+  "replication.saveRunFileResult",
+  "replication.updateRunPlan",
+  "replication.setReplicaStatus",
+]);
 
 function timeoutFor(method: DbMethod): number {
-  if (method === "settings.backup") {
-    return BACKUP_TIMEOUT_MS;
-  }
   if (method.startsWith("promotion.")) {
-    return BACKUP_TIMEOUT_MS;
+    return PROMOTION_TIMEOUT_MS;
+  }
+  if (MAINTENANCE_METHODS.has(method)) {
+    return MAINTENANCE_TIMEOUT_MS;
   }
   return REQUEST_TIMEOUT_MS;
 }

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import type { ScanState } from "@shared/contracts/scan";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
+import { runDatabaseBackup } from "../../src/main/db/backup-runner";
 import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
 import { createScanHarness, waitForComplete } from "./scan-harness";
 
@@ -29,10 +30,12 @@ describe("recovery drills", () => {
       await harness.scanService.startScan(harness.drive.volumeId, "eco");
       await waitForComplete(harness.scanService, harness.drive);
 
-      const backup = (await harness.handler.handle("settings.backup", {
+      const backup = await runDatabaseBackup({
+        appDbPath,
+        catalogPath: harness.catalogPath,
         backupDir,
         now,
-      })) as { status: string };
+      });
       expect(backup.status).toBe("success");
 
       harness.handler.dispose();

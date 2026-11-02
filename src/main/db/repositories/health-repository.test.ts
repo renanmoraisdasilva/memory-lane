@@ -76,6 +76,26 @@ describe("health repository", () => {
     db.close();
   });
 
+  it("reads precomputed duplicate totals without rebuilding on every summary", () => {
+    const db = createDb();
+    const first = insertFile(db, "a.jpg", 100);
+    const second = insertFile(db, "b.jpg", 100);
+    addHash(db, first, "same");
+    addHash(db, second, "same");
+
+    expect(getHealthSummary(db)).toMatchObject({
+      duplicateGroups: 0,
+      duplicateFiles: 0,
+    });
+    expect(getDuplicateGroups(db, 0, 10).totalGroups).toBe(1);
+    expect(getHealthSummary(db)).toMatchObject({
+      duplicateGroups: 1,
+      duplicateFiles: 2,
+      duplicateBytes: 200,
+    });
+    db.close();
+  });
+
   it("lists missing files and moved candidates", () => {
     const db = createDb();
     const oldId = insertFile(db, "old.jpg", 100, "missing");

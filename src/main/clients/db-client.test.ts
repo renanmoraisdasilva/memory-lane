@@ -22,7 +22,11 @@ const workerMocks = vi.hoisted(() => {
     postMessage(message: unknown): void {
       this.posted.push(message);
       const request = message as { id: number; method: string };
-      if (request.method === "slow") {
+      if (
+        request.method === "slow" ||
+        request.method === "replication.saveAdoptionBatch" ||
+        request.method === "library.getSummary"
+      ) {
         return;
       }
 
@@ -101,6 +105,37 @@ describe("DbWorkerClient", () => {
 
     await vi.advanceTimersByTimeAsync(10_000);
     await assertion;
+    await client.close();
+  });
+
+  it("keeps the short timeout for summary reads", async () => {
+    vi.useFakeTimers();
+    const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db");
+    const request = client.request("library.getSummary", {});
+    const assertion = expect(request).rejects.toMatchObject({
+      code: "WORKER_ERROR",
+      message: "Database request timed out: library.getSummary",
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    await assertion;
+    await client.close();
+  });
+
+  it("gives maintenance writes a longer timeout", async () => {
+    vi.useFakeTimers();
+    const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db");
+    let rejected = false;
+    const request = client.request("replication.saveAdoptionBatch", {}).catch(() => {
+      rejected = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(rejected).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(50_000);
+    expect(rejected).toBe(true);
+    await request;
     await client.close();
   });
 

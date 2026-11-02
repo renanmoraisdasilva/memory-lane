@@ -14,6 +14,7 @@ import {
 } from "@shared/contracts/settings";
 import { APP_ERROR_CODES, isAppError } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
+import type { DatabaseBackupRunner } from "../../../db/backup-runner";
 import type { Logger } from "../../../logging/types";
 import type { AppPaths } from "../../../platform/app-paths";
 import type { AppService } from "../../app/application/app-service";
@@ -28,6 +29,7 @@ export interface SettingsServiceDependencies {
   db: DbClient;
   appService: AppService;
   paths: AppPaths;
+  backupRunner: DatabaseBackupRunner;
   logger: Logger;
   now?: () => Date;
   backupIntervalMs?: number;
@@ -47,7 +49,7 @@ export class SettingsService {
   private readonly nowDate: () => Date;
   private readonly backupIntervalMs: number;
   private timer: NodeJS.Timeout | null = null;
-  private backupInFlight = false;
+  private backupInFlight: Promise<BackupResult> | null = null;
 
   constructor(private readonly dependencies: SettingsServiceDependencies) {
     this.nowDate = dependencies.now ?? (() => new Date());
@@ -96,13 +98,76 @@ export class SettingsService {
     });
   }
 
-  async runBackup(): Promise<BackupResult> {
+  runBackup(): Promise<BackupResult> {
+    if (this.backupInFlight !== null) {
+      return this.backupInFlight;
+    }
+    const run = this.performBackup();
+    this.backupInFlight = run;
+    void run
+      .finally(() => {
+        if (this.backupInFlight === run) {
+          this.backupInFlight = null;
+        }
+      })
+      .catch(() => undefined);
+    return run;
+  }
+
+  private async performBackup(): Promise<BackupResult> {
     const context = await this.context();
-    const result = await this.dependencies.db.request<BackupResult>("settings.backup", {
-      backupDir: path.join(this.dependencies.paths.backupsPath, context.volumeId),
-      now: this.now(),
-    });
-    return BackupResultSchema.parse(result);
+    const backupDir = path.join(this.dependencies.paths.backupsPath, context.volumeId);
+    const now = this.now();
+    try {
+      const result = BackupResultSchema.parse(
+        await this.dependencies.backupRunner.run({
+          appDbPath: this.dependencies.paths.appDbPath,
+          catalogPath: context.catalogPath,
+          backupDir,
+          now,
+        }),
+      );
+      await this.recordBackup({
+        volumeId: context.volumeId,
+        backupPath: result.path,
+        bytes: result.bytes,
+        now,
+        status: "success",
+      });
+      return result;
+    } catch (error) {
+      await this.recordBackup({
+        volumeId: context.volumeId,
+        backupPath: backupDir,
+        bytes: 0,
+        now,
+        status: "failed",
+      });
+      throw error;
+    }
+  }
+
+  private async recordBackup(input: {
+    volumeId: string;
+    backupPath: string;
+    bytes: number;
+    now: string;
+    status: "success" | "failed";
+  }): Promise<void> {
+    try {
+      await this.dependencies.db.request("settings.recordBackup", {
+        volumeId: input.volumeId,
+        path: input.backupPath,
+        bytes: input.bytes,
+        now: input.now,
+        status: input.status,
+      });
+    } catch (error) {
+      this.dependencies.logger.warn("Could not record database backup", {
+        message: error instanceof Error ? error.message : String(error),
+        status: input.status,
+      });
+    }
   }
 
   startBackupTimer(): void {
@@ -124,10 +189,6 @@ export class SettingsService {
   }
 
   private async backupIfCatalogOpen(): Promise<void> {
-    if (this.backupInFlight) {
-      return;
-    }
-    this.backupInFlight = true;
     try {
       await this.runBackup();
       this.dependencies.logger.info("Scheduled database backup completed");
@@ -138,8 +199,6 @@ export class SettingsService {
       this.dependencies.logger.warn("Scheduled database backup failed", {
         message: error instanceof Error ? error.message : String(error),
       });
-    } finally {
-      this.backupInFlight = false;
     }
   }
 

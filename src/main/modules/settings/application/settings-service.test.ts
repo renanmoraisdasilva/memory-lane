@@ -70,6 +70,10 @@ function backupResult(): BackupResult {
   };
 }
 
+function backupRunner() {
+  return { run: vi.fn(async () => backupResult()) };
+}
+
 describe("SettingsService", () => {
   it("reports cache, catalog, and backup information", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
@@ -93,6 +97,7 @@ describe("SettingsService", () => {
       db,
       appService: createAppService(root),
       paths: createPaths(root),
+      backupRunner: backupRunner(),
       logger: logger(),
       now: () => now,
     });
@@ -128,6 +133,7 @@ describe("SettingsService", () => {
       db,
       appService: createAppService(root),
       paths: createPaths(root),
+      backupRunner: backupRunner(),
       logger: logger(),
       now: () => now,
     });
@@ -142,15 +148,17 @@ describe("SettingsService", () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
-    const backup = vi.fn(async () => backupResult());
+    const runner = backupRunner();
+    const record = vi.fn(async () => ({ saved: true }));
     const db = createDb({
       "library.getContext": { volumeId: "volume-1", catalogPath, cachePath },
-      "settings.backup": backup,
+      "settings.recordBackup": record,
     });
     const service = new SettingsService({
       db,
       appService: createAppService(root),
       paths: createPaths(root),
+      backupRunner: runner,
       logger: logger(),
       now: () => now,
       backupIntervalMs: 10,
@@ -161,11 +169,88 @@ describe("SettingsService", () => {
     service.startBackupTimer();
     await new Promise((resolve) => setTimeout(resolve, 30));
     await service.shutdown();
-    expect(backup.mock.calls.length).toBeGreaterThanOrEqual(2);
-    expect(backup).toHaveBeenCalledWith({
+    expect(runner.run.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(runner.run).toHaveBeenCalledWith({
+      appDbPath: path.join(root, "app.db"),
+      catalogPath,
       backupDir: path.join(root, "backups", "volume-1"),
       now: createdAt,
     });
+    expect(record).toHaveBeenCalledWith({
+      volumeId: "volume-1",
+      path: "C:\\backups\\catalog.db",
+      bytes: 4096,
+      now: createdAt,
+      status: "success",
+    });
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("records a failed backup and preserves the original error", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
+    const cachePath = path.join(root, "cache");
+    const catalogPath = path.join(root, "catalog.db");
+    const record = vi.fn(async () => ({ saved: true }));
+    const failure = new AppError(APP_ERROR_CODES.DB_ERROR, "Database backup failed");
+    const db = createDb({
+      "library.getContext": { volumeId: "volume-1", catalogPath, cachePath },
+      "settings.recordBackup": record,
+    });
+    const service = new SettingsService({
+      db,
+      appService: createAppService(root),
+      paths: createPaths(root),
+      backupRunner: { run: vi.fn(async () => Promise.reject(failure)) },
+      logger: logger(),
+      now: () => now,
+    });
+
+    await expect(service.runBackup()).rejects.toBe(failure);
+    expect(record).toHaveBeenCalledWith({
+      volumeId: "volume-1",
+      path: path.join(root, "backups", "volume-1"),
+      bytes: 0,
+      now: createdAt,
+      status: "failed",
+    });
+    await rm(root, { recursive: true, force: true });
+  });
+
+  it("coalesces overlapping backup requests", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
+    const cachePath = path.join(root, "cache");
+    const catalogPath = path.join(root, "catalog.db");
+    let resolveRun: () => void = () => undefined;
+    const run = vi.fn(
+      async () =>
+        new Promise<BackupResult>((resolve) => {
+          resolveRun = () => {
+            resolve(backupResult());
+          };
+        }),
+    );
+    const db = createDb({
+      "library.getContext": { volumeId: "volume-1", catalogPath, cachePath },
+      "settings.recordBackup": vi.fn(async () => ({ saved: true })),
+    });
+    const service = new SettingsService({
+      db,
+      appService: createAppService(root),
+      paths: createPaths(root),
+      backupRunner: { run },
+      logger: logger(),
+      now: () => now,
+    });
+
+    const first = service.runBackup();
+    const second = service.runBackup();
+    await vi.waitFor(() => {
+      expect(run).toHaveBeenCalledOnce();
+    });
+    resolveRun();
+    await expect(first).resolves.toMatchObject({ status: "success" });
+    await expect(second).resolves.toMatchObject({ status: "success" });
+    expect(run).toHaveBeenCalledOnce();
     await rm(root, { recursive: true, force: true });
   });
 
@@ -181,6 +266,7 @@ describe("SettingsService", () => {
       db,
       appService: createAppService(root),
       paths: createPaths(root),
+      backupRunner: backupRunner(),
       logger: log,
     });
 

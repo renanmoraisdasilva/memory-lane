@@ -1,5 +1,4 @@
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import Database from "better-sqlite3";
@@ -13,6 +12,7 @@ import { createSettingsDbHandlers } from "./settings-db-handlers";
 
 const volumeId = toVolumeId("volume-1");
 const now = "2026-10-31T12:00:00.000Z";
+const later = "2026-10-31T13:00:00.000Z";
 
 interface Harness {
   root: string;
@@ -76,9 +76,9 @@ function closeHarness(harness: Harness): void {
 }
 
 describe("settings DB handlers", () => {
-  it("backs up both databases and records the result", async () => {
+  it("reads backup state and cache stats", async () => {
     const harness = await createHarness();
-    const backupDir = path.join(harness.root, "backups", volumeId);
+    const backupPath = path.join(harness.root, "backups", volumeId, "catalog.db");
     try {
       expect(harness.handler.handle("settings.getBackupState", {})).toEqual({
         lastBackupAt: null,
@@ -91,28 +91,21 @@ describe("settings DB handlers", () => {
         files: 1,
       });
 
-      const result = harness.handler.handle("settings.backup", { backupDir, now }) as Promise<{
-        path: string;
-        bytes: number;
-        createdAt: string;
-        status: string;
-      }>;
-      const resolved = await result;
-      expect(resolved).toMatchObject({
-        path: path.join(backupDir, "catalog.db"),
-        createdAt: now,
-        status: "success",
-      });
-      expect(resolved.bytes).toBeGreaterThan(0);
-      expect(existsSync(path.join(backupDir, "catalog.db"))).toBe(true);
-      expect(existsSync(path.join(backupDir, "app.db"))).toBe(true);
-      expect(harness.handler.handle("settings.getBackupState", {})).toMatchObject({
+      harness.appDb
+        .prepare(
+          `INSERT INTO backup_history (drive_volume_id, path, bytes, created_at, status)
+           VALUES (?, ?, 4096, ?, 'success')`,
+        )
+        .run(volumeId, backupPath, now);
+      harness.appDb
+        .prepare("UPDATE registered_drives SET last_backup_at = ? WHERE volume_id = ?")
+        .run(now, volumeId);
+
+      expect(harness.handler.handle("settings.getBackupState", {})).toEqual({
         lastBackupAt: now,
         lastStatus: "success",
-        lastPath: path.join(backupDir, "catalog.db"),
-      });
-      expect(harness.appDb.prepare("SELECT COUNT(*) AS count FROM backup_history").get()).toEqual({
-        count: 1,
+        lastPath: backupPath,
+        lastBytes: 4096,
       });
     } finally {
       closeHarness(harness);
@@ -120,21 +113,53 @@ describe("settings DB handlers", () => {
     }
   });
 
-  it("records a failed backup and clears generated cache rows", async () => {
+  it("records successful and failed backups", async () => {
     const harness = await createHarness();
-    const blocker = path.join(harness.root, "blocker");
-    await writeFile(blocker, "not a directory");
+    const backupPath = path.join(harness.root, "backups", volumeId, "catalog.db");
     try {
-      await expect(
-        harness.handler.handle("settings.backup", {
-          backupDir: path.join(blocker, "nested"),
+      expect(
+        harness.handler.handle("settings.recordBackup", {
+          volumeId,
+          path: backupPath,
+          bytes: 4096,
           now,
+          status: "success",
         }),
-      ).rejects.toThrow("Database backup failed");
-      expect(harness.handler.handle("settings.getBackupState", {})).toMatchObject({
-        lastStatus: "failed",
+      ).toEqual({ saved: true });
+      expect(harness.handler.handle("settings.getBackupState", {})).toEqual({
+        lastBackupAt: now,
+        lastStatus: "success",
+        lastPath: backupPath,
+        lastBytes: 4096,
       });
 
+      expect(
+        harness.handler.handle("settings.recordBackup", {
+          volumeId,
+          path: path.join(harness.root, "backups", volumeId),
+          bytes: 0,
+          now: later,
+          status: "failed",
+        }),
+      ).toEqual({ saved: true });
+      expect(harness.handler.handle("settings.getBackupState", {})).toEqual({
+        lastBackupAt: now,
+        lastStatus: "failed",
+        lastPath: path.join(harness.root, "backups", volumeId),
+        lastBytes: 0,
+      });
+      expect(harness.appDb.prepare("SELECT COUNT(*) AS count FROM backup_history").get()).toEqual({
+        count: 2,
+      });
+    } finally {
+      closeHarness(harness);
+      await rm(harness.root, { recursive: true, force: true });
+    }
+  });
+
+  it("clears generated cache rows", async () => {
+    const harness = await createHarness();
+    try {
       expect(harness.handler.handle("settings.clearCache", {})).toEqual({ removed: 1 });
       expect(harness.handler.handle("settings.getCacheStats", {})).toEqual({
         bytes: 0,

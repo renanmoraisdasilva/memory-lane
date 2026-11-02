@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { toVolumeId, type CatalogSummary } from "@shared/contracts/drives";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import { createDbWorkerHandler, type DbWorkerHandler } from "../../src/main/db/db-worker-handler";
+import { runDatabaseBackup } from "../../src/main/db/backup-runner";
 import { CATALOG_SCHEMA_VERSION } from "../../src/main/db/schema-version";
 import type { DbMethod } from "../../src/main/db/worker-protocol";
 
@@ -143,7 +144,7 @@ describe("database worker handler", () => {
     }
   });
 
-  it("serves other files and database backups through the worker", async () => {
+  it("serves other files and records database backups", async () => {
     const { handler, root, appDbPath, catalogPath, cachePath } = await createHarness();
     handler.handle("app.registerDrive", {
       identity: identity(root),
@@ -162,12 +163,21 @@ describe("database worker handler", () => {
     });
 
     const backupDir = path.join(path.dirname(appDbPath), "backups", "volume-1");
-    const result = (await handler.handle("settings.backup", {
+    const result = await runDatabaseBackup({
+      appDbPath,
+      catalogPath,
       backupDir,
       now: "2026-10-31T12:00:00.000Z",
-    })) as { status: string; bytes: number };
+    });
     expect(result).toMatchObject({ status: "success" });
     expect(result.bytes).toBeGreaterThan(0);
+    handler.handle("settings.recordBackup", {
+      volumeId: toVolumeId("volume-1"),
+      path: result.path,
+      bytes: result.bytes,
+      now: "2026-10-31T12:00:00.000Z",
+      status: "success",
+    });
     await expect(access(path.join(backupDir, "catalog.db"))).resolves.toBeUndefined();
     await expect(access(path.join(backupDir, "app.db"))).resolves.toBeUndefined();
     expect(handler.handle("settings.getBackupState", {})).toMatchObject({

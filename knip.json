@@ -3,6 +3,7 @@
   "entry": [
     "src/main/index.ts",
     "src/main/workers/db-worker.ts",
+    "src/main/workers/backup-worker.ts",
     "src/main/workers/heic-worker.ts",
     "src/preload/index.ts",
     "src/renderer/src/main.tsx",
