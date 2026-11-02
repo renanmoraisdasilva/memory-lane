@@ -20,6 +20,7 @@ import type {
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  MovedCandidatesParams,
   PurgeMissingDuplicatesParams,
   PurgeMissingDuplicatesResult,
   ValidationStartParams,
@@ -140,8 +141,10 @@ const api: MemoryLaneApi = {
     ipcRenderer.invoke(IPC_CHANNELS.purgeHealthMissingDuplicates, params) as Promise<
       IpcResult<PurgeMissingDuplicatesResult>
     >,
-  getHealthMoved: () =>
-    ipcRenderer.invoke(IPC_CHANNELS.getHealthMoved) as Promise<IpcResult<MovedCandidatesPage>>,
+  getHealthMoved: (params: MovedCandidatesParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthMoved, params) as Promise<
+      IpcResult<MovedCandidatesPage>
+    >,
   confirmHealthMoved: (params: MovedCandidateTargets) =>
     ipcRenderer.invoke(IPC_CHANNELS.confirmHealthMoved, params) as Promise<
       IpcResult<MovedActionResult>

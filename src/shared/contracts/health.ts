@@ -123,6 +123,12 @@ export const MovedCandidatesPageSchema = z.object({
 });
 export type MovedCandidatesPage = z.infer<typeof MovedCandidatesPageSchema>;
 
+export const MovedCandidatesParamsSchema = z.object({
+  offset: z.number().int().nonnegative().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+});
+export type MovedCandidatesParams = z.infer<typeof MovedCandidatesParamsSchema>;
+
 export const MovedCandidateTargetsSchema = z.object({
   candidateIds: z.array(z.number().int().positive()).min(1).max(500),
 });

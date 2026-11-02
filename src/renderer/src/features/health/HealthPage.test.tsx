@@ -4,11 +4,16 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ValidationState } from "@shared/contracts/health";
+import type {
+  MovedCandidatesPage,
+  MovedCandidatesParams,
+  ValidationState,
+} from "@shared/contracts/health";
 import { createMockPhaseOneClient } from "../../lib/ipc-client.mock";
 import { createMockDrives, mockCatalogSummary, mockVolumeIds } from "../../lib/mock-fixtures";
 import { renderWithProviders } from "../../test/render";
 import { createLibraryFixtureClient } from "../../test/library-fixtures";
+import type { LibraryClient } from "../library/library-client";
 import { HealthPage } from "./HealthPage";
 
 const runningValidation: ValidationState = {
@@ -24,7 +29,7 @@ const runningValidation: ValidationState = {
   report: null,
 };
 
-function renderHealth(): void {
+function renderHealth(libraryClient: LibraryClient = createLibraryFixtureClient()): void {
   const drive = createMockDrives("catalog").find(
     (candidate) => candidate.volumeId === mockVolumeIds.ready,
   );
@@ -33,7 +38,7 @@ function renderHealth(): void {
   }
   renderWithProviders(<HealthPage />, {
     client: createMockPhaseOneClient({ scenario: "catalog" }),
-    libraryClient: createLibraryFixtureClient(),
+    libraryClient,
     workspace: { drive, catalog: mockCatalogSummary(drive) },
     initialEntries: ["/health"],
   });
@@ -42,6 +47,27 @@ function renderHealth(): void {
 afterEach(() => {
   cleanup();
 });
+
+async function movedPage(params: MovedCandidatesParams): Promise<MovedCandidatesPage> {
+  const offset = params.offset ?? 0;
+  const limit = params.limit ?? 50;
+  const count = Math.max(0, Math.min(limit, 120 - offset));
+  return {
+    items: Array.from({ length: count }, (_, index) => {
+      const id = offset + index + 1;
+      return {
+        id,
+        fileId: id + 1000,
+        name: `moved-${id}.jpg`,
+        oldPath: `C:\\archive\\old-${id}.jpg`,
+        newPath: `C:\\archive\\new-${id}.jpg`,
+        sizeBytes: 100,
+        sha256: "hash",
+      };
+    }),
+    total: 120,
+  };
+}
 
 describe("HealthPage", () => {
   it("switches between missing files, duplicates, and validation", async () => {
@@ -53,6 +79,32 @@ describe("HealthPage", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Validation" }));
     expect(await screen.findByRole("heading", { name: "Validation levels" })).toBeVisible();
     expect(screen.getByRole("button", { name: "Run validation" })).toBeEnabled();
+  });
+
+  it("paginates likely moved files and requires an explicit selection", async () => {
+    const client = createLibraryFixtureClient();
+    const getMoved = vi.fn(movedPage);
+    client.getMoved = getMoved;
+    client.getHealthSummary = async () => ({
+      duplicateGroups: 0,
+      duplicateFiles: 0,
+      duplicateBytes: 0,
+      missingFiles: 0,
+      movedCandidates: 120,
+      lastValidationAt: null,
+    });
+    renderHealth(client);
+
+    expect(await screen.findByText("Page 1 of 3")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Confirm selected" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Select page" }));
+    expect(screen.getByRole("button", { name: "Confirm selected (50)" })).toBeEnabled();
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => {
+      expect(getMoved).toHaveBeenLastCalledWith({ offset: 50, limit: 50 });
+    });
+    expect(await screen.findByText("Page 2 of 3")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Confirm selected" })).toBeDisabled();
   });
 
   it("starts a whole-catalog validation with the selected levels", async () => {

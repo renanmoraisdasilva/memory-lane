@@ -71,7 +71,7 @@ describe("HealthService", () => {
       return { updated: 1, skipped: 0 };
     });
     const db = createDb({
-      "health.getMoved": {
+      "health.getMovedByIds": {
         items: [
           {
             id: 1,

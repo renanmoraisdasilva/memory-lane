@@ -147,7 +147,6 @@ export function purgeMissingDuplicates(
   }
   db.exec("CREATE TEMP TABLE IF NOT EXISTS purge_missing_ids (id INTEGER PRIMARY KEY)");
   try {
-    const remove = db.prepare("DELETE FROM files WHERE id = ? AND state = 'missing'");
     const run = db.transaction(() => {
       db.prepare("DELETE FROM purge_missing_ids").run();
       const insert = db.prepare("INSERT OR IGNORE INTO purge_missing_ids (id) VALUES (?)");
@@ -171,15 +170,19 @@ export function purgeMissingDuplicates(
         file_id: number;
         pending_moves: number;
       }>;
-      let removed = 0;
-      let dismissedMovedCandidates = 0;
+      const dismissedMovedCandidates = candidates.reduce(
+        (sum, candidate) => sum + candidate.pending_moves,
+        0,
+      );
+      db.prepare("DELETE FROM purge_missing_ids").run();
       for (const candidate of candidates) {
-        const changes = remove.run(candidate.file_id).changes;
-        removed += changes;
-        if (changes > 0) {
-          dismissedMovedCandidates += candidate.pending_moves;
-        }
+        insert.run(candidate.file_id);
       }
+      const removed = db
+        .prepare(
+          "DELETE FROM files WHERE id IN (SELECT id FROM purge_missing_ids) AND state = 'missing'",
+        )
+        .run().changes;
       for (const destination of affectedDestinations) {
         refreshAdoptionCounters(db, destination.replica_id);
       }

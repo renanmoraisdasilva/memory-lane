@@ -259,6 +259,15 @@
   flex-wrap: wrap;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
 .primaryButton,
 .secondaryButton {
   display: inline-flex;

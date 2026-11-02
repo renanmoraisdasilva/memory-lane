@@ -8,14 +8,11 @@ import type {
   MissingFile,
   MissingFilesPage,
   MovedActionResult,
-  MovedCandidate,
-  MovedCandidatesPage,
 } from "@shared/contracts/health";
 import {
   DuplicateGroupsPageSchema,
   HealthSummarySchema,
   MissingFilesPageSchema,
-  MovedCandidatesPageSchema,
 } from "@shared/contracts/health";
 import { AppError } from "@shared/domain/errors";
 import { parseLibraryRow, toLibraryItem } from "./library-query";
@@ -213,36 +210,6 @@ export function getMissingFiles(
     count: number;
   };
   return MissingFilesPageSchema.parse({ items, total: totalRow.count });
-}
-
-export function getMovedCandidates(db: Database.Database): MovedCandidatesPage {
-  const rows = db
-    .prepare(
-      `SELECT mc.id, mc.file_id, f.name, mc.old_path, mc.new_path, f.size, mc.sha256
-       FROM moved_candidates mc
-       JOIN files f ON f.id = mc.file_id
-       WHERE mc.state = 'pending'
-       ORDER BY f.name COLLATE NOCASE, mc.id`,
-    )
-    .all() as Array<{
-    id: number;
-    file_id: number;
-    name: string;
-    old_path: string;
-    new_path: string;
-    size: number;
-    sha256: string;
-  }>;
-  const items: MovedCandidate[] = rows.map((row) => ({
-    id: row.id,
-    fileId: row.file_id,
-    name: row.name,
-    oldPath: row.old_path,
-    newPath: row.new_path,
-    sizeBytes: row.size,
-    sha256: row.sha256,
-  }));
-  return MovedCandidatesPageSchema.parse({ items, total: items.length });
 }
 
 interface PendingMovedRow {

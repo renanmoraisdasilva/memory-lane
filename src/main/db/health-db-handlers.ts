@@ -7,6 +7,8 @@ import {
   HealthDuplicatesDbParamsSchema,
   HealthMissingDbParamsSchema,
   HealthMissingDuplicatesDbParamsSchema,
+  HealthMovedByIdsDbParamsSchema,
+  HealthMovedDbParamsSchema,
   HealthPurgeMissingDuplicatesDbParamsSchema,
   HealthValidationFailDbParamsSchema,
   HealthValidationLevelDbParamsSchema,
@@ -21,8 +23,11 @@ import {
   getDuplicateGroups,
   getHealthSummary,
   getMissingFiles,
-  getMovedCandidates,
 } from "./repositories/health-repository";
+import {
+  getMovedCandidates,
+  getMovedCandidatesByIds,
+} from "./repositories/health-moved-repository";
 import {
   getMissingDuplicates,
   purgeMissingDuplicates,
@@ -70,7 +75,14 @@ export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthD
       const parsed = HealthPurgeMissingDuplicatesDbParamsSchema.parse(params);
       return purgeMissingDuplicates(catalog(), parsed.fileIds, parsed.includePendingMoves);
     },
-    "health.getMoved": () => getMovedCandidates(catalog()),
+    "health.getMoved": (params) => {
+      const parsed = HealthMovedDbParamsSchema.parse(params);
+      return getMovedCandidates(catalog(), parsed.offset ?? 0, parsed.limit ?? 50);
+    },
+    "health.getMovedByIds": (params) => {
+      const parsed = HealthMovedByIdsDbParamsSchema.parse(params);
+      return getMovedCandidatesByIds(catalog(), parsed.candidateIds);
+    },
     "health.confirmMoved": (params) => {
       const parsed = HealthConfirmMovedDbParamsSchema.parse(params);
       return confirmMovedCandidates(catalog(), parsed.candidateIds, parsed.now);

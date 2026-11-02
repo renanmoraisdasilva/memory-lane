@@ -28,8 +28,8 @@ pass remains.
 - WMV/3GP and failed direct-playback videos use a cached FFmpeg-compatible MP4
   copy, with preparation progress and external-open fallback.
 
-Verification at the current integration point: 543 unit/component/integration
-tests across 137 files, 10 Electron E2E flows, 100k and 200k in-memory query
+Verification at the current integration point: 545 unit/component/integration
+tests across 137 files, 11 Electron E2E flows, 100k and 200k in-memory query
 passes, coverage above the configured floors, and a packaged smoke with SHA-256
 package checksums.
 

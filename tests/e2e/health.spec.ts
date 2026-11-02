@@ -32,6 +32,64 @@ async function setUpCatalog(page: Page): Promise<void> {
   });
 }
 
+test("cleans up missing duplicates that also have move suggestions", async () => {
+  test.setTimeout(180_000);
+  const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-missing-duplicates-e2e-"));
+  const userDataPath = path.join(root, "user-data");
+  const developmentDrivePath = path.join(root, "development-drive");
+  await mkdir(userDataPath, { recursive: true });
+  await mkdir(developmentDrivePath, { recursive: true });
+  await writeFile(path.join(developmentDrivePath, "a.jpg"), ONE_PIXEL_JPEG);
+  await writeFile(path.join(developmentDrivePath, "b.jpg"), ONE_PIXEL_JPEG);
+  await writeFile(path.join(developmentDrivePath, "notes.txt"), "notes");
+
+  const app = await electron.launch({
+    args: ["."],
+    cwd: process.cwd(),
+    env: {
+      ...childEnvironment(),
+      MEMORY_LANE_USER_DATA: userDataPath,
+      MEMORY_LANE_DEV_DRIVE: developmentDrivePath,
+      MEMORY_LANE_E2E: "1",
+    },
+  });
+
+  try {
+    const page = await app.firstWindow();
+    await setUpCatalog(page);
+
+    await rm(path.join(developmentDrivePath, "b.jpg"));
+    await mkdir(path.join(developmentDrivePath, "moved"), { recursive: true });
+    await writeFile(path.join(developmentDrivePath, "moved", "b.jpg"), ONE_PIXEL_JPEG);
+
+    await page.getByRole("link", { name: /Scan & processing/ }).click();
+    await page.getByRole("button", { name: "Scan again" }).click();
+    await expect(page.getByRole("button", { name: "Pause" })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("heading", { name: "Scan complete" })).toBeVisible({
+      timeout: 90_000,
+    });
+
+    await page.getByRole("link", { name: /Library health/ }).click();
+    await expect(page.getByRole("heading", { name: "Missing duplicates" })).toBeVisible();
+    await expect(page.getByText(/missing catalog entry exactly matches/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Confirm selected" })).toBeDisabled();
+
+    await page.getByRole("button", { name: "Review and clean up" }).click();
+    await expect(page.getByRole("dialog", { name: "Remove missing duplicates" })).toBeVisible();
+    await page.getByRole("checkbox", { name: /These missing copies were duplicates/ }).check();
+    await page.getByRole("button", { name: /Remove 1 entry and dismiss 2 suggestions/ }).click();
+    await expect(
+      page.getByText(/Removed 1 missing duplicate catalog entry and dismissed 2 move suggestions/),
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByRole("heading", { name: "Missing duplicates" })).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Likely moved files" })).toBeHidden();
+    await expect(page.getByText("No missing files")).toBeVisible();
+  } finally {
+    await app.close();
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("reports duplicate groups and runs a catalog validation", async () => {
   test.setTimeout(120_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-health-e2e-"));

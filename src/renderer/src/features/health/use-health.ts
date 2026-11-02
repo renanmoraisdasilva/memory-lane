@@ -4,6 +4,7 @@ import type {
   DuplicateGroupsParams,
   MissingFilesParams,
   MovedCandidateTargets,
+  MovedCandidatesParams,
   PurgeMissingDuplicatesParams,
   ValidationStartParams,
 } from "@shared/contracts/health";
@@ -59,11 +60,11 @@ export function usePurgeMissingDuplicates() {
   });
 }
 
-export function useHealthMoved() {
+export function useHealthMoved(params: MovedCandidatesParams) {
   const client = useLibraryClient();
   return useQuery({
-    queryKey: queryKeys.healthMoved,
-    queryFn: () => client.getMoved(),
+    queryKey: queryKeys.healthMoved(params.offset ?? 0, params.limit ?? 50),
+    queryFn: () => client.getMoved(params),
     staleTime: 10_000,
   });
 }

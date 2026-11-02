@@ -9,6 +9,7 @@ import type {
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  MovedCandidatesParams,
   PurgeMissingDuplicatesParams,
   PurgeMissingDuplicatesResult,
   ValidationStartParams,
@@ -49,7 +50,7 @@ export interface LibraryClient {
   purgeMissingDuplicates(
     params: PurgeMissingDuplicatesParams,
   ): Promise<PurgeMissingDuplicatesResult>;
-  getMoved(): Promise<MovedCandidatesPage>;
+  getMoved(params: MovedCandidatesParams): Promise<MovedCandidatesPage>;
   confirmMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
   dismissMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
   getValidationState(): Promise<ValidationState>;
@@ -83,7 +84,7 @@ export function createLibraryClient(): LibraryClient {
     getMissing: (params) => api.getHealthMissing(params),
     getMissingDuplicates: (params) => api.getHealthMissingDuplicates(params),
     purgeMissingDuplicates: (params) => api.purgeHealthMissingDuplicates(params),
-    getMoved: () => api.getHealthMoved(),
+    getMoved: (params) => api.getHealthMoved(params),
     confirmMoved: (params) => api.confirmHealthMoved(params),
     dismissMoved: (params) => api.dismissHealthMoved(params),
     getValidationState: () => api.getValidationState(),

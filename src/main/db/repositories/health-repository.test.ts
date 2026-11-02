@@ -10,8 +10,8 @@ import {
   getDuplicateGroups,
   getHealthSummary,
   getMissingFiles,
-  getMovedCandidates,
 } from "./health-repository";
+import { getMovedCandidates, getMovedCandidatesByIds } from "./health-moved-repository";
 
 const volumeId = toVolumeId("volume-1");
 const now = "2026-10-31T12:00:00.000Z";
@@ -171,6 +171,34 @@ describe("health repository", () => {
     expect(dismissMovedCandidates(db, [9999])).toEqual({ updated: 0, skipped: 1 });
     expect(confirmMovedCandidates(db, [9999], now)).toEqual({ updated: 0, skipped: 1 });
     expect(getMovedCandidates(db).total).toBe(0);
+    db.close();
+  });
+
+  it("paginates moved candidates and fetches selected candidates by id", () => {
+    const db = createDb();
+    const ids: number[] = [];
+    for (let index = 0; index < 3; index += 1) {
+      const fileId = insertFile(db, `moved-${index}.jpg`, 100, "missing");
+      const row = db
+        .prepare(
+          "INSERT INTO moved_candidates (file_id, old_path, new_path, sha256, state) VALUES (?, ?, ?, 'hash', 'pending') RETURNING id",
+        )
+        .get(fileId, `C:\\archive\\moved-${index}.jpg`, `C:\\archive\\new-${index}.jpg`) as {
+        id: number;
+      };
+      ids.push(row.id);
+    }
+
+    const lastId = ids[ids.length - 1] as number;
+    const first = getMovedCandidates(db, 0, 2);
+    expect(first.total).toBe(3);
+    expect(first.items.map((item) => item.id)).toEqual(ids.slice(0, 2));
+    const second = getMovedCandidates(db, 2, 2);
+    expect(second.total).toBe(3);
+    expect(second.items.map((item) => item.id)).toEqual([lastId]);
+    const selected = getMovedCandidatesByIds(db, [lastId, 9999]);
+    expect(selected.total).toBe(1);
+    expect(selected.items[0]).toMatchObject({ id: lastId });
     db.close();
   });
 

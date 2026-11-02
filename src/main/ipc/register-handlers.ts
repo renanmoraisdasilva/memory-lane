@@ -12,6 +12,7 @@ import {
   MissingDuplicatesParamsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
+  MovedCandidatesParamsSchema,
   MovedDismissTargetsSchema,
   PurgeMissingDuplicatesParamsSchema,
   ValidationStartParamsSchema,
@@ -165,15 +166,16 @@ function registerHealthHandlers(
       logger,
       () => {
         const parsed = PurgeMissingDuplicatesParamsSchema.parse(params);
-        return healthService.purgeMissingDuplicates(parsed.fileIds);
+        return healthService.purgeMissingDuplicates(parsed.fileIds, parsed.includePendingMoves);
       },
     ),
   );
 
-  ipcMain.handle(IPC_CHANNELS.getHealthMoved, (event) =>
-    respond<MovedCandidatesPage>(event, IPC_CHANNELS.getHealthMoved, logger, () =>
-      healthService.getMoved(),
-    ),
+  ipcMain.handle(IPC_CHANNELS.getHealthMoved, (event, params: unknown) =>
+    respond<MovedCandidatesPage>(event, IPC_CHANNELS.getHealthMoved, logger, () => {
+      const parsed = MovedCandidatesParamsSchema.parse(params);
+      return healthService.getMoved(parsed.offset, parsed.limit);
+    }),
   );
 
   ipcMain.handle(IPC_CHANNELS.confirmHealthMoved, (event, params: unknown) =>

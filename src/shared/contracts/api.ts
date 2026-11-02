@@ -17,6 +17,7 @@ import type {
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  MovedCandidatesParams,
   PurgeMissingDuplicatesParams,
   PurgeMissingDuplicatesResult,
   ValidationStartParams,
@@ -74,7 +75,7 @@ export interface MemoryLaneApi {
   purgeHealthMissingDuplicates(
     params: PurgeMissingDuplicatesParams,
   ): Promise<IpcResult<PurgeMissingDuplicatesResult>>;
-  getHealthMoved(): Promise<IpcResult<MovedCandidatesPage>>;
+  getHealthMoved(params: MovedCandidatesParams): Promise<IpcResult<MovedCandidatesPage>>;
   confirmHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
   dismissHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
   getValidationState(): Promise<IpcResult<ValidationState>>;

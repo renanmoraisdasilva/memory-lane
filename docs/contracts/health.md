@@ -18,7 +18,7 @@ Status: implemented in Phase 4. Types live in
 | `health:get-missing` | `getHealthMissing` | `{ offset?, limit? }` | `MissingFilesPage` |
 | `health:get-missing-duplicates` | `getHealthMissingDuplicates` | `{ offset?, limit? }` | `MissingDuplicatesPage` |
 | `health:purge-missing-duplicates` | `purgeHealthMissingDuplicates` | `{ fileIds, includePendingMoves? }` | `{ removed, skipped, dismissedMovedCandidates }` |
-| `health:get-moved` | `getHealthMoved` | none | `MovedCandidatesPage` |
+| `health:get-moved` | `getHealthMoved` | `{ offset?, limit? }` | `MovedCandidatesPage` |
 | `health:confirm-moved` | `confirmHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:dismiss-moved` | `dismissHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:get-validation-state` | `getValidationState` | none | `ValidationState` |
@@ -44,6 +44,10 @@ Status: implemented in Phase 4. Types live in
 - Missing files are rows in `missing_files` joined to their preserved `files`
   row.
 - A pending moved candidate contains old path, new path, size, and SHA-256.
+- The moved-candidate list is paginated. The UI requests 50 at a time.
+- Confirming is capped at 500 candidates per request. Dismissing accepts up to
+  50,000 candidates so a whole scan's move suggestions can be dismissed in one
+  action.
 - Confirm flow rechecks the new path and hash in the main process before calling
   the DB worker.
 - Confirming deletes the newly discovered duplicate row, updates the original

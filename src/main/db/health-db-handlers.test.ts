@@ -80,6 +80,12 @@ describe("health DB handlers", () => {
       total: 1,
     });
     expect(handler.handle("health.getMoved", {})).toMatchObject({ total: 1 });
+    expect(handler.handle("health.getMoved", { offset: 0, limit: 1 })).toMatchObject({
+      total: 1,
+    });
+    expect(handler.handle("health.getMovedByIds", { candidateIds: [movedId] })).toMatchObject({
+      total: 1,
+    });
     expect(handler.handle("health.confirmMoved", { candidateIds: [movedId], now })).toEqual({
       updated: 1,
       skipped: 0,

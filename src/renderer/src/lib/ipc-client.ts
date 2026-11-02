@@ -12,6 +12,7 @@ import type {
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  MovedCandidatesParams,
   PurgeMissingDuplicatesParams,
   PurgeMissingDuplicatesResult,
   ValidationStartParams,
@@ -122,7 +123,8 @@ export const api = {
   purgeHealthMissingDuplicates: (
     params: PurgeMissingDuplicatesParams,
   ): Promise<PurgeMissingDuplicatesResult> => unwrap(getApi().purgeHealthMissingDuplicates(params)),
-  getHealthMoved: (): Promise<MovedCandidatesPage> => unwrap(getApi().getHealthMoved()),
+  getHealthMoved: (params: MovedCandidatesParams): Promise<MovedCandidatesPage> =>
+    unwrap(getApi().getHealthMoved(params)),
   confirmHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>
     unwrap(getApi().confirmHealthMoved(params)),
   dismissHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>

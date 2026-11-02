@@ -101,12 +101,18 @@ export class HealthService {
     );
   }
 
-  async getMoved(): Promise<MovedCandidatesPage> {
-    return this.dependencies.db.request<MovedCandidatesPage>("health.getMoved", {});
+  async getMoved(offset = 0, limit = 50): Promise<MovedCandidatesPage> {
+    return this.dependencies.db.request<MovedCandidatesPage>("health.getMoved", {
+      offset,
+      limit,
+    });
   }
 
   async confirmMoved(candidateIds: number[]): Promise<MovedActionResult> {
-    const pending = await this.getMoved();
+    const pending = await this.dependencies.db.request<MovedCandidatesPage>(
+      "health.getMovedByIds",
+      { candidateIds },
+    );
     const byId = new Map(pending.items.map((candidate) => [candidate.id, candidate]));
     const valid: number[] = [];
     let skipped = 0;
