@@ -48,6 +48,7 @@ describe("replication source repository", () => {
         sourceRelativePath: path.join("photos", "a.jpg"),
         sha256: "a".repeat(64),
         sourceSizeAtHash: 10,
+        hashedAt: now,
       }),
       expect.objectContaining({
         id: 2,

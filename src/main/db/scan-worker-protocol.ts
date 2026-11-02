@@ -83,6 +83,8 @@ const HashSaveItemSchema = z.union([
       status: z.literal("complete"),
       kind: z.literal("full"),
       sha256: z.string().length(64),
+      size: z.number().int().nonnegative(),
+      modifiedAtFs: z.string().nullable(),
     }),
     z.object({
       fileId: z.number().int().positive(),

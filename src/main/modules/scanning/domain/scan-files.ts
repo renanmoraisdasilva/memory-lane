@@ -115,6 +115,8 @@ export interface FullHashSaveItem {
   status: "complete";
   kind: "full";
   sha256: string;
+  size: number;
+  modifiedAtFs: string | null;
 }
 
 export interface QuickHashSaveItem {

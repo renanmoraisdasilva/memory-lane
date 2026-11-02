@@ -40,7 +40,14 @@ export async function hashPendingFile(
       };
     }
     const sha256 = await dependencies.hasher.hash(file.path);
-    return { fileId: file.id, status: "complete", kind: "full", sha256 };
+    return {
+      fileId: file.id,
+      status: "complete",
+      kind: "full",
+      sha256,
+      size: file.size,
+      modifiedAtFs: file.modifiedAtFs,
+    };
   } catch (error) {
     dependencies.logger.warn("Hash calculation failed", {
       path: file.path,

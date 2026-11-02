@@ -229,11 +229,25 @@ describe("scan stage repository", () => {
       db,
       volumeId,
       [
-        { fileId: first, kind: "full", sha256: "a".repeat(64), status: "complete" },
+        {
+          fileId: first,
+          kind: "full",
+          sha256: "a".repeat(64),
+          size: 10,
+          modifiedAtFs: now,
+          status: "complete",
+        },
         { fileId: second, sha256: "", status: "failed" },
       ],
       now,
     );
+    expect(
+      db
+        .prepare(
+          "SELECT source_size_at_hash, source_modified_at_fs_at_hash FROM hashes WHERE file_id = ?",
+        )
+        .get(first),
+    ).toEqual({ source_size_at_hash: 10, source_modified_at_fs_at_hash: now });
 
     expect(countPendingHashes(db, volumeId)).toBe(1);
     resetFailedStage(db, "hashes");
@@ -254,7 +268,14 @@ describe("scan stage repository", () => {
       db,
       volumeId,
       [
-        { fileId: full, kind: "full", sha256: "a".repeat(64), status: "complete" },
+        {
+          fileId: full,
+          kind: "full",
+          sha256: "a".repeat(64),
+          size: 50,
+          modifiedAtFs: now,
+          status: "complete",
+        },
         {
           fileId: quickUnique,
           kind: "quick",
@@ -300,7 +321,16 @@ describe("scan stage repository", () => {
     saveHashBatch(
       db,
       volumeId,
-      [{ fileId: quickPeerA, kind: "full", sha256: "d".repeat(64), status: "complete" }],
+      [
+        {
+          fileId: quickPeerA,
+          kind: "full",
+          sha256: "d".repeat(64),
+          size: 300,
+          modifiedAtFs: now,
+          status: "complete",
+        },
+      ],
       now,
     );
     expect(countPendingHashes(db, volumeId)).toBe(2);

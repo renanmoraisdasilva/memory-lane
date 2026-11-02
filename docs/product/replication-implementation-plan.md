@@ -27,7 +27,7 @@ implemented.
 - Slice 1: adoption, coverage, and planning — implemented.
 - Slice 2: partial execution and run lifecycle — implemented.
 - Slice 3: full copy and promotion — implemented.
-- Verification: 522 tests across 133 files, 10 Electron E2E flows, and coverage
+- Verification: 530 tests across 134 files, 10 Electron E2E flows, and coverage
   above the configured floors. The physical-drive replication release pass is
   still tracked in the roadmap and release checklist.
 
@@ -498,7 +498,9 @@ Backfill rules:
 - existing `drive_identity.volume_id` becomes
   `archive_identity.active_source_volume_id`;
 - `catalog_id` is a new stable UUID stored once;
-- existing hashes get null size/mtime and are re-hashed before use as coverage.
+- existing hashes get null size/mtime; they are trusted only when the file's
+  modified time is not newer than the hash timestamp, otherwise they are
+  re-hashed before use as coverage.
 
 Set `CATALOG_SCHEMA_VERSION = 7`. Update every test fixture and assertion that
 currently expects 6.
@@ -783,7 +785,7 @@ Failure path:
 | R-04 | `files.source_membership` defaults/backfills to `source` | Integration | migration test |
 | R-05 | Replica and run tables enforce status, path, and uniqueness constraints | Integration | repository tests |
 | R-06 | At most one active run per source is enforced | Integration | unique-index/trigger test |
-| R-07 | Hash records store source size and modified time; missing values force rehash | Unit/integration | source-hash test |
+| R-07 | Hash records store source size and modified time; legacy values rehash only when the file changed after hashing | Unit/integration | source-hash test |
 | R-08 | A destination catalog can be opened while the source catalog stays open | Integration | catalog-registry test |
 | R-09 | The source catalog cannot be opened as a destination | Integration | catalog-registry test |
 | R-10 | Duplicate catalog paths are rejected | Integration | catalog-registry test |

@@ -17,6 +17,7 @@ function sourceFile(overrides: Partial<ReplicationSourceFile> = {}): Replication
     sha256: "a".repeat(64),
     sourceSizeAtHash: 10,
     sourceModifiedAtFsAtHash: "2026-01-01T00:00:00.000Z",
+    hashedAt: "2026-01-02T00:00:00.000Z",
     resolvedDate: "2011-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -112,6 +113,33 @@ describe("adoption file processor", () => {
     expect(result.touchedFileId).toBe(1);
     expect(result.replica).toBeNull();
     expect(saveSourceHash).not.toHaveBeenCalled();
+  });
+
+  it("uses the fast path for a legacy hash when the file predates the hash", async () => {
+    const { result, saveSourceHash } = await process(
+      sourceFile({ sourceSizeAtHash: null, sourceModifiedAtFsAtHash: null }),
+      destinationFile(),
+      { existing: existingReplica() },
+    );
+    expect(result.touchedFileId).toBe(1);
+    expect(result.replica).toBeNull();
+    expect(saveSourceHash).not.toHaveBeenCalled();
+  });
+
+  it("rehashes a legacy hash when the file changed after hashing", async () => {
+    const { result, saveSourceHash } = await process(
+      sourceFile({
+        sourceSizeAtHash: null,
+        sourceModifiedAtFsAtHash: null,
+        modifiedAtFs: "2026-01-03T00:00:00.000Z",
+        hashedAt: "2026-01-02T00:00:00.000Z",
+      }),
+      destinationFile(),
+      { existing: existingReplica() },
+    );
+    expect(saveSourceHash).toHaveBeenCalledWith(expect.objectContaining({ fileId: 1, size: 10 }));
+    expect(result.touchedFileId).toBe(1);
+    expect(result.replica).toBeNull();
   });
 
   it("marks a different hash at an expected path as a conflict", async () => {

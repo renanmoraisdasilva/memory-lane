@@ -2,6 +2,7 @@ import path from "node:path";
 import type { RunError } from "@shared/contracts/replication/types";
 import type { ReplicationSourceFile } from "../../../db/repositories/replication-source-repository";
 import { relativePathKey } from "../../../platform/destination-path-policy";
+import { trustedSourceHashValue } from "../domain/source-hash-trust";
 import { copyVerifiedFile, type FileCopyResult } from "../infrastructure/file-copier";
 import type { DestinationWriter } from "../infrastructure/destination-writer";
 import type { ExecutionDestination } from "./plan-service";
@@ -22,11 +23,7 @@ export function addError(control: RunControl, error: RunError): void {
 }
 
 function trustedHash(file: ReplicationSourceFile): string | null {
-  return file.sha256 !== null &&
-    file.sourceSizeAtHash === file.size &&
-    file.sourceModifiedAtFsAtHash === file.modifiedAtFs
-    ? file.sha256
-    : null;
+  return trustedSourceHashValue(file);
 }
 
 function updateSpeed(control: RunControl, now: Date): void {

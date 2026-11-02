@@ -14,6 +14,7 @@ const SourceFileRowSchema = z.object({
   sha256: z.string().nullable(),
   source_size_at_hash: z.number().int().nonnegative().nullable(),
   source_modified_at_fs_at_hash: z.string().nullable(),
+  hashed_at: z.string().nullable(),
   resolved_date: z.string().nullable(),
 });
 
@@ -29,6 +30,7 @@ export interface ReplicationSourceFile {
   sha256: string | null;
   sourceSizeAtHash: number | null;
   sourceModifiedAtFsAtHash: string | null;
+  hashedAt: string | null;
   resolvedDate: string | null;
 }
 
@@ -78,7 +80,7 @@ export function listSourceFiles(
     .prepare(
       `SELECT
          f.id, f.path, f.name, f.size, f.modified_at_fs, f.state, f.media_class,
-         h.sha256, h.source_size_at_hash, h.source_modified_at_fs_at_hash,
+         h.sha256, h.source_size_at_hash, h.source_modified_at_fs_at_hash, h.hashed_at,
          fd.resolved_date
        FROM files f
        LEFT JOIN hashes h ON h.file_id = f.id AND h.status = 'complete'
@@ -107,6 +109,7 @@ export function listSourceFiles(
       sha256: data.sha256,
       sourceSizeAtHash: data.source_size_at_hash,
       sourceModifiedAtFsAtHash: data.source_modified_at_fs_at_hash,
+      hashedAt: data.hashed_at,
       resolvedDate: data.resolved_date,
     };
   });

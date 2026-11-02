@@ -14,6 +14,7 @@ import type {
 import type { DestinationLibraryFileInput } from "../../../db/repositories/replication-destination-library-repository";
 import type { ReplicationSourceFile } from "../../../db/repositories/replication-source-repository";
 import { relativePathKey } from "../../../platform/destination-path-policy";
+import { trustedSourceHashValue } from "../domain/source-hash-trust";
 
 export interface ReplicationFileHasher {
   hash(filePath: string): Promise<string>;
@@ -48,11 +49,7 @@ export interface ProcessedAdoptionFile {
 }
 
 function trustedSourceHash(source: ReplicationSourceFile): boolean {
-  return (
-    source.sha256 !== null &&
-    source.sourceSizeAtHash === source.size &&
-    source.sourceModifiedAtFsAtHash === source.modifiedAtFs
-  );
+  return trustedSourceHashValue(source) !== null;
 }
 
 async function sourceHashFor(

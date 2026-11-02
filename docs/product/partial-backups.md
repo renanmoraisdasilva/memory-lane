@@ -525,9 +525,11 @@ have unhashed files because the user paused the hash stage. In that case:
   is reported.
 
 The hash record must store the source size and modified time observed at hash
-time. If an existing hash lacks those values, re-hash the source before using
-it for coverage. Hashing is coordinated with the existing scan/hash pipeline so
-the same file is not hashed twice at the same time.
+time. If an existing hash lacks those values, trust it only when the file's
+modified time is not newer than the hash timestamp; otherwise the file changed
+after hashing and the source must be re-hashed before the hash is used for
+coverage. Hashing is coordinated with the existing scan/hash pipeline so the
+same file is not hashed twice at the same time.
 
 This makes adoption also complete the source hash coverage. It is a one-time
 read cost, resumable, and never changes the source.
@@ -551,9 +553,10 @@ run:
 A replica is re-hashed only when the source or destination size or modified
 time changed, the user requests a deep verification, or the previous status was
 not `verified`. The fast path trusts the stored hash when size and modified time
-match. It cannot detect bit rot or tampering that preserves both. Deep
-verification re-reads the file and is the only way to catch that; run it
-periodically or on demand.
+match. A legacy hash without those values is trusted only when the file was not
+modified after hashing. It cannot detect bit rot or tampering that preserves
+both. Deep verification re-reads the file and is the only way to catch that; run
+it periodically or on demand.
 
 The UI must call a file `verified` only from a stored hash comparison, and deep
 verification remains available.
@@ -2003,8 +2006,9 @@ catalogs.
 ### 12.7 Hash freshness and indexes
 
 The existing `hashes` table must record the source size and modified time
-observed at hash time, or a companion table must. Without them, a stored hash
-cannot be trusted for coverage and the source is re-hashed.
+observed at hash time, or a companion table must. A legacy hash without those
+values is trusted only when the file's modified time is not newer than the hash
+timestamp; otherwise the source is re-hashed.
 
 Recommended indexes:
 

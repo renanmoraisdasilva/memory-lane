@@ -109,12 +109,16 @@ export function saveHashBatch(
 ): void {
   assertVolume(db, volumeId);
   const upsertHash = db.prepare(
-    `INSERT INTO hashes (file_id, sha256, hashed_at, status)
-     VALUES (?, ?, ?, ?)
+    `INSERT INTO hashes (
+       file_id, sha256, hashed_at, status, source_size_at_hash, source_modified_at_fs_at_hash
+     )
+     VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT(file_id) DO UPDATE SET
        sha256 = excluded.sha256,
        hashed_at = excluded.hashed_at,
-       status = excluded.status`,
+       status = excluded.status,
+       source_size_at_hash = excluded.source_size_at_hash,
+       source_modified_at_fs_at_hash = excluded.source_modified_at_fs_at_hash`,
   );
   const upsertQuick = db.prepare(
     `INSERT INTO quick_hashes (
@@ -143,7 +147,11 @@ export function saveHashBatch(
         );
         continue;
       }
-      upsertHash.run(item.fileId, item.sha256, now, item.status);
+      if (item.status === "complete") {
+        upsertHash.run(item.fileId, item.sha256, now, item.status, item.size, item.modifiedAtFs);
+      } else {
+        upsertHash.run(item.fileId, item.sha256, now, item.status, null, null);
+      }
       deleteQuick.run(item.fileId);
     }
   });
