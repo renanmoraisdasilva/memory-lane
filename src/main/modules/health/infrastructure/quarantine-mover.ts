@@ -6,6 +6,7 @@ import type {
   DuplicateCleanupMove,
   DuplicateCleanupPlan,
 } from "@shared/contracts/health";
+import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { FileHasher } from "../../scanning/domain/scan-files";
 import { assertPathInside } from "../../../platform/path-guard";
 
@@ -27,7 +28,14 @@ export interface QuarantineMoveResult {
 }
 
 interface JournalEntry {
-  type: "run-started" | "run-finished" | "group-skipped" | "file-moved" | "file-skipped";
+  type:
+    | "run-started"
+    | "run-finished"
+    | "group-skipped"
+    | "file-moved"
+    | "file-skipped"
+    | "file-restored"
+    | "file-restore-failed";
   at: string;
   runId: number;
   groupId?: number;
@@ -167,6 +175,26 @@ export class QuarantineMover {
       return { move: null, skipReason: "rename-failed" };
     }
 
+    const destinationHash = await this.hashDestination(destination);
+    if (destinationHash !== input.group.sha256) {
+      const reason =
+        destinationHash === null ? "destination-unreadable" : "destination-hash-mismatch";
+      if (!(await this.restoreSource(source, destination, input, reason))) {
+        throw new AppError(
+          APP_ERROR_CODES.INTERNAL,
+          "A quarantined file failed verification and could not be restored",
+          { source: input.candidate.path, destination },
+        );
+      }
+      await this.appendSkip({
+        groupId: input.group.groupId,
+        file: input.candidate,
+        reason,
+        at: input.movedAt,
+      });
+      return { move: null, skipReason: reason };
+    }
+
     const move: DuplicateCleanupMove = {
       fileId: input.candidate.fileId,
       sourcePath: input.candidate.path,
@@ -220,6 +248,53 @@ export class QuarantineMover {
       reason: status,
       ...(detail === undefined ? {} : { detail }),
     });
+  }
+
+  private async hashDestination(destination: string): Promise<string | null> {
+    try {
+      return await this.hasher.hash(destination);
+    } catch {
+      return null;
+    }
+  }
+
+  private async restoreSource(
+    source: string,
+    destination: string,
+    input: {
+      group: DuplicateCleanupGroup;
+      candidate: DuplicateCleanupFile;
+      movedAt: string;
+    },
+    reason: string,
+  ): Promise<boolean> {
+    try {
+      await rename(destination, source);
+      await this.append({
+        type: "file-restored",
+        at: input.movedAt,
+        runId: this.runId,
+        groupId: input.group.groupId,
+        fileId: input.candidate.fileId,
+        path: input.candidate.path,
+        destination,
+        reason,
+      });
+      return true;
+    } catch (error) {
+      await this.append({
+        type: "file-restore-failed",
+        at: input.movedAt,
+        runId: this.runId,
+        groupId: input.group.groupId,
+        fileId: input.candidate.fileId,
+        path: input.candidate.path,
+        destination,
+        reason,
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
   }
 
   private async uniqueDestination(target: string): Promise<string> {

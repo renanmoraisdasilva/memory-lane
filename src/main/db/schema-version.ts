@@ -1,1 +1,1 @@
-export const CATALOG_SCHEMA_VERSION = 11;
+export const CATALOG_SCHEMA_VERSION = 12;

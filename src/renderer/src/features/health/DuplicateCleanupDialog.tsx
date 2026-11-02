@@ -24,8 +24,8 @@ function filesLabel(count: number): string {
 function CleanupRuleCard(): React.JSX.Element {
   return (
     <div className={styles.cleanupRuleCard}>
-      <strong>Keep one copy per group:</strong> oldest created file, then oldest modified, then
-      shallower and shorter path, then shorter name.
+      <strong>Keep one copy per group:</strong> a verified backup copy first, then oldest created
+      file, then oldest modified, then shallower and shorter path, then shorter name.
     </div>
   );
 }
@@ -91,10 +91,23 @@ export function CleanupConfirmDialog({
         <AlertTriangle size={14} aria-hidden="true" />
         <div>
           <strong>{formatCount(summary.skippedGroups)} groups will be skipped.</strong>{" "}
-          {skippedSummary(summary)}. The mover re-checks every file with full SHA-256 before it
-          moves; changed or missing files are skipped.
+          {skippedSummary(summary)}. The mover re-checks the source and the quarantined copy with
+          full SHA-256; changed or unreadable files are skipped.
         </div>
       </div>
+      {summary.groupsWithoutCoverage > 0 ? (
+        <div className={styles.cleanupWarning}>
+          <AlertTriangle size={14} aria-hidden="true" />
+          <div>
+            <strong>
+              {formatCount(summary.groupsWithoutCoverage)} groups have no verified backup for any
+              copy.
+            </strong>{" "}
+            Cleanup is allowed, but keep the quarantine folder until the archive has another
+            verified copy. It is not a backup yet.
+          </div>
+        </div>
+      ) : null}
       <label className={styles.cleanupAck}>
         <input
           type="checkbox"
@@ -210,6 +223,18 @@ function completionMessage(state: DuplicateCleanupState): string {
 function CompletionNotes({ state }: { state: DuplicateCleanupState }): React.JSX.Element {
   return (
     <>
+      {state.groupsWithoutCoverage > 0 ? (
+        <div className={styles.cleanupWarning}>
+          <AlertTriangle size={14} aria-hidden="true" />
+          <div>
+            <strong>
+              {formatCount(state.groupsWithoutCoverage)} groups in this run had no verified backup.
+            </strong>{" "}
+            Keep the quarantine folder until the archive has another verified copy. It is not a
+            backup yet.
+          </div>
+        </div>
+      ) : null}
       {state.filesSkipped > 0 ? (
         <p className={styles.cleanupNote}>
           <ShieldCheck size={12} aria-hidden="true" /> {formatCount(state.filesSkipped)} files were

@@ -1,7 +1,56 @@
+import { AlertTriangle } from "lucide-react";
 import type { DuplicateCleanupSummary } from "@shared/contracts/health";
 import { formatBytes, formatCount } from "../../lib/format";
 import { skippedSummary } from "./duplicate-cleanup-labels";
 import styles from "./HealthPage.module.css";
+
+function CleanupEligibility({ summary }: { summary: DuplicateCleanupSummary }): React.JSX.Element {
+  return (
+    <div className={styles.cleanupEligibility}>
+      <span>
+        {formatCount(summary.eligibleGroups)} eligible · {formatCount(summary.filesToMove)} files ·{" "}
+        {formatBytes(summary.bytesToMove)}
+      </span>
+      <span>
+        {formatCount(summary.skippedGroups)} skipped
+        {summary.skippedGroups > 0 ? `: ${skippedSummary(summary)}` : ""}
+      </span>
+    </div>
+  );
+}
+
+function CoverageWarning({
+  summary,
+}: {
+  summary: DuplicateCleanupSummary;
+}): React.JSX.Element | null {
+  if (summary.groupsWithoutCoverage === 0) {
+    return null;
+  }
+  return (
+    <div className={styles.cleanupWarning}>
+      <AlertTriangle size={14} aria-hidden="true" />
+      <div>
+        <strong>
+          {formatCount(summary.groupsWithoutCoverage)} groups have no verified backup.
+        </strong>{" "}
+        Cleanup is allowed, but the quarantine folder is not a backup until you copy it somewhere
+        else. Keep it until the archive has another verified copy.
+      </div>
+    </div>
+  );
+}
+
+function CleanupError({ error }: { error: unknown }): React.JSX.Element | null {
+  if (error === null || error === undefined) {
+    return null;
+  }
+  return (
+    <p className={styles.error} role="alert">
+      {error instanceof Error ? error.message : "Cleanup eligibility could not be loaded."}
+    </p>
+  );
+}
 
 export function DuplicateCleanupBar({
   summary,
@@ -50,27 +99,13 @@ export function DuplicateCleanupBar({
         </div>
       </section>
       <div className={styles.cleanupRule}>
-        <strong>Keep:</strong> oldest copy → older modified time → shallower and shorter path →
-        shorter name. Groups without a verified keeper backup, with date overrides, hard links,
+        <strong>Keep:</strong> a verified backup copy first, then oldest created → older modified
+        time → shallower and shorter path → shorter name. Groups with date overrides, hard links,
         empty files, or files under 1 KB are skipped.
       </div>
-      {summary === undefined ? null : (
-        <div className={styles.cleanupEligibility}>
-          <span>
-            {formatCount(summary.eligibleGroups)} eligible · {formatCount(summary.filesToMove)}{" "}
-            files · {formatBytes(summary.bytesToMove)}
-          </span>
-          <span>
-            {formatCount(summary.skippedGroups)} skipped
-            {summary.skippedGroups > 0 ? `: ${skippedSummary(summary)}` : ""}
-          </span>
-        </div>
-      )}
-      {error === null || error === undefined ? null : (
-        <p className={styles.error} role="alert">
-          {error instanceof Error ? error.message : "Cleanup eligibility could not be loaded."}
-        </p>
-      )}
+      {summary === undefined ? null : <CleanupEligibility summary={summary} />}
+      {summary === undefined ? null : <CoverageWarning summary={summary} />}
+      <CleanupError error={error} />
     </>
   );
 }

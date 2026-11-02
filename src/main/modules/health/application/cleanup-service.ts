@@ -40,11 +40,9 @@ export interface CleanupServiceDependencies {
   now?: () => Date;
   createMover?: (hasher: FileHasher) => QuarantineMover;
 }
-
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
-
 function runFolderName(startedAt: string): string {
   const stamp = startedAt.replace(/[^0-9]/g, "").slice(0, 17);
   return `run-${stamp}-${randomUUID().slice(0, 8)}`;
@@ -107,6 +105,7 @@ export class CleanupService {
         keeperRule: plan.keeperRule,
         rootPath: plan.rootPath,
         groupsTotal: plan.groups.length,
+        groupsWithoutCoverage: plan.summary.groupsWithoutCoverage,
         filesTotal: plan.summary.filesToMove,
         bytesTotal: plan.summary.bytesToMove,
         quarantinePath,
@@ -135,6 +134,7 @@ export class CleanupService {
       state: {
         ...state,
         groupsTotal: plan.groups.length,
+        groupsWithoutCoverage: plan.summary.groupsWithoutCoverage,
         filesTotal: plan.summary.filesToMove,
         bytesTotal: plan.summary.bytesToMove,
         cancelRequested: false,

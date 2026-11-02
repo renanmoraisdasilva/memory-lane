@@ -30,38 +30,44 @@ The HTML mockup is the source of truth for layout and states.
 
 ## Decisions
 
-- Keeper rule: **oldest original**.
+- Keeper rule: **oldest covered copy**. A verified backup copy is preferred; if
+  several copies are covered, the oldest covered copy wins. If no copy is
+  covered, the normal oldest/path/name rule wins.
 - Scope: all eligible groups; no user-defined protected folders.
 - Catalog after a move: **delete the moved rows**, with a journal and
   `cleanup_moves` audit record.
-- Candidate-only protection: **skip the group**.
-- No verified coverage: **skip the group**.
+- Coverage: **not an eligibility gate**. Groups with no covered copy are
+  included with a warning; a covered copy is promoted to keeper when one exists.
 - Small files: **skip empty files; include 1 KB and larger**.
 - Enablement: the **Move** button is live in the first release; no read-only
   preview phase and no settings toggle.
 - Progress: **cancel only** for the first release.
 - Quarantine layout: one **run subfolder** per cleanup.
+- Verification: **hash the source before the move and the quarantine copy
+  after it**; restore the source if the destination copy does not match.
 
 System paths `.memorylane` and `.memorylane_quarantine` are always excluded.
 They are not user-defined exclusions.
 
 ## Keeper rule
 
-1. Oldest `created_at_fs`
-2. Oldest `modified_at_fs`
-3. Shallower path, then shorter path
-4. Shorter file name
-5. Lower file ID
+1. Any copy with verified backup coverage, if one exists
+2. Oldest `created_at_fs` among the remaining candidates
+3. Oldest `modified_at_fs`
+4. Shallower path, then shorter path
+5. Shorter file name
+6. Lower file ID
 
 Path and name length are tiebreakers, not the primary rule. A short path can be
-a backup folder; oldest creation is a better signal of the original.
+a backup folder; oldest creation is a better signal of the original. Coverage is
+a preference: when any copy is covered, only covered copies are considered for
+keeper. When no copy is covered, the group is still eligible and the normal rule
+applies.
 
 Protection is a gate, not a ranking preference:
 
-- The selected keeper must have verified backup coverage.
 - No non-keeper copy may have an active date override.
 - If more than one copy has an active date override, skip the group.
-- If a non-keeper copy is the only covered copy, skip the group.
 - Never move the last eligible copy.
 
 ## Eligibility
@@ -69,13 +75,15 @@ Protection is a gate, not a ranking preference:
 A group is eligible only when:
 
 - It has at least two eligible present files.
-- The chosen keeper has verified backup coverage.
 - No non-keeper copy has an active date override.
-- No non-keeper copy is the only copy with verified coverage.
 - No hard-link ambiguity exists.
 - Files are not empty and not smaller than 1 KB. The scanner records `link_count`
   so hard links are detected before a plan is built; the mover checks the link
-  count again immediately before a rename.
+  count again immediately before the move.
+
+Verified backup coverage is not required. A group with no covered copy is
+eligible, but the confirmation and completion screens warn that the quarantine
+folder is not a backup until it is copied elsewhere.
 
 Groups that fail a rule are counted and reported as skipped. The cleanup never
 silently drops a group.
@@ -117,8 +125,11 @@ X:\.memorylane_quarantine\<run-id>\
 ## Guardrails
 
 - Exact full-SHA-256 groups only; re-hash keeper and candidates before moving.
+- Re-hash every file after it lands in quarantine. On mismatch, move it back to
+  its source path, journal the restore, and skip it.
 - One keeper per group; never move the last copy.
-- Only clean groups whose keeper has verified backup coverage.
+- Prefer a covered copy as keeper when one exists; allow uncovered groups with a
+  warning.
 - Quarantine, never delete; no `unlink`/`rm` in the mover.
 - Validate source paths under the catalog root and destinations under the run
   folder; reject symlink escapes.
@@ -129,9 +140,13 @@ X:\.memorylane_quarantine\<run-id>\
 ## Edge cases
 
 - File changed or missing since scan → skip group/candidate and report.
-- Keeper missing or uncovered → skip group.
-- Candidate-only coverage or date override → skip group.
+- Keeper missing → skip group.
+- Candidate-only coverage → promote the covered candidate to keeper.
+- No coverage at all → proceed with a warning.
+- Date override on a copy that would move → skip group.
 - Multiple date overrides → skip group.
+- Quarantine copy mismatch → restore source and skip candidate, or abort if the
+  restore fails.
 - Locked/read-only file, long path, Unicode → skip/report without aborting.
 - Cross-volume rename → skip; quarantine is on the same volume.
 - Hard links → skip.
@@ -142,10 +157,11 @@ X:\.memorylane_quarantine\<run-id>\
 
 ## Tests
 
-- Keeper comparator and plan aggregation.
+- Keeper comparator, coverage preference, and plan aggregation.
 - Eligibility: no coverage, candidate-only coverage, date override, empty file,
   1 KB file, hard link.
-- Temp-dir mover: move, journal, collision, changed hash, locked/long path.
+- Temp-dir mover: move, journal, collision, changed hash, destination mismatch,
+  restore, locked/long path.
 - DB: row deletion, cascades, adoption counters, duplicate rebuild.
 - Service: workload conflict, cancel, interrupted run.
 - Renderer: button, dialog, progress, completion, pagination.

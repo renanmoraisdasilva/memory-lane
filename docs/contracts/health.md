@@ -55,19 +55,24 @@ them.
 
 - The page shows `KEEP` / `MOVE` badges for eligible groups and `SKIP` plus the
   reason for groups that fail a gate.
-- The keeper is the oldest created file, then oldest modified, then shallower and
-  shorter path, then shorter name, then lower file ID.
-- A group is eligible only when at least two present files have the same full
-  SHA-256, every file is at least 1 KB, no file is a hard link, at most one copy
-  has an active date override, and the chosen keeper has verified backup
-  coverage.
-- The confirmation requires an explicit acknowledgement. The move button is live;
-  there is no preview-only phase or settings toggle.
+- The keeper is a verified backup copy first. If several copies are covered, the
+  oldest covered copy wins, then oldest modified, then shallower and shorter
+  path, then shorter name, then lower file ID. If no copy is covered, the normal
+  oldest/path/name rule wins.
+- A group is eligible when at least two present files have the same full SHA-256,
+  every file is at least 1 KB, no file is a hard link, and at most one copy has
+  an active date override. Verified backup coverage is not required; a group with
+  no covered copy is included with a warning.
+- The confirmation requires an explicit acknowledgement and reports how many
+  groups have no verified backup. The completion screen repeats the warning. The
+  move button is live; there is no preview-only phase or settings toggle.
 - A cleanup run gets its own folder:
   `X:\.memorylane_quarantine\run-<timestamp>-<random>\` with `manifest.json` and
   `journal.jsonl`.
 - The mover re-checks the keeper and every candidate with full SHA-256
-  immediately before the same-volume rename. Changed, missing, hard-linked,
+  immediately before the same-volume move. After the move it hashes the
+  quarantined copy again. A mismatch is moved back to the source path and
+  journaled; if the restore fails, the run aborts. Changed, missing, hard-linked,
   outside-root, and rename-failed candidates are journaled and skipped.
 - Moves are applied to the catalog in batches. The moved `files` rows are deleted,
   `cleanup_moves` keeps the audit record, duplicate groups are rebuilt, and
@@ -167,9 +172,10 @@ Catalog migration 5:
 Catalog migration 10 adds `missing_files.dismissed_at` and its index.
 
 Catalog migration 11 adds `files.link_count`, `cleanup_runs`, `cleanup_moves`, and
-their indexes.
+their indexes. Catalog migration 12 adds
+`cleanup_runs.groups_without_coverage`.
 
-Catalog schema version: 11.
+Catalog schema version: 12.
 
 ## Tests
 

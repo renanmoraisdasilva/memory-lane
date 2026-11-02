@@ -122,7 +122,6 @@ function emptySkipCounts(): DuplicateCleanupSkipCounts {
     notAGroup: 0,
     empty: 0,
     belowMinimumSize: 0,
-    keeperNotCovered: 0,
     candidateDateOverride: 0,
     multipleDateOverrides: 0,
     hardLink: 0,
@@ -139,9 +138,6 @@ function addSkip(skipCounts: DuplicateCleanupSkipCounts, reason: DuplicateCleanu
       return;
     case "below-minimum-size":
       skipCounts.belowMinimumSize += 1;
-      return;
-    case "keeper-not-covered":
-      skipCounts.keeperNotCovered += 1;
       return;
     case "candidate-date-override":
       skipCounts.candidateDateOverride += 1;
@@ -165,6 +161,7 @@ export function summarizeDuplicateEvaluations(
   let totalFiles = 0;
   let totalDuplicateBytes = 0;
   let eligibleGroups = 0;
+  let groupsWithoutCoverage = 0;
   let filesToMove = 0;
   let bytesToMove = 0;
 
@@ -177,6 +174,9 @@ export function summarizeDuplicateEvaluations(
       continue;
     }
     eligibleGroups += 1;
+    if (group.files.every((file) => !file.hasVerifiedReplica)) {
+      groupsWithoutCoverage += 1;
+    }
     filesToMove += group.files.length - 1;
     bytesToMove += group.decision.excessBytes;
   }
@@ -187,6 +187,7 @@ export function summarizeDuplicateEvaluations(
     totalDuplicateBytes,
     eligibleGroups,
     skippedGroups: totalGroups - eligibleGroups,
+    groupsWithoutCoverage,
     filesToMove,
     bytesToMove,
     keepers: eligibleGroups,

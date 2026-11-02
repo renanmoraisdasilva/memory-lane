@@ -8,7 +8,6 @@ export const DUPLICATE_CLEANUP_SKIP_REASONS = [
   "not-a-group",
   "empty",
   "below-minimum-size",
-  "keeper-not-covered",
   "candidate-date-override",
   "multiple-date-overrides",
   "hard-link",
@@ -88,7 +87,9 @@ function compareKeeper(left: DuplicateCleanupFile, right: DuplicateCleanupFile):
 }
 
 function chooseKeeper(files: DuplicateCleanupFile[]): DuplicateCleanupFile {
-  return files.reduce((best, file) => (compareKeeper(file, best) < 0 ? file : best));
+  const covered = files.filter((file) => file.hasVerifiedReplica);
+  const pool = covered.length > 0 ? covered : files;
+  return pool.reduce((best, file) => (compareKeeper(file, best) < 0 ? file : best));
 }
 
 export function chooseDuplicateKeeper(files: DuplicateCleanupFile[]): DuplicateCleanupFile | null {
@@ -102,6 +103,9 @@ export function duplicateKeeperReason(
   files: DuplicateCleanupFile[],
   keeper: DuplicateCleanupFile,
 ): string {
+  if (keeper.hasVerifiedReplica && files.some((file) => !file.hasVerifiedReplica)) {
+    return "verified backup";
+  }
   if (files.some((file) => compareNullableDate(file.createdAtFs, keeper.createdAtFs) !== 0)) {
     return "oldest created";
   }
@@ -161,7 +165,7 @@ function ineligibleReason(
   if (overrides.length === 1 && overrides[0]?.fileId !== keeper.fileId) {
     return "candidate-date-override";
   }
-  return keeper.hasVerifiedReplica ? null : "keeper-not-covered";
+  return null;
 }
 
 export function evaluateDuplicateGroup(

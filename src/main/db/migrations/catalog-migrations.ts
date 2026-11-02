@@ -9,6 +9,7 @@ import catalogQuickHashes from "./catalog/0008-quick-hashes.sql?raw";
 import catalogVideoProxies from "./catalog/0009-video-proxies.sql?raw";
 import catalogMissingDismissals from "./catalog/0010-missing-dismissals.sql?raw";
 import catalogCleanup from "./catalog/0011-cleanup.sql?raw";
+import catalogCleanupCoverage from "./catalog/0012-cleanup-coverage.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -66,5 +67,10 @@ export const catalogMigrations: Migration[] = [
     version: 11,
     name: "duplicate quarantine runs and hard-link counts",
     sql: catalogCleanup,
+  },
+  {
+    version: 12,
+    name: "duplicate quarantine coverage warning count",
+    sql: catalogCleanupCoverage,
   },
 ];

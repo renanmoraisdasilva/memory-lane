@@ -5,7 +5,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
-import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
+import { AppError } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
 import { createCleanupDbHandlers } from "../../../db/cleanup-db-handlers";
 import { catalogMigrations } from "../../../db/migrations/catalog-migrations";
@@ -75,7 +75,7 @@ async function createHarness(
       rootPath: root,
       letter: "X:",
     },
-    11,
+    12,
   );
 
   const content = Buffer.alloc(2048, 5);
@@ -203,11 +203,18 @@ describe("cleanup service", () => {
     harness.db.close();
   });
 
-  it("rejects a start when no group has verified keeper coverage", async () => {
+  it("allows a run when no copy has verified coverage and reports the warning count", async () => {
     const harness = await createHarness();
     harness.db.prepare("DELETE FROM replica_files").run();
-    await expect(harness.service.start()).rejects.toMatchObject({
-      code: APP_ERROR_CODES.INVALID_REQUEST,
+    const state = await harness.service.start();
+    expect(state.groupsWithoutCoverage).toBe(1);
+    await waitForTerminal(harness.service);
+
+    const finished = await harness.service.getState();
+    expect(finished).toMatchObject({
+      status: "complete",
+      groupsWithoutCoverage: 1,
+      filesMoved: 1,
     });
     harness.db.close();
   });

@@ -9,7 +9,6 @@ const SKIP_LABELS: Record<keyof DuplicateCleanupSkipCounts, string> = {
   notAGroup: "not a group",
   empty: "empty files",
   belowMinimumSize: "files under 1 KB",
-  keeperNotCovered: "keeper has no verified backup",
   candidateDateOverride: "date override on a copy that would move",
   multipleDateOverrides: "multiple date overrides",
   hardLink: "hard-linked copies",
@@ -23,8 +22,6 @@ export function skipReasonLabel(reason: DuplicateGroup["skipReason"]): string {
       return SKIP_LABELS.empty;
     case "below-minimum-size":
       return SKIP_LABELS.belowMinimumSize;
-    case "keeper-not-covered":
-      return SKIP_LABELS.keeperNotCovered;
     case "candidate-date-override":
       return SKIP_LABELS.candidateDateOverride;
     case "multiple-date-overrides":

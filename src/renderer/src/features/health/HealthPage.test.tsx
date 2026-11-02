@@ -248,6 +248,7 @@ describe("HealthPage", () => {
       totalDuplicateBytes: 4096,
       eligibleGroups: 1,
       skippedGroups: 0,
+      groupsWithoutCoverage: 1,
       filesToMove: 1,
       bytesToMove: 2048,
       keepers: 1,
@@ -255,7 +256,6 @@ describe("HealthPage", () => {
         notAGroup: 0,
         empty: 0,
         belowMinimumSize: 0,
-        keeperNotCovered: 0,
         candidateDateOverride: 0,
         multipleDateOverrides: 0,
         hardLink: 0,
@@ -270,6 +270,7 @@ describe("HealthPage", () => {
       groupsTotal: 1,
       groupsProcessed: 0,
       groupsSkipped: 0,
+      groupsWithoutCoverage: 0,
       filesTotal: 1,
       filesMoved: 0,
       filesSkipped: 0,
@@ -291,6 +292,7 @@ describe("HealthPage", () => {
     expect(await screen.findByText("2 exact copies")).toBeVisible();
     expect(screen.getByText("KEEP")).toBeVisible();
     expect(screen.getByText("MOVE")).toBeVisible();
+    expect(await screen.findByText(/groups have no verified backup/)).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Move duplicates to quarantine" }));
     expect(
       await screen.findByRole("dialog", { name: "Move duplicates to quarantine?" }),

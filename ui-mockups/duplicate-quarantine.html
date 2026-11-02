@@ -407,7 +407,12 @@
 
             <div class="cleanup-rule">
               <span class="icon">rule</span>
-              <div><strong>Keep:</strong> oldest copy → older modified time → shallower and shorter path → shorter name. Groups without a verified keeper backup, with date overrides, hard links, empty files, or files under 1 KB are skipped.</div>
+              <div><strong>Keep:</strong> a verified backup copy first, then oldest copy → older modified time → shallower and shorter path → shorter name. Groups with date overrides, hard links, empty files, or files under 1 KB are skipped. Groups with no verified backup are included with a warning.</div>
+            </div>
+
+            <div class="cleanup-warning">
+              <span class="icon">warning</span>
+              <div><strong>12 groups have no verified backup.</strong> Cleanup is allowed, but keep the quarantine folder until the archive has another verified copy. It is not a backup yet.</div>
             </div>
 
             <article class="cleanup-group">
@@ -476,7 +481,7 @@
               </div>
             </article>
 
-            <p class="cleanup-footer-note">Groups with no verified backup, conflicting dates, or candidate-only coverage are skipped. Empty files are excluded; 1 KB+ files are included. Showing 2 of 128 groups.</p>
+            <p class="cleanup-footer-note">Groups with date overrides, hard links, empty files, or files under 1 KB are skipped. Groups with no verified backup are included with a warning. Showing 2 of 128 groups.</p>
           </section>
 
           <section class="tab-panel" data-panel="validation" role="tabpanel">
@@ -508,8 +513,8 @@
           <strong>128</strong> keepers stay · <strong>214</strong> files move · about <strong>3.1 GB</strong>
         </div>
         <div class="cleanup-rule-card">
-          <strong>Keep one copy per group:</strong> oldest created, then older modified, then
-          shallower and shorter path, then shorter name.
+          <strong>Keep one copy per group:</strong> a verified backup copy first, then oldest
+          created, then older modified, then shallower and shorter path, then shorter name.
         </div>
         <div class="cleanup-path">
           <div class="kv"><span>Quarantine folder</span><span>X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</span></div>
@@ -517,7 +522,11 @@
         </div>
         <div class="cleanup-warning">
           <span class="icon">warning</span>
-          <div><strong>Groups with no verified backup, conflicting dates, or candidate-only coverage are skipped.</strong> Empty files are excluded; 1 KB+ files are included.</div>
+          <div><strong>Groups with conflicting dates, hard links, empty files, or files under 1 KB are skipped.</strong> The mover re-checks the source and the quarantined copy with full SHA-256.</div>
+        </div>
+        <div class="cleanup-warning">
+          <span class="icon">warning</span>
+          <div><strong>12 groups have no verified backup for any copy.</strong> Cleanup is allowed, but keep the quarantine folder until the archive has another verified copy. It is not a backup yet.</div>
         </div>
         <label class="cleanup-ack">
           <input type="checkbox" id="cleanup-ack">
@@ -574,7 +583,11 @@
             <div class="callout__body">Nothing was permanently deleted. The journal in the quarantine folder maps every source path.</div>
           </div>
         </div>
-        <div class="cleanup-path" style="margin-top:12px">
+        <div class="cleanup-warning" style="margin-top:12px">
+          <span class="icon">warning</span>
+          <div><strong>12 groups in this run had no verified backup.</strong> Keep the quarantine folder until the archive has another verified copy. It is not a backup yet.</div>
+        </div>
+        <div class="cleanup-path">
           <div class="kv"><span>Quarantine folder</span><span>X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</span></div>
           <div class="path-box">X:\.memorylane_quarantine\demo-2026-01-15T12-00-00\</div>
         </div>

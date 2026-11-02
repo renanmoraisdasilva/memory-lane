@@ -40,6 +40,27 @@ describe("duplicate cleanup keeper", () => {
     expect(chooseDuplicateKeeper([newerModified, olderModified])?.fileId).toBe(3);
   });
 
+  it("prefers a covered copy over an older uncovered copy", () => {
+    const olderUncovered = file({
+      fileId: 1,
+      createdAtFs: "2010-01-01T00:00:00.000Z",
+      hasVerifiedReplica: false,
+    });
+    const newerCovered = file({
+      fileId: 2,
+      createdAtFs: "2024-01-01T00:00:00.000Z",
+      hasVerifiedReplica: true,
+    });
+    expect(chooseDuplicateKeeper([olderUncovered, newerCovered])?.fileId).toBe(2);
+
+    const secondCovered = file({
+      fileId: 3,
+      createdAtFs: "2020-01-01T00:00:00.000Z",
+      hasVerifiedReplica: true,
+    });
+    expect(chooseDuplicateKeeper([newerCovered, secondCovered])?.fileId).toBe(3);
+  });
+
   it("treats missing creation time as later, then uses path and name length", () => {
     const noDate = file({ fileId: 1, createdAtFs: null });
     const dated = file({ fileId: 2, createdAtFs: "2024-01-01T00:00:00.000Z" });
@@ -78,7 +99,7 @@ describe("duplicate cleanup eligibility", () => {
     });
   });
 
-  it("rejects a single file, empty files, tiny files, and uncovered keepers", () => {
+  it("rejects a single file, empty files, and tiny files", () => {
     expect(evaluateDuplicateGroup([file()])?.skipReason).toBe("not-a-group");
     expect(
       evaluateDuplicateGroup([file({ sizeBytes: 0 }), file({ fileId: 2, sizeBytes: 0 })])
@@ -88,12 +109,16 @@ describe("duplicate cleanup eligibility", () => {
       evaluateDuplicateGroup([file({ sizeBytes: 512 }), file({ fileId: 2, sizeBytes: 512 })])
         ?.skipReason,
     ).toBe("below-minimum-size");
-    expect(
-      evaluateDuplicateGroup([
-        file({ hasVerifiedReplica: false }),
-        file({ fileId: 2, hasVerifiedReplica: false }),
-      ])?.skipReason,
-    ).toBe("keeper-not-covered");
+  });
+
+  it("accepts a group when no copy has verified coverage", () => {
+    const keeper = file({ fileId: 1, hasVerifiedReplica: false });
+    const candidate = file({ fileId: 2, hasVerifiedReplica: false });
+    expect(evaluateDuplicateGroup([keeper, candidate])).toMatchObject({
+      eligible: true,
+      skipReason: null,
+      keeper: { fileId: 1 },
+    });
   });
 
   it("skips candidate-only or multiple date overrides", () => {

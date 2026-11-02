@@ -38,7 +38,45 @@ function insertFile(db: Database.Database): number {
   return row.id;
 }
 
+function createSchemaElevenDb(): Database.Database {
+  const db = new Database(":memory:");
+  runMigrations(db, catalogMigrations.slice(0, 11));
+  ensureDriveIdentity(
+    db,
+    {
+      volumeId,
+      serialNumber: "SERIAL",
+      label: "Archive",
+      fileSystem: "NTFS",
+      rootPath: "E:\\",
+      letter: "E:",
+    },
+    11,
+  );
+  return db;
+}
+
 describe("catalog cleanup migration", () => {
+  it("adds the coverage warning counter to an existing cleanup run", () => {
+    const db = createSchemaElevenDb();
+    const existing = db
+      .prepare(
+        `INSERT INTO cleanup_runs (
+          status, keeper_rule, root_path, quarantine_path, journal_path, started_at
+        ) VALUES ('complete', 'oldest-created-then-shorter-path', 'E:\\',
+          'E:\\.memorylane_quarantine\\r0', 'E:\\.memorylane_quarantine\\r0\\journal.jsonl', ?)
+        RETURNING id`,
+      )
+      .get(now) as { id: number };
+
+    const result = runMigrations(db, catalogMigrations);
+    expect(result.version).toBe(CATALOG_SCHEMA_VERSION);
+    expect(
+      db.prepare("SELECT groups_without_coverage FROM cleanup_runs WHERE id = ?").get(existing.id),
+    ).toEqual({ groups_without_coverage: 0 });
+    db.close();
+  });
+
   it("adds hard-link counts and keeps existing files copy-safe", () => {
     const db = createSchemaTenDb();
     const fileId = insertFile(db);
@@ -57,6 +95,18 @@ describe("catalog cleanup migration", () => {
       )
       .all() as Array<{ name: string }>;
     expect(tables.map((row) => row.name)).toEqual(["cleanup_moves", "cleanup_runs"]);
+
+    expect(db.prepare("SELECT groups_without_coverage FROM cleanup_runs").all()).toEqual([]);
+    const run = db
+      .prepare(
+        `INSERT INTO cleanup_runs (
+          status, keeper_rule, root_path, quarantine_path, journal_path, started_at
+        ) VALUES ('running', 'oldest-created-then-shorter-path', 'E:\\',
+          'E:\\.memorylane_quarantine\\r1', 'E:\\.memorylane_quarantine\\r1\\journal.jsonl', ?)
+        RETURNING groups_without_coverage`,
+      )
+      .get(now) as { groups_without_coverage: number };
+    expect(run.groups_without_coverage).toBe(0);
 
     const identity = db
       .prepare("SELECT schema_version FROM archive_identity WHERE id = 1")

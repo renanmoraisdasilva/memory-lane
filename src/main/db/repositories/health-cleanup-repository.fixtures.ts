@@ -33,7 +33,7 @@ export function createDb(): Database.Database {
       rootPath: "E:\\",
       letter: "E:",
     },
-    11,
+    12,
   );
   return db;
 }

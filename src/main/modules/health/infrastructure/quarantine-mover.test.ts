@@ -67,6 +67,7 @@ function planFor(root: string, group: DuplicateCleanupGroup): DuplicateCleanupPl
       totalDuplicateBytes: group.excessBytes * 2,
       eligibleGroups: 1,
       skippedGroups: 0,
+      groupsWithoutCoverage: 0,
       filesToMove: 1,
       bytesToMove: group.excessBytes,
       keepers: 1,
@@ -74,7 +75,6 @@ function planFor(root: string, group: DuplicateCleanupGroup): DuplicateCleanupPl
         notAGroup: 0,
         empty: 0,
         belowMinimumSize: 0,
-        keeperNotCovered: 0,
         candidateDateOverride: 0,
         multipleDateOverrides: 0,
         hardLink: 0,
@@ -165,6 +165,42 @@ describe("quarantine mover", () => {
     });
 
     expect(result.move?.quarantinePath).toBe(path.join(quarantinePath, "phone", "clip.1.mp4"));
+  });
+
+  it("restores a file when the quarantined copy fails verification", async () => {
+    const root = await createRoot();
+    const content = Buffer.alloc(2048, 4);
+    const keeperPath = path.join(root, "keep", "photo.jpg");
+    const candidatePath = path.join(root, "phone", "photo.jpg");
+    await mkdir(path.dirname(keeperPath), { recursive: true });
+    await mkdir(path.dirname(candidatePath), { recursive: true });
+    await writeFile(keeperPath, content);
+    await writeFile(candidatePath, content);
+    const realHasher = createFileHasher();
+    const hasher = {
+      hash: (filePath: string): Promise<string> =>
+        filePath.includes(".memorylane_quarantine")
+          ? Promise.resolve("0".repeat(64))
+          : realHasher.hash(filePath),
+    };
+    const group = groupWith(keeperPath, candidatePath, sha(content), content.length);
+    const mover = new QuarantineMover(hasher);
+    const { quarantinePath, journalPath } = await prepare(mover, root, group);
+
+    const result = await mover.move({
+      group,
+      candidate: group.candidates[0] as DuplicateCleanupFile,
+      runRootPath: root,
+      quarantinePath,
+      movedAt: "2026-11-02T12:00:01.000Z",
+    });
+
+    expect(result).toEqual({ move: null, skipReason: "destination-hash-mismatch" });
+    expect((await readFile(candidatePath)).length).toBe(2048);
+    await expect(stat(path.join(quarantinePath, "phone", "photo.jpg"))).rejects.toBeDefined();
+    const journal = await readFile(journalPath, "utf8");
+    expect(journal).toContain('"type":"file-restored"');
+    expect(journal).toContain('"reason":"destination-hash-mismatch"');
   });
 
   it("skips changed, missing, hard-linked, and outside-root candidates", async () => {

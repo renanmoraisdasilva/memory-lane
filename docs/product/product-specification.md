@@ -297,11 +297,14 @@ The UI should:
 
 Duplicate cleanup is an explicit, confirmed action. Keep one copy per exact
 group and move the rest to `X:\.memorylane_quarantine\<run>\`. Never delete,
-rename, or edit an original. Re-hash every file immediately before the
-same-volume rename, write a journal entry for every move, and delete only the
-moved catalog rows after a successful batch. Groups are skipped when the keeper
-does not have verified backup coverage, a copy has a conflicting date override,
-a file is a hard link, or files are empty or under 1 KB.
+rename, or edit an original. Prefer a verified backup copy as keeper; if several
+copies are covered, keep the oldest covered copy. If no copy is covered, proceed
+with a warning that the quarantine folder is not a backup yet. Re-hash every
+file immediately before the same-volume move and again after it lands in
+quarantine; restore the source if the copy does not match. Write a journal entry
+for every move and delete only the moved catalog rows after a successful batch.
+Groups are skipped when a copy has a conflicting date override, a file is a hard
+link, or files are empty or under 1 KB.
 
 Hashing should be a separate, resumable background stage because hashing
 a large archive can take substantial time.

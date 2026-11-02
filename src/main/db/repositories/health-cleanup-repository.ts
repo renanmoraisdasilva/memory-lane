@@ -30,6 +30,7 @@ const CleanupRunRowSchema = z.object({
   groups_total: z.number().int().nonnegative(),
   groups_processed: z.number().int().nonnegative(),
   groups_skipped: z.number().int().nonnegative(),
+  groups_without_coverage: z.number().int().nonnegative(),
   files_total: z.number().int().nonnegative(),
   files_moved: z.number().int().nonnegative(),
   files_skipped: z.number().int().nonnegative(),
@@ -61,6 +62,7 @@ function toCleanupState(row: CleanupRunRow): DuplicateCleanupState {
     groupsTotal: row.groups_total,
     groupsProcessed: row.groups_processed,
     groupsSkipped: row.groups_skipped,
+    groupsWithoutCoverage: row.groups_without_coverage,
     filesTotal: row.files_total,
     filesMoved: row.files_moved,
     filesSkipped: row.files_skipped,
@@ -82,6 +84,7 @@ export function idleCleanupState(): DuplicateCleanupState {
     groupsTotal: 0,
     groupsProcessed: 0,
     groupsSkipped: 0,
+    groupsWithoutCoverage: 0,
     filesTotal: 0,
     filesMoved: 0,
     filesSkipped: 0,
@@ -140,8 +143,8 @@ export function startCleanupRun(
       .prepare(
         `INSERT INTO cleanup_runs (
           status, keeper_rule, root_path, quarantine_path, journal_path,
-          groups_total, files_total, bytes_total, started_at
-        ) VALUES ('running', ?, ?, ?, ?, ?, ?, ?, ?)
+          groups_total, groups_without_coverage, files_total, bytes_total, started_at
+        ) VALUES ('running', ?, ?, ?, ?, ?, ?, ?, ?, ?)
         RETURNING *`,
       )
       .get(
@@ -150,6 +153,7 @@ export function startCleanupRun(
         params.quarantinePath,
         params.journalPath,
         params.groupsTotal,
+        params.groupsWithoutCoverage,
         params.filesTotal,
         params.bytesTotal,
         params.startedAt,

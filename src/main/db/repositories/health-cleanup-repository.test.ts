@@ -75,30 +75,56 @@ describe("health cleanup repository", () => {
     const summary = getCleanupSummary(db, rootPath, quarantineRoot);
     expect(summary).toMatchObject({
       totalGroups: 7,
-      eligibleGroups: 1,
-      skippedGroups: 6,
-      filesToMove: 2,
-      keepers: 1,
+      eligibleGroups: 2,
+      skippedGroups: 5,
+      groupsWithoutCoverage: 1,
+      filesToMove: 3,
+      keepers: 2,
       minimumFileSizeBytes: 1024,
       skipCounts: {
         empty: 1,
         belowMinimumSize: 1,
-        keeperNotCovered: 1,
         candidateDateOverride: 1,
         multipleDateOverrides: 1,
         hardLink: 1,
       },
     });
-    expect(summary.bytesToMove).toBe(4096);
+    expect(summary.bytesToMove).toBe(6144);
 
     const plan = getCleanupPlan(db, rootPath, quarantineRoot);
-    expect(plan.groups).toHaveLength(1);
+    expect(plan.groups).toHaveLength(2);
     expect(plan.groups[0]?.keeper.fileId).toBe(eligible[0]);
     expect(plan.groups[0]?.candidates.map((file) => file.fileId)).toEqual([
       eligible[1],
       eligible[2],
     ]);
     expect(plan.groups[0]?.excessBytes).toBe(4096);
+    db.close();
+  });
+
+  it("promotes a covered copy to keeper when the older copy is uncovered", () => {
+    const db = createDb();
+    const ids = insertGroup(db, "a".repeat(64), [
+      {
+        input: {
+          path: "E:\\archive\\older\\photo.jpg",
+          createdAt: "2010-01-01T00:00:00.000Z",
+        },
+      },
+      {
+        input: {
+          path: "E:\\archive\\newer\\photo.jpg",
+          createdAt: "2024-01-01T00:00:00.000Z",
+        },
+        covered: true,
+      },
+    ]);
+
+    const plan = getCleanupPlan(db, rootPath, quarantineRoot);
+    expect(plan.groups).toHaveLength(1);
+    expect(plan.groups[0]?.keeper.fileId).toBe(ids[1]);
+    expect(plan.groups[0]?.candidates.map((file) => file.fileId)).toEqual([ids[0]]);
+    expect(plan.summary.groupsWithoutCoverage).toBe(0);
     db.close();
   });
 
@@ -109,8 +135,8 @@ describe("health cleanup repository", () => {
       { input: { path: "E:\\archive\\backup\\a.jpg" } },
     ]);
     insertGroup(db, "b".repeat(64), [
-      { input: { path: "E:\\archive\\notes-a.txt", mediaClass: "other" } },
-      { input: { path: "E:\\archive\\notes-b.txt", mediaClass: "other" } },
+      { input: { path: "E:\\archive\\notes-a.txt", mediaClass: "other", size: 512 } },
+      { input: { path: "E:\\archive\\notes-b.txt", mediaClass: "other", size: 512 } },
     ]);
 
     const page = getDuplicateGroups(db, 0, 10);
@@ -127,7 +153,7 @@ describe("health cleanup repository", () => {
     });
     const notes = page.groups.find((group) => group.files[0]?.name === "notes-a.txt");
     expect(notes?.files[0]?.mediaClass).toBe("other");
-    expect(notes?.skipReason).toBe("keeper-not-covered");
+    expect(notes?.skipReason).toBe("below-minimum-size");
     db.close();
   });
 
@@ -146,6 +172,7 @@ describe("health cleanup repository", () => {
       keeperRule: "oldest-created-then-shorter-path",
       rootPath,
       groupsTotal: 1,
+      groupsWithoutCoverage: 0,
       filesTotal: 1,
       bytesTotal: 2048,
       quarantinePath: "E:\\archive\\.memorylane_quarantine\\run-1",
@@ -263,6 +290,7 @@ describe("health cleanup repository", () => {
       keeperRule: "oldest-created-then-shorter-path",
       rootPath,
       groupsTotal: 1,
+      groupsWithoutCoverage: 0,
       filesTotal: 1,
       bytesTotal: 2048,
       quarantinePath: "E:\\archive\\.memorylane_quarantine\\run-1",
@@ -298,6 +326,7 @@ describe("health cleanup repository", () => {
       keeperRule: "oldest-created-then-shorter-path",
       rootPath,
       groupsTotal: 1,
+      groupsWithoutCoverage: 0,
       filesTotal: 1,
       bytesTotal: 2048,
       quarantinePath: "E:\\archive\\.memorylane_quarantine\\run-1",

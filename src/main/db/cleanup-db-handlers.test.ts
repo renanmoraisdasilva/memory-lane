@@ -25,7 +25,7 @@ function createHandler() {
       rootPath: "C:\\",
       letter: "C:",
     },
-    11,
+    12,
   );
   const handler = createCleanupDbHandlers({
     getCatalog: () => db,
@@ -56,6 +56,7 @@ describe("cleanup DB handlers", () => {
       keeperRule: "oldest-created-then-shorter-path",
       rootPath: "C:\\archive",
       groupsTotal: 2,
+      groupsWithoutCoverage: 0,
       filesTotal: 3,
       bytesTotal: 4096,
       quarantinePath: "C:\\archive\\.memorylane_quarantine\\run-1",
