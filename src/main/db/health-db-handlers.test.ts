@@ -93,6 +93,40 @@ describe("health DB handlers", () => {
     db.close();
   });
 
+  it("serves and purges missing duplicate entries", () => {
+    const { db, handler, fileId } = createHarness();
+    const duplicate = db
+      .prepare(
+        `INSERT INTO files (
+          path, name, size, modified_at_fs, media_class, format, state, missing_since, last_seen_at
+        ) VALUES ('C:\\archive\\duplicate.jpg', 'duplicate.jpg', 100, ?, 'image', 'JPG',
+          'missing', ?, ?) RETURNING id`,
+      )
+      .get(now, now, now) as { id: number };
+    db.prepare(
+      "INSERT INTO missing_files (file_id, last_path, last_seen_at, reason) VALUES (?, ?, ?, 'scan')",
+    ).run(duplicate.id, "C:\\archive\\duplicate.jpg", now);
+    db.prepare(
+      "INSERT INTO hashes (file_id, sha256, hashed_at, status) VALUES (?, 'hash', ?, 'complete')",
+    ).run(duplicate.id, now);
+
+    expect(handler.handle("health.getMissingDuplicates", {})).toMatchObject({
+      total: 1,
+      candidateFileIds: [duplicate.id],
+    });
+    expect(handler.handle("health.getMissingDuplicates", { offset: 0, limit: 1 })).toMatchObject({
+      total: 1,
+    });
+    expect(handler.handle("health.purgeMissingDuplicates", { fileIds: [duplicate.id] })).toEqual({
+      removed: 1,
+      skipped: 0,
+    });
+    expect(db.prepare("SELECT id FROM files WHERE id = ?").get(duplicate.id)).toBeUndefined();
+    expect(db.prepare("SELECT id FROM files WHERE id = ?").get(fileId)).toBeDefined();
+    expect(handler.handle("health.getMissing", {})).toMatchObject({ total: 1 });
+    db.close();
+  });
+
   it("manages a validation session and saves results", () => {
     const { db, handler, fileId } = createHarness();
     expect(handler.handle("health.getValidationState", {})).toMatchObject({ status: "idle" });

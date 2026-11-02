@@ -5,11 +5,15 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingDuplicatesPage,
+  MissingDuplicatesParams,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  PurgeMissingDuplicatesParams,
+  PurgeMissingDuplicatesResult,
   ValidationStartParams,
   ValidationState,
 } from "@shared/contracts/health";
@@ -113,6 +117,11 @@ export const api = {
     unwrap(getApi().getHealthDuplicates(params)),
   getHealthMissing: (params: MissingFilesParams): Promise<MissingFilesPage> =>
     unwrap(getApi().getHealthMissing(params)),
+  getHealthMissingDuplicates: (params: MissingDuplicatesParams): Promise<MissingDuplicatesPage> =>
+    unwrap(getApi().getHealthMissingDuplicates(params)),
+  purgeHealthMissingDuplicates: (
+    params: PurgeMissingDuplicatesParams,
+  ): Promise<PurgeMissingDuplicatesResult> => unwrap(getApi().purgeHealthMissingDuplicates(params)),
   getHealthMoved: (): Promise<MovedCandidatesPage> => unwrap(getApi().getHealthMoved()),
   confirmHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>
     unwrap(getApi().confirmHealthMoved(params)),

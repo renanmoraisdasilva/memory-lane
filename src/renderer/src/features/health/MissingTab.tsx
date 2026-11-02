@@ -4,6 +4,7 @@ import type { MovedCandidate } from "@shared/contracts/health";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
 import { useConfirmMoved, useDismissMoved, useHealthMissing, useHealthMoved } from "./use-health";
+import { MissingDuplicates } from "./MissingDuplicates";
 import styles from "./HealthPage.module.css";
 
 function selectionFor(selected: Set<number> | null, ids: number[]): Set<number> {
@@ -198,6 +199,7 @@ export function MissingTab(): React.JSX.Element {
 
   return (
     <div className={styles.stack}>
+      <MissingDuplicates />
       <MovedSection
         candidates={candidates}
         selected={current}

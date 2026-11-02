@@ -138,6 +138,26 @@ describe("ScanPage", () => {
     expect(await screen.findByRole("button", { name: "Pause" })).toBeInTheDocument();
   });
 
+  it("offers missing duplicate cleanup after a completed scan", async () => {
+    const libraryClient: LibraryClient = {
+      ...createLibraryFixtureClient(),
+      getMissingDuplicates: async () => ({
+        items: [],
+        total: 2,
+        candidateFileIds: [1, 2],
+        withVerifiedReplicas: 0,
+        withDateOverride: 0,
+      }),
+    };
+    renderScan(fixture("complete"), {}, libraryClient);
+
+    expect(await screen.findByText("2 missing duplicates")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Review missing duplicates" })).toHaveAttribute(
+      "href",
+      "/health?tab=missing",
+    );
+  });
+
   it("hides the library handoff when the catalog contains no media", async () => {
     renderScan(fixture("complete"), {}, createLibraryFixtureClient({ items: [] }));
 

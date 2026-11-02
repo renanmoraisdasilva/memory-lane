@@ -58,6 +58,48 @@ export const MissingFilesParamsSchema = z.object({
 });
 export type MissingFilesParams = z.infer<typeof MissingFilesParamsSchema>;
 
+export const MissingDuplicateSchema = z.object({
+  fileId: z.number().int().positive(),
+  name: z.string().min(1),
+  path: z.string().min(1),
+  folder: z.string(),
+  sizeBytes: z.number().int().nonnegative(),
+  lastSeenAt: z.string().min(1).nullable(),
+  duplicateFileId: z.number().int().positive(),
+  duplicateName: z.string().min(1),
+  duplicatePath: z.string().min(1),
+  duplicateFolder: z.string(),
+  hasVerifiedReplicas: z.boolean(),
+  hasDateOverride: z.boolean(),
+});
+export type MissingDuplicate = z.infer<typeof MissingDuplicateSchema>;
+
+export const MissingDuplicatesPageSchema = z.object({
+  items: z.array(MissingDuplicateSchema),
+  total: z.number().int().nonnegative(),
+  candidateFileIds: z.array(z.number().int().positive()),
+  withVerifiedReplicas: z.number().int().nonnegative(),
+  withDateOverride: z.number().int().nonnegative(),
+});
+export type MissingDuplicatesPage = z.infer<typeof MissingDuplicatesPageSchema>;
+
+export const MissingDuplicatesParamsSchema = z.object({
+  offset: z.number().int().nonnegative().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+});
+export type MissingDuplicatesParams = z.infer<typeof MissingDuplicatesParamsSchema>;
+
+export const PurgeMissingDuplicatesParamsSchema = z.object({
+  fileIds: z.array(z.number().int().positive()).min(1).max(50_000),
+});
+export type PurgeMissingDuplicatesParams = z.infer<typeof PurgeMissingDuplicatesParamsSchema>;
+
+export const PurgeMissingDuplicatesResultSchema = z.object({
+  removed: z.number().int().nonnegative(),
+  skipped: z.number().int().nonnegative(),
+});
+export type PurgeMissingDuplicatesResult = z.infer<typeof PurgeMissingDuplicatesResultSchema>;
+
 export const MovedCandidateSchema = z.object({
   id: z.number().int().positive(),
   fileId: z.number().int().positive(),

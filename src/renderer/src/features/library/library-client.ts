@@ -2,11 +2,15 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingDuplicatesPage,
+  MissingDuplicatesParams,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  PurgeMissingDuplicatesParams,
+  PurgeMissingDuplicatesResult,
   ValidationStartParams,
   ValidationState,
 } from "@shared/contracts/health";
@@ -41,6 +45,10 @@ export interface LibraryClient {
   getHealthSummary(): Promise<HealthSummary>;
   getDuplicates(params: DuplicateGroupsParams): Promise<DuplicateGroupsPage>;
   getMissing(params: MissingFilesParams): Promise<MissingFilesPage>;
+  getMissingDuplicates(params: MissingDuplicatesParams): Promise<MissingDuplicatesPage>;
+  purgeMissingDuplicates(
+    params: PurgeMissingDuplicatesParams,
+  ): Promise<PurgeMissingDuplicatesResult>;
   getMoved(): Promise<MovedCandidatesPage>;
   confirmMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
   dismissMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
@@ -73,6 +81,8 @@ export function createLibraryClient(): LibraryClient {
     getHealthSummary: () => api.getHealthSummary(),
     getDuplicates: (params) => api.getHealthDuplicates(params),
     getMissing: (params) => api.getHealthMissing(params),
+    getMissingDuplicates: (params) => api.getHealthMissingDuplicates(params),
+    purgeMissingDuplicates: (params) => api.purgeHealthMissingDuplicates(params),
     getMoved: () => api.getHealthMoved(),
     confirmMoved: (params) => api.confirmHealthMoved(params),
     dismissMoved: (params) => api.dismissHealthMoved(params),

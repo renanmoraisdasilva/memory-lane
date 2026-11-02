@@ -20,6 +20,8 @@ export const IPC_CHANNELS = {
   getHealthSummary: "health:get-summary",
   getHealthDuplicates: "health:get-duplicates",
   getHealthMissing: "health:get-missing",
+  getHealthMissingDuplicates: "health:get-missing-duplicates",
+  purgeHealthMissingDuplicates: "health:purge-missing-duplicates",
   getHealthMoved: "health:get-moved",
   confirmHealthMoved: "health:confirm-moved",
   dismissHealthMoved: "health:dismiss-moved",

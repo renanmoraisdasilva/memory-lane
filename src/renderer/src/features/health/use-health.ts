@@ -4,6 +4,7 @@ import type {
   DuplicateGroupsParams,
   MissingFilesParams,
   MovedCandidateTargets,
+  PurgeMissingDuplicatesParams,
   ValidationStartParams,
 } from "@shared/contracts/health";
 import { queryKeys } from "../../lib/query-keys";
@@ -33,6 +34,28 @@ export function useHealthMissing(params: MissingFilesParams) {
     queryKey: queryKeys.healthMissing(params.offset ?? 0, params.limit ?? 50),
     queryFn: () => client.getMissing(params),
     staleTime: 10_000,
+  });
+}
+
+export function useHealthMissingDuplicates() {
+  const client = useLibraryClient();
+  return useQuery({
+    queryKey: queryKeys.healthMissingDuplicates,
+    queryFn: () => client.getMissingDuplicates({ limit: 100 }),
+    staleTime: 10_000,
+  });
+}
+
+export function usePurgeMissingDuplicates() {
+  const client = useLibraryClient();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (params: PurgeMissingDuplicatesParams) => client.purgeMissingDuplicates(params),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: ["replication"] });
+    },
   });
 }
 

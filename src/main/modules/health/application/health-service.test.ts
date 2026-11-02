@@ -3,9 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { ValidationState } from "@shared/contracts/health";
+import { APP_ERROR_CODES } from "@shared/domain/errors";
 import type { DbClient } from "../../../clients/db-client";
 import type { DbMethod } from "../../../db/worker-protocol";
 import type { FileMetadataExtractor, FileHasher } from "../../scanning/domain/scan-files";
+import { WorkloadCoordinator } from "../../workloads/application/workload-coordinator";
 import { HealthService } from "./health-service";
 
 const idle: ValidationState = {
@@ -108,6 +110,52 @@ describe("HealthService", () => {
     expect(captured.confirmed?.candidateIds).toEqual([1]);
     expect(captured.confirmed?.now).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     await rm(root, { recursive: true, force: true });
+  });
+
+  it("forwards missing duplicate discovery and cleanup", async () => {
+    const db = createDb({
+      "health.getMissingDuplicates": {
+        items: [],
+        total: 0,
+        candidateFileIds: [],
+        withVerifiedReplicas: 0,
+        withDateOverride: 0,
+      },
+      "health.purgeMissingDuplicates": (params: { fileIds: number[] }) => ({
+        removed: params.fileIds.length,
+        skipped: 0,
+      }),
+    });
+    const service = new HealthService({
+      db,
+      hasher: hasher(),
+      metadata: metadata(),
+      logger: logger(),
+    });
+
+    await expect(service.getMissingDuplicates(0, 10)).resolves.toMatchObject({ total: 0 });
+    await expect(service.purgeMissingDuplicates([1, 2])).resolves.toEqual({
+      removed: 2,
+      skipped: 0,
+    });
+  });
+
+  it("blocks missing duplicate cleanup while a workload is active", async () => {
+    const workloads = new WorkloadCoordinator();
+    const lease = workloads.acquire("scan", "scan");
+    const db = createDb();
+    const service = new HealthService({
+      db,
+      hasher: hasher(),
+      metadata: metadata(),
+      logger: logger(),
+      workloads,
+    });
+
+    await expect(service.purgeMissingDuplicates([1])).rejects.toMatchObject({
+      code: APP_ERROR_CODES.WORKLOAD_CONFLICT,
+    });
+    lease.release();
   });
 
   it("pauses a stale running session when no local run is active", async () => {

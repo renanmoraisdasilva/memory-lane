@@ -1,7 +1,9 @@
 import { CheckCircle2, Info, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Callout } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
 import { formatCount, formatDateTime, formatDuration } from "../../lib/format";
+import { useHealthMissingDuplicates } from "../health/use-health";
 import {
   scanDurationSeconds,
   scanIntensityLabel,
@@ -130,6 +132,8 @@ function missingBody(report: ScanReportData): string {
 }
 
 function ReportSide({ report }: { report: ScanReportData }): React.JSX.Element {
+  const duplicates = useHealthMissingDuplicates();
+  const duplicateCount = duplicates.data?.total ?? 0;
   return (
     <div className={styles.reportSide}>
       <div className={styles.panel}>
@@ -143,6 +147,19 @@ function ReportSide({ report }: { report: ScanReportData }): React.JSX.Element {
         >
           {missingBody(report)}
         </Callout>
+        {duplicateCount > 0 ? (
+          <div className={styles.reportCallout}>
+            <Callout
+              tone="amber"
+              icon={<Info size={17} aria-hidden="true" />}
+              title={`${formatCount(duplicateCount)} missing duplicates`}
+            >
+              These missing files are exact duplicates of files still in the archive. You can remove
+              their catalog entries without touching any drive.{" "}
+              <Link to="/health?tab=missing">Review missing duplicates</Link>
+            </Callout>
+          </div>
+        ) : null}
         <div className={styles.reportCallout}>
           <Callout
             tone="amber"

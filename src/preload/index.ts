@@ -13,11 +13,15 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingDuplicatesPage,
+  MissingDuplicatesParams,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  PurgeMissingDuplicatesParams,
+  PurgeMissingDuplicatesResult,
   ValidationStartParams,
   ValidationState,
 } from "@shared/contracts/health";
@@ -127,6 +131,14 @@ const api: MemoryLaneApi = {
   getHealthMissing: (params: MissingFilesParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.getHealthMissing, params) as Promise<
       IpcResult<MissingFilesPage>
+    >,
+  getHealthMissingDuplicates: (params: MissingDuplicatesParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getHealthMissingDuplicates, params) as Promise<
+      IpcResult<MissingDuplicatesPage>
+    >,
+  purgeHealthMissingDuplicates: (params: PurgeMissingDuplicatesParams) =>
+    ipcRenderer.invoke(IPC_CHANNELS.purgeHealthMissingDuplicates, params) as Promise<
+      IpcResult<PurgeMissingDuplicatesResult>
     >,
   getHealthMoved: () =>
     ipcRenderer.invoke(IPC_CHANNELS.getHealthMoved) as Promise<IpcResult<MovedCandidatesPage>>,

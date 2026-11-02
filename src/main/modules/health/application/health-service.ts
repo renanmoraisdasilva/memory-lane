@@ -2,9 +2,11 @@ import { access } from "node:fs/promises";
 import type {
   DuplicateGroupsPage,
   HealthSummary,
+  MissingDuplicatesPage,
   MissingFilesPage,
   MovedActionResult,
   MovedCandidatesPage,
+  PurgeMissingDuplicatesResult,
   ValidationLevel,
   ValidationState,
 } from "@shared/contracts/health";
@@ -72,6 +74,28 @@ export class HealthService {
       offset,
       limit,
     });
+  }
+
+  async getMissingDuplicates(offset = 0, limit = 50): Promise<MissingDuplicatesPage> {
+    return this.dependencies.db.request<MissingDuplicatesPage>("health.getMissingDuplicates", {
+      offset,
+      limit,
+    });
+  }
+
+  async purgeMissingDuplicates(fileIds: number[]): Promise<PurgeMissingDuplicatesResult> {
+    const active = this.dependencies.workloads?.current();
+    if (active !== undefined && active !== null) {
+      throw new AppError(
+        APP_ERROR_CODES.WORKLOAD_CONFLICT,
+        `A ${active.kind === "replication" ? "backup" : active.kind} is running. Wait for it to finish before cleaning up missing duplicates.`,
+        { activeKind: active.kind, activeOwnerId: active.ownerId },
+      );
+    }
+    return this.dependencies.db.request<PurgeMissingDuplicatesResult>(
+      "health.purgeMissingDuplicates",
+      { fileIds },
+    );
   }
 
   async getMoved(): Promise<MovedCandidatesPage> {

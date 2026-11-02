@@ -631,7 +631,10 @@ Rules:
   no longer has, label it **Previously in source**. This is more useful than a
   generic extra, but it still does not count as current coverage.
 - An **ambiguous** file is reported for review. The app does not guess which
-  source file it belongs to.
+  source file it belongs to. If the multiple candidates exist only because source
+  duplicates were deleted outside Memory Lane, use Library health → Missing to
+  remove those missing duplicate catalog entries, then re-adopt so the surviving
+  file can match.
 - A **conflict** at the expected source path is reported separately from an
   extra. It is not a destination-only file because it occupies the path of a
   known source file.

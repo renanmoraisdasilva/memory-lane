@@ -6,6 +6,8 @@ import {
   HealthDismissMovedDbParamsSchema,
   HealthDuplicatesDbParamsSchema,
   HealthMissingDbParamsSchema,
+  HealthMissingDuplicatesDbParamsSchema,
+  HealthPurgeMissingDuplicatesDbParamsSchema,
   HealthValidationFailDbParamsSchema,
   HealthValidationLevelDbParamsSchema,
   HealthValidationPendingDbParamsSchema,
@@ -21,6 +23,10 @@ import {
   getMissingFiles,
   getMovedCandidates,
 } from "./repositories/health-repository";
+import {
+  getMissingDuplicates,
+  purgeMissingDuplicates,
+} from "./repositories/health-missing-duplicates-repository";
 import {
   createValidation,
   failValidation,
@@ -55,6 +61,14 @@ export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthD
     "health.getMissing": (params) => {
       const parsed = HealthMissingDbParamsSchema.parse(params);
       return getMissingFiles(catalog(), parsed.offset ?? 0, parsed.limit ?? 50);
+    },
+    "health.getMissingDuplicates": (params) => {
+      const parsed = HealthMissingDuplicatesDbParamsSchema.parse(params);
+      return getMissingDuplicates(catalog(), parsed.offset ?? 0, parsed.limit ?? 50);
+    },
+    "health.purgeMissingDuplicates": (params) => {
+      const parsed = HealthPurgeMissingDuplicatesDbParamsSchema.parse(params);
+      return purgeMissingDuplicates(catalog(), parsed.fileIds);
     },
     "health.getMoved": () => getMovedCandidates(catalog()),
     "health.confirmMoved": (params) => {

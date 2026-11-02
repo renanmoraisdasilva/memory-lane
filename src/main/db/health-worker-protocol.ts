@@ -1,8 +1,10 @@
 import { z } from "zod";
 import {
   DuplicateGroupsParamsSchema,
+  MissingDuplicatesParamsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
+  PurgeMissingDuplicatesParamsSchema,
   ValidationLevelSchema,
   ValidationStartParamsSchema,
 } from "@shared/contracts/health";
@@ -11,6 +13,8 @@ export const HEALTH_DB_METHODS = [
   "health.getSummary",
   "health.getDuplicates",
   "health.getMissing",
+  "health.getMissingDuplicates",
+  "health.purgeMissingDuplicates",
   "health.getMoved",
   "health.confirmMoved",
   "health.dismissMoved",
@@ -29,6 +33,8 @@ export type HealthDbMethod = (typeof HEALTH_DB_METHODS)[number];
 
 export const HealthDuplicatesDbParamsSchema = DuplicateGroupsParamsSchema;
 export const HealthMissingDbParamsSchema = MissingFilesParamsSchema;
+export const HealthMissingDuplicatesDbParamsSchema = MissingDuplicatesParamsSchema;
+export const HealthPurgeMissingDuplicatesDbParamsSchema = PurgeMissingDuplicatesParamsSchema;
 export const HealthValidationLevelDbParamsSchema = z.object({
   sessionId: z.number().int().positive(),
   level: ValidationLevelSchema,

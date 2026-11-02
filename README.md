@@ -226,7 +226,7 @@ The IPC and media contracts are in
 - **ExifTool dates** with EXIF/XMP/video extraction, a documented priority
   chain, Date unavailable, and reversible catalog-only overrides.
 - **Library health** with exact duplicate groups, missing/moved-file actions,
-  and four-level whole-catalog validation.
+  missing-duplicate catalog cleanup, and four-level whole-catalog validation.
 - **Other files** categories with pagination, external open, and reveal.
 - **Settings** for generated cache, catalog location, backup status, background
   controls, and About.
@@ -240,7 +240,7 @@ The IPC and media contracts are in
   degradation, and metadata-only promotion with rollback.
 - **Backup activity** in the top bar for adoption and run progress, paused, and
   interrupted states.
-- **530 automated tests** across 134 files, 10 Electron E2E flows, and a packaged
+- **539 automated tests** across 135 files, 10 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   WMV compatible playback.
 

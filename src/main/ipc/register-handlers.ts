@@ -9,14 +9,18 @@ import {
 } from "@shared/contracts/ipc";
 import {
   DuplicateGroupsParamsSchema,
+  MissingDuplicatesParamsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
+  PurgeMissingDuplicatesParamsSchema,
   ValidationStartParamsSchema,
   type DuplicateGroupsPage,
   type HealthSummary,
+  type MissingDuplicatesPage,
   type MissingFilesPage,
   type MovedActionResult,
   type MovedCandidatesPage,
+  type PurgeMissingDuplicatesResult,
   type ValidationState,
 } from "@shared/contracts/health";
 import { LibraryItemTargetParamsSchema } from "@shared/contracts/library";
@@ -144,6 +148,25 @@ function registerHealthHandlers(
       const parsed = MissingFilesParamsSchema.parse(params);
       return healthService.getMissing(parsed.offset, parsed.limit);
     }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.getHealthMissingDuplicates, (event, params: unknown) =>
+    respond<MissingDuplicatesPage>(event, IPC_CHANNELS.getHealthMissingDuplicates, logger, () => {
+      const parsed = MissingDuplicatesParamsSchema.parse(params);
+      return healthService.getMissingDuplicates(parsed.offset, parsed.limit);
+    }),
+  );
+
+  ipcMain.handle(IPC_CHANNELS.purgeHealthMissingDuplicates, (event, params: unknown) =>
+    respond<PurgeMissingDuplicatesResult>(
+      event,
+      IPC_CHANNELS.purgeHealthMissingDuplicates,
+      logger,
+      () => {
+        const parsed = PurgeMissingDuplicatesParamsSchema.parse(params);
+        return healthService.purgeMissingDuplicates(parsed.fileIds);
+      },
+    ),
   );
 
   ipcMain.handle(IPC_CHANNELS.getHealthMoved, (event) =>

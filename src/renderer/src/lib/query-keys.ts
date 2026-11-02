@@ -14,6 +14,7 @@ export const queryKeys = {
   healthSummary: ["health", "summary"] as const,
   healthDuplicates: (offset: number, limit: number) =>
     ["health", "duplicates", offset, limit] as const,
+  healthMissingDuplicates: ["health", "missing-duplicates"] as const,
   healthMissing: (offset: number, limit: number) => ["health", "missing", offset, limit] as const,
   healthMoved: ["health", "moved"] as const,
   healthValidation: ["health", "validation"] as const,

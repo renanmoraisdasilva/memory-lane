@@ -16,6 +16,8 @@ Status: implemented in Phase 4. Types live in
 | `health:get-summary` | `getHealthSummary` | none | `HealthSummary` |
 | `health:get-duplicates` | `getHealthDuplicates` | `{ offset?, limit? }` | `DuplicateGroupsPage` |
 | `health:get-missing` | `getHealthMissing` | `{ offset?, limit? }` | `MissingFilesPage` |
+| `health:get-missing-duplicates` | `getHealthMissingDuplicates` | `{ offset?, limit? }` | `MissingDuplicatesPage` |
+| `health:purge-missing-duplicates` | `purgeHealthMissingDuplicates` | `{ fileIds }` | `{ removed, skipped }` |
 | `health:get-moved` | `getHealthMoved` | none | `MovedCandidatesPage` |
 | `health:confirm-moved` | `confirmHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:dismiss-moved` | `dismissHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
@@ -49,6 +51,30 @@ Status: implemented in Phase 4. Types live in
 - Dismissing keeps the file missing and marks the candidate dismissed.
 - No source file is moved, renamed, edited, or deleted.
 
+### Missing duplicates
+
+A missing file can be an exact duplicate of a file still in the archive. This is
+common after deleting redundant copies outside Memory Lane: the deleted file
+remains cataloged as `missing` and can still participate in adoption matching.
+
+- A cleanup candidate must have a complete full SHA-256 hash whose recorded size
+  and modified time still describe the missing file, or a legacy hash whose
+  timestamp is not older than the file's recorded modification time.
+- A present file with the same full SHA-256 and size must still exist.
+- Pending moved candidates are excluded. A possible move must be reviewed as a
+  move, not removed as a duplicate.
+- The preview reports how many candidates have verified backup replicas and how
+  many have active date overrides.
+- Cleanup removes only the missing catalog rows. Hashes, dates, metadata,
+  overrides, cache entries, replica links, and missing records attached to those
+  rows are removed by the catalog foreign keys. Source and destination files are
+  never touched.
+- Destination adoption counters are refreshed for every affected destination.
+- The action is always explicit and confirmed. It is available in Library health
+  → Missing, and a scan-complete callout points to it when candidates exist.
+- Re-adopt destinations after cleanup so they can match against the surviving
+  files instead of the removed missing rows.
+
 ## Validation
 
 Levels: `existence`, `metadata`, `hash`, `metadataRefresh`.
@@ -75,10 +101,10 @@ Catalog migration 5:
 - `validation_results`: `level`.
 - Unique `(session_id, file_id, level)` and session/level indexes.
 
-Catalog schema version: 5.
+Catalog schema version: 9.
 
 ## Tests
 
 Repository, handler, service, renderer, and E2E tests cover duplicate rebuild,
-missing/moved actions, validation progress, hash update, metadata refresh, and
-the health UI.
+missing/moved actions, missing-duplicate cleanup, validation progress, hash
+update, metadata refresh, and the health UI.

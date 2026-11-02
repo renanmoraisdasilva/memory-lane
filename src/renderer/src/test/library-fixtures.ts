@@ -265,6 +265,54 @@ function undatedFromItems(items: LibraryItem[]): LibraryUndatedItem[] {
     .map((item) => ({ ...item, folder: "C:\\archive\\undated" }));
 }
 
+function healthFixtureMethods(): Pick<
+  LibraryClient,
+  | "getHealthSummary"
+  | "getDuplicates"
+  | "getMissing"
+  | "getMissingDuplicates"
+  | "purgeMissingDuplicates"
+  | "getMoved"
+  | "confirmMoved"
+  | "dismissMoved"
+  | "getValidationState"
+  | "startValidation"
+  | "pauseValidation"
+  | "resumeValidation"
+> {
+  return {
+    getHealthSummary: () =>
+      Promise.resolve({
+        duplicateGroups: 0,
+        duplicateFiles: 0,
+        duplicateBytes: 0,
+        missingFiles: 0,
+        movedCandidates: 0,
+        lastValidationAt: null,
+      }),
+    getDuplicates: () =>
+      Promise.resolve({ groups: [], totalGroups: 0, totalFiles: 0, totalBytes: 0 }),
+    getMissing: () => Promise.resolve({ items: [], total: 0 }),
+    getMissingDuplicates: () =>
+      Promise.resolve({
+        items: [],
+        total: 0,
+        candidateFileIds: [],
+        withVerifiedReplicas: 0,
+        withDateOverride: 0,
+      }),
+    purgeMissingDuplicates: (params) =>
+      Promise.resolve({ removed: params.fileIds.length, skipped: 0 }),
+    getMoved: () => Promise.resolve({ items: [], total: 0 }),
+    confirmMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
+    dismissMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
+    getValidationState: () => Promise.resolve(idleValidation),
+    startValidation: () => Promise.resolve(idleValidation),
+    pauseValidation: () => Promise.resolve(idleValidation),
+    resumeValidation: () => Promise.resolve(idleValidation),
+  };
+}
+
 export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}): LibraryClient {
   const items = options.items ?? libraryFixtureItems;
   const summary = options.summary ?? summaryFromItems(items);
@@ -321,25 +369,7 @@ export function createLibraryFixtureClient(options: LibraryFixtureOptions = {}):
       }),
     clearDate: (params: LibraryClearDateParams) =>
       Promise.resolve().then(() => ({ updated: params.fileIds.length })),
-    getHealthSummary: () =>
-      Promise.resolve({
-        duplicateGroups: 0,
-        duplicateFiles: 0,
-        duplicateBytes: 0,
-        missingFiles: 0,
-        movedCandidates: 0,
-        lastValidationAt: null,
-      }),
-    getDuplicates: () =>
-      Promise.resolve({ groups: [], totalGroups: 0, totalFiles: 0, totalBytes: 0 }),
-    getMissing: () => Promise.resolve({ items: [], total: 0 }),
-    getMoved: () => Promise.resolve({ items: [], total: 0 }),
-    confirmMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
-    dismissMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
-    getValidationState: () => Promise.resolve(idleValidation),
-    startValidation: () => Promise.resolve(idleValidation),
-    pauseValidation: () => Promise.resolve(idleValidation),
-    resumeValidation: () => Promise.resolve(idleValidation),
+    ...healthFixtureMethods(),
     getSettingsInfo: () => Promise.resolve(options.settings ?? settingsFixture),
     clearCache: () =>
       Promise.resolve({

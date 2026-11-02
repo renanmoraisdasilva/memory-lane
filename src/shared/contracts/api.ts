@@ -10,11 +10,15 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingDuplicatesPage,
+  MissingDuplicatesParams,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
   MovedCandidateTargets,
   MovedCandidatesPage,
+  PurgeMissingDuplicatesParams,
+  PurgeMissingDuplicatesResult,
   ValidationStartParams,
   ValidationState,
 } from "./health";
@@ -64,6 +68,12 @@ export interface MemoryLaneApi {
   getHealthSummary(): Promise<IpcResult<HealthSummary>>;
   getHealthDuplicates(params: DuplicateGroupsParams): Promise<IpcResult<DuplicateGroupsPage>>;
   getHealthMissing(params: MissingFilesParams): Promise<IpcResult<MissingFilesPage>>;
+  getHealthMissingDuplicates(
+    params: MissingDuplicatesParams,
+  ): Promise<IpcResult<MissingDuplicatesPage>>;
+  purgeHealthMissingDuplicates(
+    params: PurgeMissingDuplicatesParams,
+  ): Promise<IpcResult<PurgeMissingDuplicatesResult>>;
   getHealthMoved(): Promise<IpcResult<MovedCandidatesPage>>;
   confirmHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;
   dismissHealthMoved(params: MovedCandidateTargets): Promise<IpcResult<MovedActionResult>>;

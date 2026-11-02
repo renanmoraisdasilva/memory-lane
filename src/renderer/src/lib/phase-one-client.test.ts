@@ -107,6 +107,8 @@ function createApi(): MemoryLaneApi {
     getHealthSummary: libraryFailure,
     getHealthDuplicates: libraryFailure,
     getHealthMissing: libraryFailure,
+    getHealthMissingDuplicates: libraryFailure,
+    purgeHealthMissingDuplicates: libraryFailure,
     getHealthMoved: libraryFailure,
     confirmHealthMoved: libraryFailure,
     dismissHealthMoved: libraryFailure,
