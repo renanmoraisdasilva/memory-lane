@@ -6,10 +6,14 @@ import { _electron as electron } from "playwright";
 const ROOT = path.join(path.parse(process.cwd()).root, "MemoryLaneDemo");
 const MARKER = path.join(ROOT, ".memory-lane-readme-fixture");
 const DRIVE = path.join(ROOT, "Archive");
+const BACKUP = path.join(ROOT, "BackupDrive");
 const USER_DATA = path.join(ROOT, "UserData");
 const OUTPUT = path.resolve("docs", "images");
 const EXECUTABLE = path.resolve("release", "win-unpacked", "Memory Lane.exe");
 const IMAGE_SOURCE = path.resolve("ui-mockups", "assets", "images");
+
+const SOURCE_LABEL = "WD My Passport 2TB";
+const BACKUP_LABEL = "WD My Passport Backup";
 
 const PHOTOS = [
   ["chronological-gallery-02.jpg", "Trips\\Santorini\\Santorini sunset.jpg", "2024:06:18 19:42:00"],
@@ -55,6 +59,7 @@ async function prepareFixture() {
   }
 
   await mkdir(DRIVE, { recursive: true });
+  await mkdir(BACKUP, { recursive: true });
   await mkdir(USER_DATA, { recursive: true });
   await mkdir(OUTPUT, { recursive: true });
   await writeFile(MARKER, "Memory Lane README screenshot fixture\n");
@@ -87,6 +92,13 @@ async function prepareFixture() {
     const timestamp = exifDate("2024:06:17 09:00:00");
     await utimes(targetPath, timestamp, timestamp);
   }
+
+  const existingCopyRoot = path.join(BACKUP, "Memory Lane", SOURCE_LABEL);
+  for (const [, target] of PHOTOS.slice(0, 3)) {
+    const targetPath = path.join(existingCopyRoot, target);
+    await mkdir(path.dirname(targetPath), { recursive: true });
+    await copyFile(path.join(DRIVE, target), targetPath);
+  }
 }
 
 async function waitForApplication(page, text) {
@@ -95,6 +107,7 @@ async function waitForApplication(page, text) {
 
 async function capture(page, name) {
   await page.waitForTimeout(400);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(OUTPUT, name) });
   console.log(`Captured docs/images/${name}`);
 }
@@ -115,8 +128,10 @@ async function main() {
       env: {
         ...environment,
         MEMORY_LANE_USER_DATA: USER_DATA,
-        MEMORY_LANE_DEV_DRIVE: DRIVE,
-        MEMORY_LANE_DEV_DRIVE_LABEL: "WD My Passport 2TB",
+        MEMORY_LANE_DEV_DRIVES: JSON.stringify([
+          { path: DRIVE, label: SOURCE_LABEL, serial: "readme-source" },
+          { path: BACKUP, label: BACKUP_LABEL, serial: "readme-backup" },
+        ]),
         MEMORY_LANE_E2E: "1",
       },
     });
@@ -134,9 +149,9 @@ async function main() {
       state: "visible",
       timeout: 20_000,
     });
-    const driveCard = page.getByRole("article").filter({ hasText: "WD My Passport 2TB" });
+    const driveCard = page.getByRole("article").filter({ hasText: SOURCE_LABEL });
     await driveCard
-      .getByRole("button", { name: /Set up a new catalog on WD My Passport 2TB/ })
+      .getByRole("button", { name: new RegExp(`Set up a new catalog on ${SOURCE_LABEL}`) })
       .click();
     const setupDialog = page.getByRole("dialog", { name: "Set up a new archive" });
     await setupDialog.getByRole("button", { name: "Start first scan" }).click();
@@ -191,6 +206,61 @@ async function main() {
     await page.getByRole("button", { name: "Back up now" }).click();
     await waitForApplication(page, "Backup complete");
     await capture(page, "settings.png");
+
+    await page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Backup", exact: true })
+      .click();
+    await page.getByRole("heading", { name: "Backup destinations" }).waitFor({
+      state: "visible",
+    });
+    await page
+      .getByRole("button", { name: /Add destination/ })
+      .first()
+      .click();
+    const destinationDrawer = page.getByRole("dialog", { name: "Add a backup destination" });
+    await destinationDrawer.getByRole("button", { name: new RegExp(BACKUP_LABEL) }).click();
+    await destinationDrawer.getByLabel("Safety reserve (GB)").fill("0");
+    await destinationDrawer.getByRole("button", { name: "Add and adopt" }).click();
+    await page.getByRole("link").filter({ hasText: BACKUP_LABEL }).first().click();
+    await page.getByRole("heading", { name: BACKUP_LABEL }).waitFor({ state: "visible" });
+    await page.getByText("Adoption complete").waitFor({ state: "visible", timeout: 60_000 });
+    await capture(page, "backup-destination.png");
+
+    await page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Backup", exact: true })
+      .click();
+    await page.getByRole("heading", { name: "Backup destinations" }).waitFor({
+      state: "visible",
+    });
+
+    await page.getByRole("link", { name: "Review plan" }).click();
+    await page.getByRole("heading", { name: "Backup plan" }).waitFor({ state: "visible" });
+    await capture(page, "backup-plan.png");
+
+    await page.getByRole("button", { name: "Start backup" }).click();
+    const startDialog = page.getByRole("dialog", { name: "Start backup" });
+    await startDialog.getByRole("button", { name: "Start backup" }).click();
+    await page.getByRole("heading", { name: "Backup run" }).waitFor({ state: "visible" });
+    await page.getByText("Completed", { exact: true }).waitFor({
+      state: "visible",
+      timeout: 120_000,
+    });
+    await capture(page, "backup-run.png");
+
+    await page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "Backup", exact: true })
+      .click();
+    await page.getByRole("heading", { name: "Backup destinations" }).waitFor({
+      state: "visible",
+    });
+    await page.getByText(/of 14 source files verified/).waitFor({
+      state: "visible",
+      timeout: 20_000,
+    });
+    await capture(page, "backup-overview.png");
 
     console.log("README screenshots refreshed.");
   } finally {

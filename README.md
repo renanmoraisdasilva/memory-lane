@@ -6,7 +6,7 @@ Memory Lane catalogs photos, videos, documents, and everything else on external
 drives so the archive can be browsed, dated, searched by category, and checked
 for integrity. It never moves, renames, edits, or deletes the originals.
 
-![Memory Lane timeline](docs/images/library.png)
+![Memory Lane demo: library, viewer, scan, backup destinations, plan, run, health, and settings](docs/images/memory-lane-demo.gif)
 
 ---
 
@@ -100,6 +100,49 @@ without losing completed work.
 | ![Other files browser with category chips](docs/images/other-files.png) | ![Settings with cache, catalog, and backup status](docs/images/settings.png) |
 | Documents, spreadsheets, presentations, PDFs, audio, archives, and other files with external open/reveal. | Generated cache size/clear, catalog location, backup status, background controls, About, and an explicit offline/read-only statement. |
 
+## Backups to other drives
+
+Memory Lane keeps two different kinds of backup, and the UI labels them
+separately:
+
+- **PC database backups** are copies of `app.db` and the active `catalog.db`.
+  They run every 15 minutes and on graceful close so the catalog can be restored
+  without touching the archive.
+- **Archive backups** are verified copies of the source files on other drives.
+  They are managed from **Backup** in the sidebar.
+
+To add an archive backup, connect a destination drive and register it. Memory
+Lane adopts files that are already on the drive without moving, renaming, or
+deleting them, then plans only the uncovered files. A destination can extend
+coverage oldest-first across several partial drives, or hold a complete copy of
+the source. Every copy is read back and verified with SHA-256 before it counts
+as coverage. Runs pause and resume, survive disconnects and restarts, and never
+write to the source archive.
+
+| Backup destinations | Destination and coverage |
+| --- | --- |
+| ![Backup destinations with verified coverage](docs/images/backup-overview.png) | ![Destination adoption and monthly coverage](docs/images/backup-destination.png) |
+| Source and destination totals, verified coverage, remainder, and destination health. | Adopt an existing drive, review conflicts and extras, and inspect verified coverage by month. |
+
+| Backup plan | Backup run |
+| --- | --- |
+| ![Backup plan with partial coverage and remainder](docs/images/backup-plan.png) | ![Completed backup run with verified files](docs/images/backup-run.png) |
+| Shows adopted files, new files, the planned date range, and what remains uncovered. | Copies one file at a time, verifies every copy, and keeps state changes in the run history. |
+
+Partial destinations fill the oldest uncovered dates first. A full-copy
+destination receives every present source file. If the source grows, a full
+copy is marked incomplete and the next run copies only the new files. A complete
+full copy can be promoted to become the source archive; promotion preserves
+catalog dates, overrides, duplicates, and coverage, and can be rolled back.
+
+The top bar shows an activity chip while an adoption or backup run is active,
+including paused and interrupted states, so long work stays visible from any
+screen.
+
+The full behavior is in
+[`docs/product/partial-backups.md`](docs/product/partial-backups.md) and
+[`docs/contracts/replication.md`](docs/contracts/replication.md).
+
 ## How it is put together
 
 The renderer never receives Node.js or direct database access. A typed preload
@@ -112,8 +155,10 @@ flowchart TB
     Bridge["Preload bridge<br/>typed contextBridge API"]
     Main["Electron main<br/>domain services"]
     Worker["SQLite DB worker<br/>single writer"]
+    BackupWorker["Backup worker<br/>read-only copy"]
     AppDB[("app.db")]
     CatalogDB[("catalog.db")]
+    BackupFiles[("%LOCALAPPDATA%<br/>backups")]
     Scanner["Scan service"]
     ExifTool["ExifTool"]
     Thumbs["Native thumbnails"]
@@ -130,20 +175,26 @@ flowchart TB
     Scanner -->|"batch writes"| Worker
     Renderer -->|"thumbnail and media URLs"| Media
     Media -->|"catalog IDs only"| Worker
-    Main -->|"scheduled backups"| Worker
+    Main -->|"scheduled backups"| BackupWorker
+    BackupWorker -.->|"read-only"| AppDB
+    BackupWorker -.->|"read-only"| CatalogDB
+    BackupWorker --> BackupFiles
 
     classDef ui fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
     classDef core fill:#f3e8ff,stroke:#7e22ce,color:#581c87
     classDef data fill:#dcfce7,stroke:#16a34a,color:#14532d
     class Renderer,Bridge,Media ui
-    class Main,Worker,Scanner,ExifTool,Thumbs core
-    class AppDB,CatalogDB data
+    class Main,Worker,BackupWorker,Scanner,ExifTool,Thumbs core
+    class AppDB,CatalogDB,BackupFiles data
 ```
 
 A few decisions shape the rest:
 
 - **One SQLite writer.** The worker owns both `app.db` and the active
   `catalog.db`. Renderer and main-process services never open SQLite directly.
+- **Backups stay off the UI path.** A dedicated backup worker opens both
+  databases read-only and copies them to `%LOCALAPPDATA%`; the DB worker records
+  the result. A large catalog copy cannot stall browsing or adoption.
 - **One catalog per drive.** `<drive>\.memorylane\catalog.db` is self-contained,
   versioned, and portable with the drive.
 - **IDs, not paths, over media URLs.** `ml-media:` resolves catalog IDs in the
@@ -179,14 +230,16 @@ The IPC and media contracts are in
 - **Other files** categories with pagination, external open, and reveal.
 - **Settings** for generated cache, catalog location, backup status, background
   controls, and About.
-- **SQLite-safe PC backups** every 15 minutes and on graceful close, with manual
-  recovery documented.
+- **SQLite-safe PC database backups** every 15 minutes and on graceful close, with
+  manual recovery documented.
 - **Hardening**: 100k/200k performance coverage, simulated disconnect and
   unclean-restart drills, a backup-restore drill, tightened IPC/CSP controls, a
   read-only guard, SHA-256 package checksums, and an expanded packaged smoke.
-- **Partial and full backups**: adopted destination libraries, resumable partial
-  runs, complete full copies, source-growth degradation, and metadata-only
-  promotion with rollback.
+- **Partial and full archive backups**: adopted destination libraries, verified
+  coverage, resumable partial runs, complete full copies, source-growth
+  degradation, and metadata-only promotion with rollback.
+- **Backup activity** in the top bar for adoption and run progress, paused, and
+  interrupted states.
 - **530 automated tests** across 134 files, 10 Electron E2E flows, and a packaged
   app smoke covering scan, library, Other files, Settings, backup, cache, and
   WMV compatible playback.
@@ -265,7 +318,7 @@ SQLite locations:
 ```
 
 `npm run screenshots:readme` rebuilds the unpacked app and refreshes the
-screenshots in `docs/images/` from the packaged UI.
+screenshots and demo GIF in `docs/images/` from the packaged UI.
 
 Memory Lane is a desktop app that needs a native window, drive letters, Windows
 Explorer integration, and media playback. Docker is not a runtime dependency;
