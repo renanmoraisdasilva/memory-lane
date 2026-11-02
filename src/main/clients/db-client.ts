@@ -34,6 +34,7 @@ const MAINTENANCE_METHODS: ReadonlySet<DbMethod> = new Set<DbMethod>([
   "cleanup.applyMoves",
   "cleanup.finish",
   "cleanup.getState",
+  "health.getDuplicates",
   "replication.listSourceFiles",
   "replication.saveSourceHash",
   "replication.registerDestination",

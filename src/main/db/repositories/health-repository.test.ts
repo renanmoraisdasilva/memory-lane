@@ -9,6 +9,7 @@ import {
   dismissMovedCandidates,
   getDuplicateGroups,
   getHealthSummary,
+  rebuildDuplicateGroups,
 } from "./health-repository";
 import {
   dismissMissingFiles,
@@ -73,6 +74,7 @@ describe("health repository", () => {
     addHash(db, first, "same");
     addHash(db, second, "same");
     addHash(db, third, "different");
+    rebuildDuplicateGroups(db);
 
     const page = getDuplicateGroups(db, 0, 10);
     expect(page).toMatchObject({ totalGroups: 1, totalFiles: 2, totalBytes: 200 });
@@ -92,6 +94,7 @@ describe("health repository", () => {
       duplicateGroups: 0,
       duplicateFiles: 0,
     });
+    rebuildDuplicateGroups(db);
     expect(getDuplicateGroups(db, 0, 10).totalGroups).toBe(1);
     expect(getHealthSummary(db)).toMatchObject({
       duplicateGroups: 1,

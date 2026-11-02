@@ -16,12 +16,12 @@ import {
   DuplicateCleanupSummarySchema,
 } from "@shared/contracts/health";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
-import { rebuildDuplicateGroups } from "./health-repository";
 import {
   buildCleanupPlan,
   loadDuplicateEvaluations,
   summarizeDuplicateEvaluations,
 } from "./duplicate-evaluation";
+import { rebuildDuplicateGroups } from "./health-repository";
 import { refreshAdoptionCounters } from "./replication-adoption-repository";
 
 const CleanupRunRowSchema = z.object({
@@ -109,7 +109,6 @@ export function getCleanupSummary(
   rootPath: string,
   quarantineRoot: string,
 ): DuplicateCleanupSummary {
-  rebuildDuplicateGroups(db);
   const summary = summarizeDuplicateEvaluations(
     loadDuplicateEvaluations(db).values(),
     rootPath,
@@ -123,7 +122,6 @@ export function getCleanupPlan(
   rootPath: string,
   quarantineRoot: string,
 ): DuplicateCleanupPlan {
-  rebuildDuplicateGroups(db);
   const plan = buildCleanupPlan(loadDuplicateEvaluations(db).values(), rootPath, quarantineRoot);
   return DuplicateCleanupPlanSchema.parse(plan);
 }

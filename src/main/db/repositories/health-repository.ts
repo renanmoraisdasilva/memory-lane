@@ -202,7 +202,6 @@ export function getDuplicateGroups(
   offset: number,
   limit: number,
 ): DuplicateGroupsPage {
-  rebuildDuplicateGroups(db);
   const evaluations = loadDuplicateEvaluations(db);
   const groupRows = readGroupRows(db, offset, limit);
   const filesByGroup = readDuplicateFiles(

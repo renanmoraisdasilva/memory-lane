@@ -3,6 +3,7 @@ import { toVolumeId } from "@shared/contracts/drives";
 import { catalogMigrations } from "../migrations/catalog-migrations";
 import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
+import { rebuildDuplicateGroups } from "./health-repository";
 
 const volumeId = toVolumeId("volume-1");
 
@@ -134,5 +135,6 @@ export function insertGroup(
     }
     ids.push(fileId);
   }
+  rebuildDuplicateGroups(db);
   return ids;
 }
