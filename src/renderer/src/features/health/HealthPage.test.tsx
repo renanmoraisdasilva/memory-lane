@@ -292,7 +292,7 @@ describe("HealthPage", () => {
     expect(await screen.findByText("2 exact copies")).toBeVisible();
     expect(screen.getByText("KEEP")).toBeVisible();
     expect(screen.getByText("MOVE")).toBeVisible();
-    expect(await screen.findByText(/groups have no verified backup/)).toBeVisible();
+    expect(await screen.findByText(/without verified backup/)).toBeVisible();
     await userEvent.click(screen.getByRole("button", { name: "Move duplicates to quarantine" }));
     expect(
       await screen.findByRole("dialog", { name: "Move duplicates to quarantine?" }),

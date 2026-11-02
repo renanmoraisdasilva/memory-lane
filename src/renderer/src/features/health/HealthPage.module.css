@@ -456,40 +456,17 @@
   line-height: 1.5;
 }
 
-.cleanupBarHint {
-  color: var(--faint) !important;
-  font-size: 10px !important;
+.cleanupBarMeta {
+  font-variant-numeric: tabular-nums;
+}
+
+.cleanupBarWarning {
+  color: var(--amber-2);
+  font-weight: 600;
 }
 
 .cleanupBarActions {
   flex: 0 0 auto;
-}
-
-.cleanupRule {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  padding: 8px 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 7px;
-  background: var(--panel-2);
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.cleanupRule strong {
-  color: var(--text-2);
-}
-
-.cleanupEligibility {
-  display: flex;
-  align-items: center;
-  gap: 6px 14px;
-  flex-wrap: wrap;
-  color: var(--faint);
-  font-size: 9.5px;
-  line-height: 1.5;
 }
 
 .cleanupBadges {

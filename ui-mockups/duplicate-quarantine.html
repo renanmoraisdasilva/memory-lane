@@ -394,25 +394,14 @@
           <section class="tab-panel is-active" data-panel="duplicates" role="tabpanel">
             <div class="cleanup-bar">
               <div>
-                <h2>128 duplicate groups</h2>
-                <p>342 files · 6.4 GB in duplicate copies · ~3.1 GB excess</p>
-                <p class="cleanup-bar__hint">One keeper per group. The rest move to quarantine. Nothing is deleted.</p>
+                <h2>128 duplicate groups · 342 files · 6.4 GB duplicate · 3.1 GB excess</h2>
+                <p>112 eligible · 16 skipped · 12 without verified backup</p>
               </div>
               <div class="cleanup-bar__actions">
                 <button class="btn btn--primary" type="button" data-modal-open="cleanup-confirm">
                   <span class="icon">drive_file_move</span> Move duplicates to quarantine
                 </button>
               </div>
-            </div>
-
-            <div class="cleanup-rule">
-              <span class="icon">rule</span>
-              <div><strong>Keep:</strong> a verified backup copy first, then oldest copy → older modified time → shallower and shorter path → shorter name. Groups with date overrides, hard links, empty files, or files under 1 KB are skipped. Groups with no verified backup are included with a warning.</div>
-            </div>
-
-            <div class="cleanup-warning">
-              <span class="icon">warning</span>
-              <div><strong>12 groups have no verified backup.</strong> Cleanup is allowed, but keep the quarantine folder until the archive has another verified copy. It is not a backup yet.</div>
             </div>
 
             <article class="cleanup-group">
@@ -510,7 +499,7 @@
       </div>
       <div class="modal__body">
         <div class="cleanup-summary-line">
-          <strong>128</strong> keepers stay · <strong>214</strong> files move · about <strong>3.1 GB</strong>
+          <strong>112</strong> keepers stay · <strong>230</strong> files move · about <strong>3.1 GB</strong>
         </div>
         <div class="cleanup-rule-card">
           <strong>Keep one copy per group:</strong> a verified backup copy first, then oldest
@@ -535,7 +524,7 @@
       </div>
       <div class="modal__foot">
         <button class="btn" type="button" data-modal-close>Cancel</button>
-        <button class="btn btn--primary" type="button" id="cleanup-start" disabled><span class="icon">drive_file_move</span> Move 214 files</button>
+        <button class="btn btn--primary" type="button" id="cleanup-start" disabled><span class="icon">drive_file_move</span> Move 230 files</button>
       </div>
     </div>
   </div>
@@ -552,7 +541,7 @@
       </div>
       <div class="modal__body">
         <div class="cleanup-progress-head">
-          <span><strong id="cleanup-progress-percent">38%</strong> · <span id="cleanup-progress-count">81 of 214 files</span></span>
+          <span><strong id="cleanup-progress-percent">38%</strong> · <span id="cleanup-progress-count">87 of 230 files</span></span>
           <span id="cleanup-progress-bytes">1.2 GB</span>
         </div>
         <div class="progress"><span id="cleanup-progress-bar" style="width:38%"></span></div>
@@ -571,7 +560,7 @@
       <div class="modal__head">
         <div>
           <h2 id="cleanup-complete-title">Cleanup complete</h2>
-          <p>208 files moved · 3.0 GB · 6 skipped</p>
+          <p>226 files moved · 3.0 GB · 4 skipped</p>
         </div>
         <button class="btn btn--icon btn--ghost" type="button" data-modal-close aria-label="Close"><span class="icon">close</span></button>
       </div>
@@ -626,10 +615,10 @@
 
       const setProgress = (next) => {
         value = Math.min(100, Math.max(0, next));
-        const filesDone = Math.round(214 * (value / 100));
+        const filesDone = Math.round(230 * (value / 100));
         progressBar.style.width = `${value}%`;
         progressPercent.textContent = `${value}%`;
-        progressCount.textContent = `${filesDone.toLocaleString()} of 214 files`;
+        progressCount.textContent = `${filesDone.toLocaleString()} of 230 files`;
         progressBytes.textContent = `${(3.1 * (value / 100)).toFixed(1)} GB`;
       };
 
