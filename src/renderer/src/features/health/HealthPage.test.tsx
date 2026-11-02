@@ -5,6 +5,8 @@ import { cleanup, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type {
+  MissingFile,
+  MissingFilesPage,
   MovedCandidatesPage,
   MovedCandidatesParams,
   ValidationState,
@@ -47,6 +49,21 @@ function renderHealth(libraryClient: LibraryClient = createLibraryFixtureClient(
 afterEach(() => {
   cleanup();
 });
+
+const missingItem: MissingFile = {
+  fileId: 7,
+  name: "gone.jpg",
+  path: "E:\\Archive\\gone.jpg",
+  folder: "E:\\Archive",
+  sizeBytes: 1024,
+  mediaClass: "image",
+  format: "JPG",
+  lastPath: "E:\\Archive\\gone.jpg",
+  lastSeenAt: "2026-10-31T12:00:00.000Z",
+  reason: "scan",
+  hasMovedCandidate: false,
+  dismissedAt: null,
+};
 
 async function movedPage(params: MovedCandidatesParams): Promise<MovedCandidatesPage> {
   const offset = params.offset ?? 0;
@@ -105,6 +122,54 @@ describe("HealthPage", () => {
     });
     expect(await screen.findByText("Page 2 of 3")).toBeVisible();
     expect(screen.getByRole("button", { name: "Confirm selected" })).toBeDisabled();
+  });
+
+  it("selects all missing files and disregards them", async () => {
+    const client = createLibraryFixtureClient();
+    const page: MissingFilesPage = {
+      items: [missingItem, { ...missingItem, fileId: 8, name: "also-gone.jpg" }],
+      total: 2,
+      fileIds: [7, 8],
+      dismissedTotal: 0,
+    };
+    const getMissing = vi.fn(async () => page);
+    const dismissMissing = vi.fn(async () => ({ updated: 2, skipped: 0 }));
+    client.getMissing = getMissing;
+    client.dismissMissing = dismissMissing;
+    renderHealth(client);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Select all (2)" }));
+    await userEvent.click(screen.getByRole("button", { name: "Disregard these files (2)" }));
+    await waitFor(() => {
+      expect(dismissMissing).toHaveBeenCalledWith({ fileIds: [7, 8] });
+    });
+  });
+
+  it("shows disregarded missing files and restores them", async () => {
+    const client = createLibraryFixtureClient();
+    const activePage: MissingFilesPage = {
+      items: [],
+      total: 0,
+      fileIds: [],
+      dismissedTotal: 1,
+    };
+    const dismissedPage: MissingFilesPage = {
+      items: [{ ...missingItem, dismissedAt: "2026-11-01T12:00:00.000Z" }],
+      total: 1,
+      fileIds: [7],
+      dismissedTotal: 1,
+    };
+    client.getMissing = async (params) => (params.dismissedOnly ? dismissedPage : activePage);
+    const restoreMissing = vi.fn(async () => ({ updated: 1, skipped: 0 }));
+    client.restoreMissing = restoreMissing;
+    renderHealth(client);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Show disregarded (1)" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Select all (1)" }));
+    await userEvent.click(screen.getByRole("button", { name: "Restore selected (1)" }));
+    await waitFor(() => {
+      expect(restoreMissing).toHaveBeenCalledWith({ fileIds: [7] });
+    });
   });
 
   it("starts a whole-catalog validation with the selected levels", async () => {

@@ -2,6 +2,7 @@ import { access } from "node:fs/promises";
 import type {
   DuplicateGroupsPage,
   HealthSummary,
+  MissingActionResult,
   MissingDuplicatesPage,
   MissingFilesPage,
   MovedActionResult,
@@ -69,10 +70,24 @@ export class HealthService {
     });
   }
 
-  async getMissing(offset = 0, limit = 50): Promise<MissingFilesPage> {
+  async getMissing(offset = 0, limit = 50, dismissedOnly = false): Promise<MissingFilesPage> {
     return this.dependencies.db.request<MissingFilesPage>("health.getMissing", {
       offset,
       limit,
+      dismissedOnly,
+    });
+  }
+
+  async dismissMissing(fileIds: number[]): Promise<MissingActionResult> {
+    return this.dependencies.db.request<MissingActionResult>("health.dismissMissing", {
+      fileIds,
+      now: this.now(),
+    });
+  }
+
+  async restoreMissing(fileIds: number[]): Promise<MissingActionResult> {
+    return this.dependencies.db.request<MissingActionResult>("health.restoreMissing", {
+      fileIds,
     });
   }
 

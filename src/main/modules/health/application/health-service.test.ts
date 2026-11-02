@@ -271,9 +271,11 @@ describe("HealthService", () => {
     };
     const db = createDb({
       "health.getSummary": summary,
-      "health.getMissing": { items: [], total: 0 },
+      "health.getMissing": { items: [], total: 0, fileIds: [], dismissedTotal: 0 },
       "health.getDuplicates": { groups: [], totalGroups: 0, totalFiles: 0, totalBytes: 0 },
       "health.dismissMoved": { updated: 1, skipped: 0 },
+      "health.dismissMissing": { updated: 1, skipped: 0 },
+      "health.restoreMissing": { updated: 1, skipped: 0 },
     });
     const service = new HealthService({
       db,
@@ -283,8 +285,16 @@ describe("HealthService", () => {
     });
 
     await expect(service.getSummary()).resolves.toEqual(summary);
-    await expect(service.getMissing()).resolves.toEqual({ items: [], total: 0 });
+    await expect(service.getMissing()).resolves.toEqual({
+      items: [],
+      total: 0,
+      fileIds: [],
+      dismissedTotal: 0,
+    });
+    await expect(service.getMissing(0, 50, true)).resolves.toMatchObject({ total: 0 });
     await expect(service.getDuplicates()).resolves.toMatchObject({ totalGroups: 0 });
     await expect(service.dismissMoved([1])).resolves.toEqual({ updated: 1, skipped: 0 });
+    await expect(service.dismissMissing([1])).resolves.toEqual({ updated: 1, skipped: 0 });
+    await expect(service.restoreMissing([1])).resolves.toEqual({ updated: 1, skipped: 0 });
   });
 });

@@ -259,6 +259,12 @@
   flex-wrap: wrap;
 }
 
+.missingToolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .pagination {
   display: flex;
   align-items: center;
@@ -303,7 +309,7 @@
 
 .tableHead {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 80px;
+  grid-template-columns: 22px minmax(0, 1fr) 140px 80px;
   gap: 10px;
   padding: 0 8px 4px;
   color: var(--faint);
@@ -315,8 +321,9 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 80px;
+  grid-template-columns: 22px minmax(0, 1fr) 140px 80px;
   align-items: center;
+  cursor: pointer;
 }
 
 .tableNote {
@@ -431,11 +438,11 @@
 
   .tableHead,
   .tableRow {
-    grid-template-columns: minmax(0, 1fr) 90px;
+    grid-template-columns: 22px minmax(0, 1fr) 90px;
   }
 
-  .tableHead span:nth-child(2),
-  .tableRow > span:nth-child(2) {
+  .tableHead span:nth-child(3),
+  .tableRow > span:nth-child(3) {
     display: none;
   }
 }

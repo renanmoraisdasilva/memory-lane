@@ -249,21 +249,29 @@ function copyMissingRow(input: {
   newPath: string;
 }): void {
   const row = input.source
-    .prepare("SELECT last_path, last_seen_at, reason FROM missing_files WHERE file_id = ?")
+    .prepare(
+      "SELECT last_path, last_seen_at, reason, dismissed_at FROM missing_files WHERE file_id = ?",
+    )
     .get(input.oldFileId) as
-    { last_path: string; last_seen_at: string | null; reason: string | null } | undefined;
+    | {
+        last_path: string;
+        last_seen_at: string | null;
+        reason: string | null;
+        dismissed_at: string | null;
+      }
+    | undefined;
   if (row === undefined) {
     return;
   }
   input.destination
     .prepare(
-      `INSERT INTO missing_files (file_id, last_path, last_seen_at, reason)
-       VALUES (?, ?, ?, ?)
+      `INSERT INTO missing_files (file_id, last_path, last_seen_at, reason, dismissed_at)
+       VALUES (?, ?, ?, ?, ?)
        ON CONFLICT(file_id) DO UPDATE SET
          last_path = excluded.last_path, last_seen_at = excluded.last_seen_at,
-         reason = excluded.reason`,
+         reason = excluded.reason, dismissed_at = excluded.dismissed_at`,
     )
-    .run(input.newFileId, input.newPath, row.last_seen_at, row.reason);
+    .run(input.newFileId, input.newPath, row.last_seen_at, row.reason, row.dismissed_at);
 }
 
 export function mergeSourceFiles(input: PromotionFileMergeInput): PromotionFileMergeResult {

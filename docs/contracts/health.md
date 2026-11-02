@@ -15,9 +15,11 @@ Status: implemented in Phase 4. Types live in
 |---|---|---|---|
 | `health:get-summary` | `getHealthSummary` | none | `HealthSummary` |
 | `health:get-duplicates` | `getHealthDuplicates` | `{ offset?, limit? }` | `DuplicateGroupsPage` |
-| `health:get-missing` | `getHealthMissing` | `{ offset?, limit? }` | `MissingFilesPage` |
+| `health:get-missing` | `getHealthMissing` | `{ offset?, limit?, dismissedOnly? }` | `MissingFilesPage` |
 | `health:get-missing-duplicates` | `getHealthMissingDuplicates` | `{ offset?, limit? }` | `MissingDuplicatesPage` |
 | `health:purge-missing-duplicates` | `purgeHealthMissingDuplicates` | `{ fileIds, includePendingMoves? }` | `{ removed, skipped, dismissedMovedCandidates }` |
+| `health:dismiss-missing` | `dismissHealthMissing` | `{ fileIds }` | `MissingActionResult` |
+| `health:restore-missing` | `restoreHealthMissing` | `{ fileIds }` | `MissingActionResult` |
 | `health:get-moved` | `getHealthMoved` | `{ offset?, limit? }` | `MovedCandidatesPage` |
 | `health:confirm-moved` | `confirmHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
 | `health:dismiss-moved` | `dismissHealthMoved` | `{ candidateIds }` | `{ updated, skipped }` |
@@ -43,6 +45,17 @@ Status: implemented in Phase 4. Types live in
 
 - Missing files are rows in `missing_files` joined to their preserved `files`
   row.
+- A missing file can be **disregarded** from the Missing files tab. This records
+  `missing_files.dismissed_at`, dismisses its pending move suggestions, and keeps
+  the catalog row intact. Files on source and backup drives are never changed.
+- Disregarded files are hidden from the Missing files and Missing duplicates
+  views. `dismissedOnly` returns the disregarded list, and the restore action
+  clears `dismissed_at`.
+- The missing list is offset-paged. The response includes `fileIds` for every
+  matching missing file so Select all can cover files beyond the visible page,
+  plus `dismissedTotal` for the Show disregarded control.
+- Dismiss and restore accept up to 50,000 file ids per request. Select all covers
+  every matching missing file, not only the visible page.
 - A pending moved candidate contains old path, new path, size, and SHA-256.
 - The moved-candidate list is paginated. The UI requests 50 at a time.
 - Confirming is capped at 500 candidates per request. Dismissing accepts up to
@@ -114,10 +127,13 @@ Catalog migration 5:
 - `validation_results`: `level`.
 - Unique `(session_id, file_id, level)` and session/level indexes.
 
-Catalog schema version: 9.
+Catalog migration 10 adds `missing_files.dismissed_at` and its index.
+
+Catalog schema version: 10.
 
 ## Tests
 
-Repository, handler, service, renderer, and E2E tests cover duplicate rebuild,
-missing/moved actions, missing-duplicate cleanup, validation progress, hash
-update, metadata refresh, and the health UI.
+Repository, handler, service, and renderer tests cover duplicate rebuild,
+missing/moved actions, missing dismissal and restore, missing-duplicate cleanup,
+validation progress, hash update, metadata refresh, and the health UI. E2E
+tests cover the missing-duplicate cleanup and validation flows.

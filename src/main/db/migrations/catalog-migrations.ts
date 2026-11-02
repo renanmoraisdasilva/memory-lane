@@ -7,6 +7,7 @@ import catalogFrameRate from "./catalog/0006-frame-rate.sql?raw";
 import catalogReplication from "./catalog/0007-replication.sql?raw";
 import catalogQuickHashes from "./catalog/0008-quick-hashes.sql?raw";
 import catalogVideoProxies from "./catalog/0009-video-proxies.sql?raw";
+import catalogMissingDismissals from "./catalog/0010-missing-dismissals.sql?raw";
 import type { Migration } from "./types";
 
 export const catalogMigrations: Migration[] = [
@@ -54,5 +55,10 @@ export const catalogMigrations: Migration[] = [
     version: 9,
     name: "video proxy cache entries",
     sql: catalogVideoProxies,
+  },
+  {
+    version: 10,
+    name: "missing file dismissals",
+    sql: catalogMissingDismissals,
   },
 ];

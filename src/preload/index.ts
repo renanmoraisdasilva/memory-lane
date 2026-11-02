@@ -13,8 +13,10 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingActionResult,
   MissingDuplicatesPage,
   MissingDuplicatesParams,
+  MissingFileTargets,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
@@ -140,6 +142,14 @@ const api: MemoryLaneApi = {
   purgeHealthMissingDuplicates: (params: PurgeMissingDuplicatesParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.purgeHealthMissingDuplicates, params) as Promise<
       IpcResult<PurgeMissingDuplicatesResult>
+    >,
+  dismissHealthMissing: (params: MissingFileTargets) =>
+    ipcRenderer.invoke(IPC_CHANNELS.dismissHealthMissing, params) as Promise<
+      IpcResult<MissingActionResult>
+    >,
+  restoreHealthMissing: (params: MissingFileTargets) =>
+    ipcRenderer.invoke(IPC_CHANNELS.restoreHealthMissing, params) as Promise<
+      IpcResult<MissingActionResult>
     >,
   getHealthMoved: (params: MovedCandidatesParams) =>
     ipcRenderer.invoke(IPC_CHANNELS.getHealthMoved, params) as Promise<

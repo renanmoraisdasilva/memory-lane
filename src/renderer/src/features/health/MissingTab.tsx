@@ -1,16 +1,10 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, X } from "lucide-react";
 import { useState } from "react";
 import type { MovedCandidate } from "@shared/contracts/health";
-import { EmptyState } from "../../components/ui/EmptyState";
-import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
-import {
-  useConfirmMoved,
-  useDismissMoved,
-  useHealthMissing,
-  useHealthMoved,
-  useHealthSummary,
-} from "./use-health";
+import { formatBytes, formatCount } from "../../lib/format";
+import { useConfirmMoved, useDismissMoved, useHealthMoved, useHealthSummary } from "./use-health";
 import { MissingDuplicates } from "./MissingDuplicates";
+import { MissingFiles } from "./MissingFiles";
 import styles from "./HealthPage.module.css";
 
 const MOVED_PAGE_SIZE = 50;
@@ -219,76 +213,8 @@ function MovedSection({
   );
 }
 
-function MissingList({
-  loading,
-  error,
-  items,
-}: {
-  loading: boolean;
-  error: unknown;
-  items: Array<{
-    fileId: number;
-    name: string;
-    path: string;
-    lastSeenAt: string | null;
-    sizeBytes: number;
-    hasMovedCandidate: boolean;
-  }>;
-}): React.JSX.Element | null {
-  if (loading) {
-    return <p className={styles.muted}>Loading missing files…</p>;
-  }
-  if (error !== null && error !== undefined) {
-    return (
-      <p className={styles.error}>
-        {error instanceof Error ? error.message : "Missing files could not be loaded."}
-      </p>
-    );
-  }
-  if (items.length === 0) {
-    return (
-      <EmptyState
-        icon={<CheckCircle2 size={26} aria-hidden="true" />}
-        title="No missing files"
-        action={null}
-      >
-        Every cataloged path currently resolves on the archive drive. Missing files remain cataloged
-        until the user decides what to do with them.
-      </EmptyState>
-    );
-  }
-  return (
-    <section className={styles.tableCard} aria-label="Missing files">
-      <div className={styles.tableHead}>
-        <span>File</span>
-        <span>Last seen</span>
-        <span>Size</span>
-      </div>
-      {items.map((item) => (
-        <div className={styles.tableRow} key={item.fileId}>
-          <span className={styles.fileCopy}>
-            <span className={styles.fileName}>
-              {item.name}
-              {item.hasMovedCandidate ? (
-                <AlertTriangle size={12} aria-label="Moved candidate available" />
-              ) : null}
-            </span>
-            <span className={styles.filePath}>{item.path}</span>
-          </span>
-          <span className={styles.muted}>{formatDateTime(item.lastSeenAt)}</span>
-          <span className={styles.fileSize}>{formatBytes(item.sizeBytes)}</span>
-        </div>
-      ))}
-      <p className={styles.tableNote}>
-        These files may have been moved or removed outside Memory Lane. The app did not delete them.
-      </p>
-    </section>
-  );
-}
-
 export function MissingTab(): React.JSX.Element {
   const summary = useHealthSummary();
-  const missing = useHealthMissing({ limit: 100 });
   const [page, setPage] = useState(0);
   const total = summary.data?.movedCandidates ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / MOVED_PAGE_SIZE));
@@ -364,11 +290,7 @@ export function MissingTab(): React.JSX.Element {
         onConfirm={confirmSelected}
         onDismiss={dismissSelected}
       />
-      <MissingList
-        loading={missing.isLoading}
-        error={missing.error}
-        items={missing.data?.items ?? []}
-      />
+      <MissingFiles />
     </div>
   );
 }

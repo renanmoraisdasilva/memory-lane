@@ -8,6 +8,8 @@ export function healthFixtureMethods(): Pick<
   | "getMissing"
   | "getMissingDuplicates"
   | "purgeMissingDuplicates"
+  | "dismissMissing"
+  | "restoreMissing"
   | "getMoved"
   | "confirmMoved"
   | "dismissMoved"
@@ -28,7 +30,7 @@ export function healthFixtureMethods(): Pick<
       }),
     getDuplicates: () =>
       Promise.resolve({ groups: [], totalGroups: 0, totalFiles: 0, totalBytes: 0 }),
-    getMissing: () => Promise.resolve({ items: [], total: 0 }),
+    getMissing: () => Promise.resolve({ items: [], total: 0, fileIds: [], dismissedTotal: 0 }),
     getMissingDuplicates: () =>
       Promise.resolve({
         items: [],
@@ -46,6 +48,8 @@ export function healthFixtureMethods(): Pick<
         skipped: 0,
         dismissedMovedCandidates: 0,
       }),
+    dismissMissing: (params) => Promise.resolve({ updated: params.fileIds.length, skipped: 0 }),
+    restoreMissing: (params) => Promise.resolve({ updated: params.fileIds.length, skipped: 0 }),
     getMoved: () => Promise.resolve({ items: [], total: 0 }),
     confirmMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),
     dismissMoved: (params) => Promise.resolve({ updated: params.candidateIds.length, skipped: 0 }),

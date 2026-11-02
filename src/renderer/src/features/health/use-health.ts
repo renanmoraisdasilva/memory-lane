@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   DuplicateGroupsParams,
+  MissingFileTargets,
   MissingFilesParams,
   MovedCandidateTargets,
   MovedCandidatesParams,
@@ -32,7 +33,11 @@ export function useHealthDuplicates(params: DuplicateGroupsParams) {
 export function useHealthMissing(params: MissingFilesParams) {
   const client = useLibraryClient();
   return useQuery({
-    queryKey: queryKeys.healthMissing(params.offset ?? 0, params.limit ?? 50),
+    queryKey: queryKeys.healthMissing(
+      params.offset ?? 0,
+      params.limit ?? 50,
+      params.dismissedOnly ?? false,
+    ),
     queryFn: () => client.getMissing(params),
     staleTime: 10_000,
   });
@@ -112,6 +117,16 @@ export function useConfirmMoved() {
 export function useDismissMoved() {
   const client = useLibraryClient();
   return useHealthMutation((params: MovedCandidateTargets) => client.dismissMoved(params));
+}
+
+export function useDismissMissing() {
+  const client = useLibraryClient();
+  return useHealthMutation((params: MissingFileTargets) => client.dismissMissing(params));
+}
+
+export function useRestoreMissing() {
+  const client = useLibraryClient();
+  return useHealthMutation((params: MissingFileTargets) => client.restoreMissing(params));
 }
 
 export function useStartValidation() {

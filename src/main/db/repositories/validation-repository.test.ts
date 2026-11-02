@@ -134,6 +134,16 @@ describe("validation repository", () => {
       sha256: "new-hash",
     });
     expect(db.prepare("SELECT COUNT(*) AS count FROM missing_files").get()).toEqual({ count: 1 });
+    db.prepare("UPDATE missing_files SET dismissed_at = ? WHERE file_id = ?").run(now, fileId);
+    saveValidationResults(
+      db,
+      sessionId,
+      [{ fileId, level: "existence", result: "missing", detail: "still gone" }],
+      now,
+    );
+    expect(
+      db.prepare("SELECT dismissed_at FROM missing_files WHERE file_id = ?").get(fileId),
+    ).toEqual({ dismissed_at: now });
     expect(getValidationState(db).report).toMatchObject({ hashMismatch: 1, missing: 1 });
     db.close();
   });

@@ -5,8 +5,10 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingActionResult,
   MissingDuplicatesPage,
   MissingDuplicatesParams,
+  MissingFileTargets,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
@@ -123,6 +125,10 @@ export const api = {
   purgeHealthMissingDuplicates: (
     params: PurgeMissingDuplicatesParams,
   ): Promise<PurgeMissingDuplicatesResult> => unwrap(getApi().purgeHealthMissingDuplicates(params)),
+  dismissHealthMissing: (params: MissingFileTargets): Promise<MissingActionResult> =>
+    unwrap(getApi().dismissHealthMissing(params)),
+  restoreHealthMissing: (params: MissingFileTargets): Promise<MissingActionResult> =>
+    unwrap(getApi().restoreHealthMissing(params)),
   getHealthMoved: (params: MovedCandidatesParams): Promise<MovedCandidatesPage> =>
     unwrap(getApi().getHealthMoved(params)),
   confirmHealthMoved: (params: MovedCandidateTargets): Promise<MovedActionResult> =>

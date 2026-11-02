@@ -2,8 +2,10 @@ import type {
   DuplicateGroupsPage,
   DuplicateGroupsParams,
   HealthSummary,
+  MissingActionResult,
   MissingDuplicatesPage,
   MissingDuplicatesParams,
+  MissingFileTargets,
   MissingFilesPage,
   MissingFilesParams,
   MovedActionResult,
@@ -50,6 +52,8 @@ export interface LibraryClient {
   purgeMissingDuplicates(
     params: PurgeMissingDuplicatesParams,
   ): Promise<PurgeMissingDuplicatesResult>;
+  dismissMissing(params: MissingFileTargets): Promise<MissingActionResult>;
+  restoreMissing(params: MissingFileTargets): Promise<MissingActionResult>;
   getMoved(params: MovedCandidatesParams): Promise<MovedCandidatesPage>;
   confirmMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
   dismissMoved(params: MovedCandidateTargets): Promise<MovedActionResult>;
@@ -84,6 +88,8 @@ export function createLibraryClient(): LibraryClient {
     getMissing: (params) => api.getHealthMissing(params),
     getMissingDuplicates: (params) => api.getHealthMissingDuplicates(params),
     purgeMissingDuplicates: (params) => api.purgeHealthMissingDuplicates(params),
+    dismissMissing: (params) => api.dismissHealthMissing(params),
+    restoreMissing: (params) => api.restoreHealthMissing(params),
     getMoved: (params) => api.getHealthMoved(params),
     confirmMoved: (params) => api.confirmHealthMoved(params),
     dismissMoved: (params) => api.dismissHealthMoved(params),

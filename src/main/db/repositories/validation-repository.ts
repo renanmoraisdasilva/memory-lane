@@ -272,8 +272,12 @@ export function saveValidationResults(
     `UPDATE files SET state = 'missing', missing_since = COALESCE(missing_since, ?) WHERE id = ?`,
   );
   const insertMissing = db.prepare(
-    `INSERT OR REPLACE INTO missing_files (file_id, last_path, last_seen_at, reason)
-     SELECT id, path, last_seen_at, 'validation_missing' FROM files WHERE id = ?`,
+    `INSERT INTO missing_files (file_id, last_path, last_seen_at, reason)
+     SELECT id, path, last_seen_at, 'validation_missing' FROM files WHERE id = ?
+     ON CONFLICT(file_id) DO UPDATE SET
+       last_path = excluded.last_path,
+       last_seen_at = excluded.last_seen_at,
+       reason = excluded.reason`,
   );
   const saveHash = db.prepare(
     `INSERT INTO hashes (file_id, sha256, hashed_at, status)

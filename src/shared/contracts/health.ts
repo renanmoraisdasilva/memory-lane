@@ -43,20 +43,35 @@ export const MissingFileSchema = z.object({
   lastSeenAt: z.string().min(1).nullable(),
   reason: z.string().nullable(),
   hasMovedCandidate: z.boolean(),
+  dismissedAt: z.string().min(1).nullable(),
 });
 export type MissingFile = z.infer<typeof MissingFileSchema>;
 
 export const MissingFilesPageSchema = z.object({
   items: z.array(MissingFileSchema),
   total: z.number().int().nonnegative(),
+  fileIds: z.array(z.number().int().positive()),
+  dismissedTotal: z.number().int().nonnegative(),
 });
 export type MissingFilesPage = z.infer<typeof MissingFilesPageSchema>;
 
 export const MissingFilesParamsSchema = z.object({
   offset: z.number().int().nonnegative().optional(),
   limit: z.number().int().min(1).max(200).optional(),
+  dismissedOnly: z.boolean().optional(),
 });
 export type MissingFilesParams = z.infer<typeof MissingFilesParamsSchema>;
+
+export const MissingFileTargetsSchema = z.object({
+  fileIds: z.array(z.number().int().positive()).min(1).max(50_000),
+});
+export type MissingFileTargets = z.infer<typeof MissingFileTargetsSchema>;
+
+export const MissingActionResultSchema = z.object({
+  updated: z.number().int().nonnegative(),
+  skipped: z.number().int().nonnegative(),
+});
+export type MissingActionResult = z.infer<typeof MissingActionResultSchema>;
 
 export const MissingDuplicateSchema = z.object({
   fileId: z.number().int().positive(),

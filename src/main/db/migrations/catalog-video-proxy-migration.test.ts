@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { toVolumeId } from "@shared/contracts/drives";
 import { ensureDriveIdentity } from "../repositories/catalog-repository";
+import { CATALOG_SCHEMA_VERSION } from "../schema-version";
 import { catalogMigrations } from "./catalog-migrations";
 import { runMigrations } from "./runner";
 
@@ -47,7 +48,7 @@ describe("catalog video proxy migration", () => {
     ).run(fileId, now);
 
     const result = runMigrations(db, catalogMigrations);
-    expect(result.version).toBe(9);
+    expect(result.version).toBe(CATALOG_SCHEMA_VERSION);
     expect(
       db.prepare("SELECT path, bytes, status FROM cache_entries WHERE file_id = ?").get(fileId),
     ).toEqual({ path: "thumbs/a.jpg", bytes: 12, status: "ready" });

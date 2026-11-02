@@ -99,6 +99,40 @@ describe("health DB handlers", () => {
     db.close();
   });
 
+  it("dismisses and restores missing files", () => {
+    const { db, handler, missingId } = createHarness();
+
+    expect(handler.handle("health.getMissing", {})).toMatchObject({
+      total: 1,
+      fileIds: [missingId],
+      dismissedTotal: 0,
+    });
+    expect(handler.handle("health.dismissMissing", { fileIds: [missingId], now })).toEqual({
+      updated: 1,
+      skipped: 0,
+    });
+    expect(handler.handle("health.getMissing", {})).toMatchObject({
+      total: 0,
+      fileIds: [],
+      dismissedTotal: 1,
+    });
+    expect(handler.handle("health.getMissing", { dismissedOnly: true })).toMatchObject({
+      total: 1,
+      fileIds: [missingId],
+      dismissedTotal: 1,
+    });
+    expect(handler.handle("health.restoreMissing", { fileIds: [missingId] })).toEqual({
+      updated: 1,
+      skipped: 0,
+    });
+    expect(handler.handle("health.getMissing", {})).toMatchObject({
+      total: 1,
+      fileIds: [missingId],
+      dismissedTotal: 0,
+    });
+    db.close();
+  });
+
   it("serves and purges missing duplicate entries", () => {
     const { db, handler, fileId } = createHarness();
     const duplicate = db

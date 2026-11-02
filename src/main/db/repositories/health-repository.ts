@@ -5,15 +5,9 @@ import type {
   DuplicateGroupsPage,
   HealthFile,
   HealthSummary,
-  MissingFile,
-  MissingFilesPage,
   MovedActionResult,
 } from "@shared/contracts/health";
-import {
-  DuplicateGroupsPageSchema,
-  HealthSummarySchema,
-  MissingFilesPageSchema,
-} from "@shared/contracts/health";
+import { DuplicateGroupsPageSchema, HealthSummarySchema } from "@shared/contracts/health";
 import { AppError } from "@shared/domain/errors";
 import { parseLibraryRow, toLibraryItem } from "./library-query";
 
@@ -155,63 +149,6 @@ export function getDuplicateGroups(
   });
 }
 
-export function getMissingFiles(
-  db: Database.Database,
-  offset: number,
-  limit: number,
-): MissingFilesPage {
-  const rows = db
-    .prepare(
-      `SELECT
-         f.id,
-         f.name,
-         f.path,
-         f.size,
-         f.media_class,
-         f.format,
-         mf.last_path,
-         mf.last_seen_at,
-         mf.reason,
-         EXISTS(
-           SELECT 1 FROM moved_candidates mc
-           WHERE mc.file_id = f.id AND mc.state = 'pending'
-         ) AS has_moved_candidate
-       FROM missing_files mf
-       JOIN files f ON f.id = mf.file_id
-       ORDER BY f.name COLLATE NOCASE, f.id
-       LIMIT ? OFFSET ?`,
-    )
-    .all(limit, offset) as Array<{
-    id: number;
-    name: string;
-    path: string;
-    size: number;
-    media_class: "image" | "video" | "other";
-    format: string | null;
-    last_path: string;
-    last_seen_at: string | null;
-    reason: string | null;
-    has_moved_candidate: number;
-  }>;
-  const items: MissingFile[] = rows.map((row) => ({
-    fileId: row.id,
-    name: row.name,
-    path: row.path,
-    folder: path.dirname(row.path),
-    sizeBytes: row.size,
-    mediaClass: row.media_class,
-    format: row.format,
-    lastPath: row.last_path,
-    lastSeenAt: row.last_seen_at,
-    reason: row.reason,
-    hasMovedCandidate: row.has_moved_candidate === 1,
-  }));
-  const totalRow = db.prepare("SELECT COUNT(*) AS count FROM missing_files").get() as {
-    count: number;
-  };
-  return MissingFilesPageSchema.parse({ items, total: totalRow.count });
-}
-
 interface PendingMovedRow {
   id: number;
   file_id: number;
@@ -312,7 +249,9 @@ function readDuplicateTotals(db: Database.Database): DuplicateTotals {
 }
 
 function readMissingCount(db: Database.Database): number {
-  const row = db.prepare("SELECT COUNT(*) AS count FROM missing_files").get() as {
+  const row = db
+    .prepare("SELECT COUNT(*) AS count FROM missing_files WHERE dismissed_at IS NULL")
+    .get() as {
     count: number;
   };
   return row.count;

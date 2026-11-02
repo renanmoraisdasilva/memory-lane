@@ -126,10 +126,10 @@ Known gaps:
 **Integrity (Phase 4)**
 
 - SHA-256 duplicate groups with every copy listed.
-- Missing-file list with former locations.
+- Missing-file list with former locations and a reversible disregard state.
 - Hash-matched moved-file candidates with batch confirmation.
 - Four validation levels and a last-run report.
-- Informational language only; no cleanup actions.
+- Actions change only the catalog, never original files.
 
 **Other files and settings (Phase 5)**
 
@@ -304,7 +304,7 @@ Both databases are owned by the DB worker.
 | `hashes` | Full SHA-256 records |
 | `quick_hashes` | Sampled fingerprints for large unique files |
 | `duplicate_groups`, `duplicate_members` | Hash-based duplicate structure |
-| `missing_files` | Current missing state |
+| `missing_files` | Current missing state and user disregard flag |
 | `moved_candidates` | Hash-matched relocations |
 | `validation_sessions`, `validation_results` | Validation structure |
 | `cache_entries` | Thumbnail, preview, and compatible video-proxy cache records |
@@ -319,6 +319,8 @@ identity, replica destinations/files, adoption/run/promotion records, and their
 indexes for the post-v0.1 replication work. Migration 8 adds sampled quick
 hashes for large unique files; it does not invalidate existing full hashes.
 Migration 9 adds compatible video-proxy cache records with source fingerprints.
+Migration 10 adds `missing_files.dismissed_at` so users can disregard missing
+files without deleting their catalog rows.
 Phase 5 reuses the existing
 `backup_history` and `registered_drives.last_backup_at` fields and adds no
 catalog migration.

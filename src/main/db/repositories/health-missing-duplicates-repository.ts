@@ -21,6 +21,7 @@ WITH trusted_missing AS MATERIALIZED (
   JOIN missing_files mf ON mf.file_id = f.id
   JOIN hashes h ON h.file_id = f.id
   WHERE f.state = 'missing'
+    AND mf.dismissed_at IS NULL
     AND h.status = 'complete'
     AND h.sha256 IS NOT NULL
     AND (

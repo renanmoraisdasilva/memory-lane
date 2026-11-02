@@ -3,6 +3,7 @@ import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
 import type { HealthDbMethod } from "./health-worker-protocol";
 import {
   HealthConfirmMovedDbParamsSchema,
+  HealthDismissMissingDbParamsSchema,
   HealthDismissMovedDbParamsSchema,
   HealthDuplicatesDbParamsSchema,
   HealthMissingDbParamsSchema,
@@ -10,6 +11,7 @@ import {
   HealthMovedByIdsDbParamsSchema,
   HealthMovedDbParamsSchema,
   HealthPurgeMissingDuplicatesDbParamsSchema,
+  HealthRestoreMissingDbParamsSchema,
   HealthValidationFailDbParamsSchema,
   HealthValidationLevelDbParamsSchema,
   HealthValidationPendingDbParamsSchema,
@@ -22,8 +24,12 @@ import {
   dismissMovedCandidates,
   getDuplicateGroups,
   getHealthSummary,
-  getMissingFiles,
 } from "./repositories/health-repository";
+import {
+  dismissMissingFiles,
+  getMissingFiles,
+  restoreMissingFiles,
+} from "./repositories/health-missing-repository";
 import {
   getMovedCandidates,
   getMovedCandidatesByIds,
@@ -55,17 +61,16 @@ export interface HealthDbHandler {
   handle(method: HealthDbMethod, params: unknown): unknown;
 }
 
-export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthDbHandler {
-  const catalog = (): Database.Database => options.getCatalog();
-  const handlers: HandlerMap = {
-    "health.getSummary": () => getHealthSummary(catalog()),
-    "health.getDuplicates": (params) => {
-      const parsed = HealthDuplicatesDbParamsSchema.parse(params);
-      return getDuplicateGroups(catalog(), parsed.offset ?? 0, parsed.limit ?? 25);
-    },
+function createMissingHandlers(catalog: () => Database.Database): HandlerMap {
+  return {
     "health.getMissing": (params) => {
       const parsed = HealthMissingDbParamsSchema.parse(params);
-      return getMissingFiles(catalog(), parsed.offset ?? 0, parsed.limit ?? 50);
+      return getMissingFiles(
+        catalog(),
+        parsed.offset ?? 0,
+        parsed.limit ?? 50,
+        parsed.dismissedOnly ?? false,
+      );
     },
     "health.getMissingDuplicates": (params) => {
       const parsed = HealthMissingDuplicatesDbParamsSchema.parse(params);
@@ -75,6 +80,26 @@ export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthD
       const parsed = HealthPurgeMissingDuplicatesDbParamsSchema.parse(params);
       return purgeMissingDuplicates(catalog(), parsed.fileIds, parsed.includePendingMoves);
     },
+    "health.dismissMissing": (params) => {
+      const parsed = HealthDismissMissingDbParamsSchema.parse(params);
+      return dismissMissingFiles(catalog(), parsed.fileIds, parsed.now);
+    },
+    "health.restoreMissing": (params) => {
+      const parsed = HealthRestoreMissingDbParamsSchema.parse(params);
+      return restoreMissingFiles(catalog(), parsed.fileIds);
+    },
+  };
+}
+
+export function createHealthDbHandlers(options: HealthDbHandlerOptions): HealthDbHandler {
+  const catalog = (): Database.Database => options.getCatalog();
+  const handlers: HandlerMap = {
+    "health.getSummary": () => getHealthSummary(catalog()),
+    "health.getDuplicates": (params) => {
+      const parsed = HealthDuplicatesDbParamsSchema.parse(params);
+      return getDuplicateGroups(catalog(), parsed.offset ?? 0, parsed.limit ?? 25);
+    },
+    ...createMissingHandlers(catalog),
     "health.getMoved": (params) => {
       const parsed = HealthMovedDbParamsSchema.parse(params);
       return getMovedCandidates(catalog(), parsed.offset ?? 0, parsed.limit ?? 50);

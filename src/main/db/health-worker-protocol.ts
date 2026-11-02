@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   DuplicateGroupsParamsSchema,
   MissingDuplicatesParamsSchema,
+  MissingFileTargetsSchema,
   MissingFilesParamsSchema,
   MovedCandidateTargetsSchema,
   MovedCandidatesParamsSchema,
@@ -17,6 +18,8 @@ export const HEALTH_DB_METHODS = [
   "health.getMissing",
   "health.getMissingDuplicates",
   "health.purgeMissingDuplicates",
+  "health.dismissMissing",
+  "health.restoreMissing",
   "health.getMoved",
   "health.getMovedByIds",
   "health.confirmMoved",
@@ -38,6 +41,10 @@ export const HealthDuplicatesDbParamsSchema = DuplicateGroupsParamsSchema;
 export const HealthMissingDbParamsSchema = MissingFilesParamsSchema;
 export const HealthMissingDuplicatesDbParamsSchema = MissingDuplicatesParamsSchema;
 export const HealthPurgeMissingDuplicatesDbParamsSchema = PurgeMissingDuplicatesParamsSchema;
+export const HealthDismissMissingDbParamsSchema = MissingFileTargetsSchema.extend({
+  now: z.string().min(1),
+});
+export const HealthRestoreMissingDbParamsSchema = MissingFileTargetsSchema;
 export const HealthMovedDbParamsSchema = MovedCandidatesParamsSchema;
 export const HealthMovedByIdsDbParamsSchema = MovedCandidateTargetsSchema;
 export const HealthValidationLevelDbParamsSchema = z.object({

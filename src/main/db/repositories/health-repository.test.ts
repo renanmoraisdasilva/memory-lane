@@ -9,8 +9,12 @@ import {
   dismissMovedCandidates,
   getDuplicateGroups,
   getHealthSummary,
-  getMissingFiles,
 } from "./health-repository";
+import {
+  dismissMissingFiles,
+  getMissingFiles,
+  restoreMissingFiles,
+} from "./health-missing-repository";
 import { getMovedCandidates, getMovedCandidatesByIds } from "./health-moved-repository";
 
 const volumeId = toVolumeId("volume-1");
@@ -217,7 +221,12 @@ describe("health repository", () => {
        VALUES ('["existence"]', 'complete', ?, ?)`,
     ).run(now, now);
     expect(getHealthSummary(db).lastValidationAt).toBe(now);
-    expect(getMissingFiles(db, 0, 10)).toEqual({ items: [], total: 0 });
+    expect(getMissingFiles(db, 0, 10)).toEqual({
+      items: [],
+      total: 0,
+      fileIds: [],
+      dismissedTotal: 0,
+    });
     expect(getDuplicateGroups(db, 0, 10)).toEqual({
       groups: [],
       totalGroups: 0,
@@ -239,7 +248,46 @@ describe("health repository", () => {
       hasMovedCandidate: false,
       lastSeenAt: null,
       reason: null,
+      dismissedAt: null,
     });
+    db.close();
+  });
+
+  it("dismisses and restores missing files without deleting catalog rows", () => {
+    const db = createDb();
+    const fileId = insertFile(db, "gone.jpg", 100, "missing");
+    db.prepare(
+      "INSERT INTO missing_files (file_id, last_path, last_seen_at, reason) VALUES (?, ?, ?, 'scan')",
+    ).run(fileId, "C:\\archive\\gone.jpg", now);
+    db.prepare(
+      "INSERT INTO moved_candidates (file_id, old_path, new_path, sha256, state) VALUES (?, ?, ?, 'hash', 'pending')",
+    ).run(fileId, "C:\\archive\\gone.jpg", "C:\\archive\\new.jpg");
+
+    expect(dismissMissingFiles(db, [fileId], now)).toEqual({ updated: 1, skipped: 0 });
+    expect(getHealthSummary(db).missingFiles).toBe(0);
+    expect(getMovedCandidates(db).total).toBe(0);
+    expect(getMissingFiles(db, 0, 10)).toEqual({
+      items: [],
+      total: 0,
+      fileIds: [],
+      dismissedTotal: 1,
+    });
+    const dismissed = getMissingFiles(db, 0, 10, true);
+    expect(dismissed.items[0]).toMatchObject({ fileId, dismissedAt: now });
+    expect(dismissed.fileIds).toEqual([fileId]);
+    expect(dismissed.dismissedTotal).toBe(1);
+    expect(db.prepare("SELECT state FROM files WHERE id = ?").get(fileId)).toEqual({
+      state: "missing",
+    });
+
+    expect(dismissMissingFiles(db, [fileId], now)).toEqual({ updated: 0, skipped: 1 });
+    expect(restoreMissingFiles(db, [fileId])).toEqual({ updated: 1, skipped: 0 });
+    expect(getHealthSummary(db).missingFiles).toBe(1);
+    expect(getMissingFiles(db, 0, 10).items[0]).toMatchObject({
+      fileId,
+      dismissedAt: null,
+    });
+    expect(getMissingFiles(db, 0, 10).dismissedTotal).toBe(0);
     db.close();
   });
 

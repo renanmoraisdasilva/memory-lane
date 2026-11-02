@@ -148,6 +148,9 @@ describe("health missing duplicates repository", () => {
       hasVerifiedReplicas: true,
       hasDateOverride: true,
     });
+
+    db.prepare("UPDATE missing_files SET dismissed_at = ? WHERE file_id = ?").run(now, missing);
+    expect(getMissingDuplicates(db, 0, 10).total).toBe(0);
     db.close();
   });
 
