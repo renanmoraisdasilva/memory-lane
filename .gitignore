@@ -6,7 +6,7 @@ node_modules/
 # Build output
 dist/
 out/
-release/
+/release/
 *.tsbuildinfo
 
 # Fetched native binaries (ExifTool, ffmpeg, ffprobe)
