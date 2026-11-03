@@ -21,6 +21,7 @@ export function useScanState(volumeId: VolumeId) {
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["health"] });
       void queryClient.invalidateQueries({ queryKey: ["other-files"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
     }
     previousStatus.current = status;
   }, [query.data?.status, queryClient]);

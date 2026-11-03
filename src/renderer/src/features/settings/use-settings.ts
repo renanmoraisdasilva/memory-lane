@@ -20,6 +20,7 @@ export function useClearCache() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.settingsInfo });
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["other-files"] });
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
     },
   });
 }

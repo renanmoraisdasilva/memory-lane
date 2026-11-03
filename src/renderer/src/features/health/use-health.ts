@@ -125,6 +125,7 @@ export function usePurgeMissingDuplicates() {
       void queryClient.invalidateQueries({ queryKey: ["health"] });
       void queryClient.invalidateQueries({ queryKey: ["library"] });
       void queryClient.invalidateQueries({ queryKey: ["replication"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
     },
   });
 }
@@ -153,8 +154,9 @@ export function useValidationState() {
     const status = query.data?.status ?? null;
     const finished = status === "complete" || status === "failed";
     if (finished && previousStatus.current !== status) {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.healthSummary });
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
       void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
     }
     previousStatus.current = status;
   }, [query.data?.status, queryClient]);
@@ -169,6 +171,7 @@ function useHealthMutation<TParams, TResult>(mutationFn: (params: TParams) => Pr
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["health"] });
       void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
     },
   });
 }

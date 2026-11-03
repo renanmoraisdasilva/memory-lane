@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AdoptionState,
@@ -64,11 +65,25 @@ function adoptionPollInterval(state: AdoptionState | undefined): number | false 
 
 export function useAdoptionState(destinationId: string) {
   const client = useReplicationClient();
-  return useQuery({
+  const queryClient = useQueryClient();
+  const previousStatus = useRef<string | null>(null);
+  const query = useQuery({
     queryKey: queryKeys.replicationAdoption(destinationId),
     queryFn: () => client.getAdoptionState(destinationId),
     refetchInterval: (query) => adoptionPollInterval(query.state.data),
   });
+
+  useEffect(() => {
+    const status = query.data?.status ?? null;
+    const finished = status === "complete" || status === "failed" || status === "interrupted";
+    if (finished && previousStatus.current !== status) {
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
+    }
+    previousStatus.current = status;
+  }, [query.data?.status, queryClient]);
+
+  return query;
 }
 
 function activeAdoptionPollInterval(states: AdoptionState[] | undefined): number | false {

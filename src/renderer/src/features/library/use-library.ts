@@ -111,7 +111,11 @@ export function useSetLibraryDate() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (params: LibrarySetDateParams) => client.setDate(params),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["library"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
+    },
   });
 }
 
@@ -120,6 +124,10 @@ export function useClearLibraryDate() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (params: LibraryClearDateParams) => client.clearDate(params),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["library"] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["library"] });
+      void queryClient.invalidateQueries({ queryKey: ["health"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary });
+    },
   });
 }

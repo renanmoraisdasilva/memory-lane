@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { formatCount } from "../../lib/format";
+import { queryKeys } from "../../lib/query-keys";
 import { DuplicateCleanupBar } from "./DuplicateCleanupBar";
 import {
   CleanupCompleteDialog,
@@ -139,6 +141,7 @@ function CleanupDialogs({
 export function DuplicatesTab({ limit }: { limit: number }): React.JSX.Element {
   const [offset, setOffset] = useState(0);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const queryClient = useQueryClient();
   const query = useHealthDuplicates({ offset, limit });
   const summary = useCleanupSummary();
   const cleanup = useCleanupState();
@@ -209,6 +212,15 @@ export function DuplicatesTab({ limit }: { limit: number }): React.JSX.Element {
         onCloseCompletion={() => {
           setDialog(null);
           setOffset(0);
+          void Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["health"], refetchType: "all" }),
+            queryClient.invalidateQueries({ queryKey: ["library"], refetchType: "all" }),
+            queryClient.invalidateQueries({ queryKey: ["replication"], refetchType: "all" }),
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.cleanupSummary,
+              refetchType: "all",
+            }),
+          ]);
         }}
       />
     </div>

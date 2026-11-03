@@ -8,6 +8,7 @@ import type { PromotionState } from "@shared/contracts/replication/types";
 import { Alert } from "../../components/ui/Callout";
 import { Pill } from "../../components/ui/Pill";
 import { usePhaseOneClient } from "../../lib/client-context";
+import { queryKeys } from "../../lib/query-keys";
 import { useWorkspace } from "../../app/workspace";
 import { toDriveSelectionItem } from "../drives/types";
 import { PromotionResultCard } from "./promotion-steps";
@@ -98,6 +99,9 @@ export function ReplicationPromotionPage(): React.JSX.Element {
     }
     const catalog = await client.openCatalog(volumeId);
     queryClient.removeQueries({ queryKey: ["library"] });
+    queryClient.removeQueries({ queryKey: ["health"] });
+    queryClient.removeQueries({ queryKey: ["other-files"] });
+    queryClient.removeQueries({ queryKey: queryKeys.cleanupSummary });
     flushSync(() => openWorkspace(toDriveSelectionItem(drive), catalog));
     void navigate("/library");
   }

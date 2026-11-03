@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import type { ReplicationRunState } from "@shared/contracts/replication/types";
 import { useRunState } from "../replication/use-replication";
+import { queryKeys } from "../../lib/query-keys";
 import styles from "./AppShell.module.css";
 
 const TERMINAL_STATUSES = new Set(["completed", "stopped", "failed"]);
@@ -38,6 +39,8 @@ export function ReplicationChip(): React.JSX.Element | null {
       queryClient.invalidateQueries({ queryKey: ["replication", "destinations"] }),
       queryClient.invalidateQueries({ queryKey: ["replication", "destination"] }),
       queryClient.invalidateQueries({ queryKey: ["replication", "promotion"] }),
+      queryClient.invalidateQueries({ queryKey: ["health"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.cleanupSummary }),
     ]);
   }, [queryClient, state?.id, state?.status, terminal]);
   if (!isVisible(state)) {
