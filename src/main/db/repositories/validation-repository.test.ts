@@ -4,6 +4,7 @@ import { toVolumeId } from "@shared/contracts/drives";
 import { catalogMigrations } from "../migrations/catalog-migrations";
 import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
+import { saveMetadataBatch } from "./scan-stage-repository";
 import {
   createValidation,
   failValidation,
@@ -164,6 +165,58 @@ describe("validation repository", () => {
     const sessionId = state.sessionId;
     db.prepare("UPDATE files SET path = ''").run();
     expect(() => listPendingValidation(db, sessionId, "existence", 10)).toThrow();
+    db.close();
+  });
+
+  it("metadata refresh preserves an active manual date override", () => {
+    const db = createDb();
+    const file = insertFile(db, "override.jpg", "hash");
+    db.prepare(
+      `INSERT INTO file_dates (
+         file_id, resolved_date, precision, source, confidence, original_value, is_override,
+         extracted_date, extracted_precision, extracted_source, extracted_confidence,
+         extracted_original_value
+       ) VALUES (?, '1999-05-01', 'month', 'manual', 1.0, '1999-05', 1,
+         '2020-01-01T00:00:00.000Z', 'exact', 'exif.datetimeOriginal', 0.9,
+         '2020:01:01 00:00:00')`,
+    ).run(file);
+
+    saveMetadataBatch(
+      db,
+      volumeId,
+      [
+        {
+          fileId: file,
+          status: "ok",
+          entries: [],
+          date: {
+            resolvedDate: "2024-06-15T00:00:00.000Z",
+            precision: "exact",
+            source: "exif.datetimeOriginal",
+            confidence: 0.9,
+            originalValue: "2024:06:15 00:00:00",
+          },
+          width: 100,
+          height: 50,
+          durationSeconds: null,
+        },
+      ],
+      now,
+    );
+
+    expect(
+      db
+        .prepare(
+          "SELECT resolved_date, precision, source, is_override, extracted_date FROM file_dates WHERE file_id = ?",
+        )
+        .get(file),
+    ).toMatchObject({
+      resolved_date: "1999-05-01",
+      precision: "month",
+      source: "manual",
+      is_override: 1,
+      extracted_date: "2024-06-15T00:00:00.000Z",
+    });
     db.close();
   });
 });
