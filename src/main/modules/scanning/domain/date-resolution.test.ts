@@ -66,6 +66,48 @@ describe("date resolution", () => {
     });
   });
 
+  it("[ML-SCAN-012] uses the older filesystem date when metadata is absent", () => {
+    const olderModified = {
+      ...file,
+      createdAtFs: "2023-12-12T20:46:51.000Z",
+      modifiedAtFs: "2008-04-23T14:50:40.000Z",
+    };
+    expect(resolveDateForFile(olderModified, []).date).toMatchObject({
+      resolvedDate: "2008-04-23T14:50:40.000Z",
+      source: "filesystem.modified",
+    });
+
+    const olderCreated = {
+      ...file,
+      createdAtFs: "2008-04-23T14:50:40.000Z",
+      modifiedAtFs: "2023-12-12T20:46:51.000Z",
+    };
+    expect(resolveDateForFile(olderCreated, []).date).toMatchObject({
+      resolvedDate: "2008-04-23T14:50:40.000Z",
+      source: "filesystem.created",
+    });
+  });
+
+  it("ignores filesystem placeholder dates", () => {
+    const result = resolveDateForFile(
+      {
+        ...file,
+        createdAtFs: "2023-12-12T20:46:51.000Z",
+        modifiedAtFs: "1980-01-01T00:00:00.000Z",
+      },
+      [],
+    );
+    expect(result.date).toMatchObject({
+      resolvedDate: "2023-12-12T20:46:51.000Z",
+      source: "filesystem.created",
+    });
+    expect(result.suspicious).toContainEqual({
+      source: "filesystem.modified",
+      originalValue: "1980-01-01T00:00:00.000Z",
+      reason: "Date looks like a placeholder",
+    });
+  });
+
   it("[ML-SCAN-012] rejects invalid values and flags suspicious metadata", () => {
     expect(dateCandidateFromValue("not a date", "exif.createDate", 0.9, 2026)).toBeNull();
     const future = dateCandidateFromValue(

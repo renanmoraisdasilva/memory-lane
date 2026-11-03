@@ -350,7 +350,9 @@ crashing the viewer.
 ### 11.3 Date organization and uncertainty
 
 Determine the best available date using a defined priority order across
-embedded metadata and filesystem dates. Preserve:
+embedded metadata and filesystem dates. Embedded metadata wins. When no usable
+embedded date exists, use the older of filesystem created and modified, ignoring
+1970/1980 placeholder dates and future dates. Preserve:
 
 -   Resolved browsing date.
 -   Date precision (year, year/month, or exact date/time).

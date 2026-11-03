@@ -199,22 +199,22 @@ Kinds: invariant 6, outcome 16, constraint 2.
 - **Existing tests:** `src/main/modules/scanning/infrastructure/exif-metadata.test.ts`, `src/main/modules/scanning/infrastructure/file-metadata.test.ts`, `src/main/modules/library/application/library-service.test.ts`
 - **Test notes:** Candidate tests cover extraction and metadata refresh; not yet ID-tagged.
 - **Conflicts:** _none_
-- **Notes:** _none_
+- **Notes:** Version 2 re-resolves filesystem dates on the next incremental scan; no file rehash is required.
 - **Decision:** verified
 
 ### ML-SCAN-012 — Dates preserve provenance and never invent a value
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** Every resolved date preserves precision, the original extracted value, provenance, and confidence. A missing or suspicious date is shown as unavailable or flagged, never invented.
-- **Current / source:** Resolve the best date, preserve precision, original value, source, and confidence; do not silently invent a date.
+- **Proposed:** Every resolved date preserves precision, the original extracted value, provenance, and confidence. Embedded metadata wins; without a usable embedded date, the older non-placeholder filesystem date is used. A missing or suspicious date is shown as unavailable or flagged, never invented.
+- **Current / source:** Resolve the best date, preserve precision, original value, source, and confidence; embedded metadata wins. When none is usable, use the older of filesystem created and modified, ignoring placeholder and future dates.
 - **Sources:** `docs/product/product-specification.md#113-date-organization-and-uncertainty`, `docs/contracts/library.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/library.md`
 - **Existing tests:** `src/main/modules/scanning/domain/date-resolution.test.ts`, `src/main/db/repositories/library-date-repository.test.ts`
-- **Test notes:** Candidate tests cover date priority and precision; not yet ID-tagged.
+- **Test notes:** Tests cover metadata priority, partial dates, suspicious values, and the older filesystem fallback.
 - **Conflicts:** _none_
-- **Notes:** _none_
+- **Notes:** The metadata extractor version was bumped so the next incremental scan re-resolves existing filesystem dates.
 - **Decision:** verified
 
 ### ML-SCAN-013 — Manual dates use year or year-month precision

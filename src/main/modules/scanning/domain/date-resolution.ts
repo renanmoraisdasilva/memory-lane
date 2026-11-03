@@ -160,15 +160,13 @@ function suspiciousReason(
     return "Date is in the future";
   }
   const day = `${String(parts.year)}-${pad(parts.month)}-${pad(parts.day)}`;
-  if (
-    precision === "exact" &&
-    SENTINEL_DATES.has(day) &&
-    parts.hour === 0 &&
-    parts.minute === 0 &&
-    parts.second === 0 &&
-    !FILESYSTEM_SOURCES.has(source)
-  ) {
-    return "Date looks like a placeholder";
+  if (precision === "exact" && SENTINEL_DATES.has(day)) {
+    if (FILESYSTEM_SOURCES.has(source)) {
+      return "Date looks like a placeholder";
+    }
+    if (parts.hour === 0 && parts.minute === 0 && parts.second === 0) {
+      return "Date looks like a placeholder";
+    }
   }
   return null;
 }
@@ -260,6 +258,18 @@ export function resolveFileDate(candidates: Array<DateCandidate | null>): DateRe
   return { date: null, suspicious };
 }
 
+function compareFilesystemCandidates(left: DateCandidate, right: DateCandidate): number {
+  const leftTime = Date.parse(left.resolvedDate);
+  const rightTime = Date.parse(right.resolvedDate);
+  if (leftTime !== rightTime) {
+    return leftTime - rightTime;
+  }
+  if (left.source === right.source) {
+    return 0;
+  }
+  return left.source === "filesystem.created" ? -1 : 1;
+}
+
 export function resolveDateForFile(
   file: PendingMetadataFile,
   metadataCandidates: Array<DateCandidate | null>,
@@ -268,6 +278,8 @@ export function resolveDateForFile(
   const filesystemCandidates = [
     dateCandidateFromFilesystem(file.createdAtFs, "filesystem.created", 0.6, currentYear),
     dateCandidateFromFilesystem(file.modifiedAtFs, "filesystem.modified", 0.4, currentYear),
-  ];
+  ]
+    .filter((candidate): candidate is DateCandidate => candidate !== null)
+    .sort(compareFilesystemCandidates);
   return resolveFileDate([...metadataCandidates, ...filesystemCandidates]);
 }

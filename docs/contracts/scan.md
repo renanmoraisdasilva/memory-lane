@@ -83,9 +83,10 @@ The coordinator runs stages in this order:
 2. **Extract metadata** - records filesystem facts, media classification, and
    selected ExifTool tags for dates, dimensions, duration, frame rate, camera,
    codec, and GPS. The dependency-free readers fill missing dimensions or
-   MP4/MOV duration; the date priority chain falls back to filesystem
-   timestamps. Successful extraction writes `scan.metadataVersion` with the
-   current `METADATA_EXTRACTOR_VERSION`.
+   MP4/MOV duration; when no usable embedded date exists, the date priority
+   chain uses the older of filesystem created and modified, ignoring placeholder
+   dates. Successful extraction writes `scan.metadataVersion` with the current
+   `METADATA_EXTRACTOR_VERSION`.
 3. **Generate thumbnails** - generates image/video thumbnails with Electron
    `nativeImage` into `.memorylane/cache/thumbs`.
 4. **Calculate hashes** - streams SHA-256 in 1 MiB chunks and stores resumable
@@ -177,9 +178,10 @@ Memory Lane links to Scan & processing when a refresh is available.
   processes. ffprobe/ffmpeg and Sharp are not wired yet.
 - The dependency-free image-dimension and MP4/MOV duration readers remain as
   fallbacks. Electron native thumbnails and Node SHA-256 are unchanged.
-- Date resolution uses EXIF/XMP/video tags, then filesystem timestamps. Suspicious
-  metadata dates leave the item undated instead of falling back to a misleading
-  filesystem date.
+- Date resolution uses EXIF/XMP/video tags first. Without a usable embedded
+  date, it uses the older of filesystem created and modified, ignoring
+  1970/1980 placeholder dates and future dates. Suspicious metadata dates leave
+  the item undated instead of falling back to a misleading filesystem date.
 - Hashing resumes at file granularity. A file interrupted mid-hash starts that
   file again; byte-offset resume is a later hardening step.
 - Moved candidates, duplicate groups, missing-file management, and validation are

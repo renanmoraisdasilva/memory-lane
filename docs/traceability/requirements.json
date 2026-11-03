@@ -963,7 +963,7 @@
       "testNotes": "Candidate tests cover extraction and metadata refresh; not yet ID-tagged.",
       "status": "verified",
       "conflictsWith": [],
-      "notes": ""
+      "notes": "Version 2 re-resolves filesystem dates on the next incremental scan; no file rehash is required."
     },
     {
       "id": "ML-SCAN-012",
@@ -971,8 +971,8 @@
       "capability": "scan",
       "kind": "invariant",
       "title": "Dates preserve provenance and never invent a value",
-      "currentText": "Resolve the best date, preserve precision, original value, source, and confidence; do not silently invent a date.",
-      "proposedText": "Every resolved date preserves precision, the original extracted value, provenance, and confidence. A missing or suspicious date is shown as unavailable or flagged, never invented.",
+      "currentText": "Resolve the best date, preserve precision, original value, source, and confidence; embedded metadata wins. When none is usable, use the older of filesystem created and modified, ignoring placeholder and future dates.",
+      "proposedText": "Every resolved date preserves precision, the original extracted value, provenance, and confidence. Embedded metadata wins; without a usable embedded date, the older non-placeholder filesystem date is used. A missing or suspicious date is shown as unavailable or flagged, never invented.",
       "sources": [
         "docs/product/product-specification.md#113-date-organization-and-uncertainty",
         "docs/contracts/library.md"
@@ -983,10 +983,10 @@
         "src/main/modules/scanning/domain/date-resolution.test.ts",
         "src/main/db/repositories/library-date-repository.test.ts"
       ],
-      "testNotes": "Candidate tests cover date priority and precision; not yet ID-tagged.",
+      "testNotes": "Tests cover metadata priority, partial dates, suspicious values, and the older filesystem fallback.",
       "status": "verified",
       "conflictsWith": [],
-      "notes": ""
+      "notes": "The metadata extractor version was bumped so the next incremental scan re-resolves existing filesystem dates."
     },
     {
       "id": "ML-SCAN-013",
