@@ -24,7 +24,7 @@ function controlledGenerator(calls: string[], pending: Map<string, Deferred>): T
 }
 
 describe("thumbnail scheduler", () => {
-  it("runs interactive work before queued bulk work", async () => {
+  it("[ML-LIB-003] runs interactive work before queued bulk work", async () => {
     const calls: string[] = [];
     const pending = new Map<string, Deferred>();
     const generator = controlledGenerator(calls, pending);
@@ -45,7 +45,7 @@ describe("thumbnail scheduler", () => {
     await expect(Promise.all([bulkOne, bulkTwo, interactive])).resolves.toHaveLength(3);
   });
 
-  it("deduplicates in-flight work for the same output path", async () => {
+  it("[ML-LIB-007] deduplicates in-flight work for the same output path", async () => {
     const generator: ThumbnailGenerator = {
       generate: vi.fn(async () => ({ bytes: 10 })),
     };

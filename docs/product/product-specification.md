@@ -181,8 +181,8 @@ removable drives and safe shutdown behavior.
 
 ## 8. Database backup to the PC
 
-The SQLite catalog should be backed up automatically to the PC's
-internal drive.
+Both SQLite databases — the archive catalog and the PC app database —
+should be backed up automatically to the PC's internal drive.
 
 Schedule:
 
@@ -195,8 +195,8 @@ file in a way that could produce an inconsistent backup.
 The media thumbnail/cache folder is not included in the PC database
 backup.
 
-The PC backup is an additional copy of the catalog only. The external
-drive remains the owner of its independent catalog.
+The PC backup is only an additional copy; the external drive remains the
+owner of its independent catalog.
 
 ## 9. Initial scan and incremental scanning
 
@@ -725,7 +725,7 @@ The initial release should not be considered complete unless:
     duplicate copies into `.memorylane_quarantine` after a full re-hash.
 -   The catalog database and media cache live in app-managed locations
     on the external drive.
--   The SQLite catalog is backed up to the PC every 15 minutes while
+-   Both SQLite databases are backed up to the PC every 15 minutes while
     open and on close.
 -   The initial scan is explicitly started by the user and runs in
     stages.

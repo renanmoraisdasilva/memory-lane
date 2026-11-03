@@ -22,7 +22,7 @@ function file(overrides: Partial<DuplicateCleanupFile> = {}): DuplicateCleanupFi
 }
 
 describe("duplicate cleanup keeper", () => {
-  it("prefers the oldest created file, then modification time", () => {
+  it("[ML-QUAR-002] prefers the oldest created file, then modification time", () => {
     const oldest = file({ fileId: 2, createdAtFs: "2020-01-01T00:00:00.000Z" });
     const newer = file({ fileId: 1, createdAtFs: "2024-01-01T00:00:00.000Z" });
     expect(chooseDuplicateKeeper([newer, oldest])?.fileId).toBe(2);
@@ -40,7 +40,7 @@ describe("duplicate cleanup keeper", () => {
     expect(chooseDuplicateKeeper([newerModified, olderModified])?.fileId).toBe(3);
   });
 
-  it("prefers a covered copy over an older uncovered copy", () => {
+  it("[ML-QUAR-002] prefers a covered copy over an older uncovered copy", () => {
     const olderUncovered = file({
       fileId: 1,
       createdAtFs: "2010-01-01T00:00:00.000Z",
@@ -99,7 +99,7 @@ describe("duplicate cleanup eligibility", () => {
     });
   });
 
-  it("rejects a single file, empty files, and tiny files", () => {
+  it("[ML-QUAR-009] rejects a single file, empty files, and tiny files", () => {
     expect(evaluateDuplicateGroup([file()])?.skipReason).toBe("not-a-group");
     expect(
       evaluateDuplicateGroup([file({ sizeBytes: 0 }), file({ fileId: 2, sizeBytes: 0 })])
@@ -111,7 +111,7 @@ describe("duplicate cleanup eligibility", () => {
     ).toBe("below-minimum-size");
   });
 
-  it("accepts a group when no copy has verified coverage", () => {
+  it("[ML-QUAR-003] accepts a group when no copy has verified coverage", () => {
     const keeper = file({ fileId: 1, hasVerifiedReplica: false });
     const candidate = file({ fileId: 2, hasVerifiedReplica: false });
     expect(evaluateDuplicateGroup([keeper, candidate])).toMatchObject({
@@ -121,7 +121,7 @@ describe("duplicate cleanup eligibility", () => {
     });
   });
 
-  it("skips candidate-only or multiple date overrides", () => {
+  it("[ML-QUAR-010] skips candidate-only or multiple date overrides", () => {
     const keeper = file({ fileId: 1 });
     const overrideCandidate = file({ fileId: 2, hasDateOverride: true });
     expect(evaluateDuplicateGroup([keeper, overrideCandidate])?.skipReason).toBe(
@@ -144,7 +144,7 @@ describe("duplicate cleanup eligibility", () => {
     });
   });
 
-  it("skips groups with hard links", () => {
+  it("[ML-QUAR-010] skips groups with hard links", () => {
     const keeper = file({ fileId: 1, linkCount: 2 });
     const candidate = file({ fileId: 2 });
     expect(evaluateDuplicateGroup([keeper, candidate])?.skipReason).toBe("hard-link");

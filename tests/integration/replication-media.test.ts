@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 describe("destination-scoped media", () => {
-  it("serves media and thumbnails from the destination catalog only", async () => {
+  it("[ML-REPL-090] serves media and thumbnails from the destination catalog only", async () => {
     const harness = await createScanHarness();
     const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-media-dest-"));
     destinationRoots.push(destinationRoot);

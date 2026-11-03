@@ -22,7 +22,7 @@ function renderPlan(client = createReplicationFixtureClient()): void {
 }
 
 describe("ReplicationPlanPage", () => {
-  it("shows independent full-copy and partial jobs, remainder, and warnings", async () => {
+  it("[ML-REPL-034] [ML-REPL-044] [ML-REPL-045] shows independent full-copy and partial jobs, remainder, and warnings", async () => {
     renderPlan();
     expect(await screen.findByRole("heading", { name: "Backup plan" })).toBeVisible();
     expect(screen.getByText("8TB Archive")).toBeVisible();
@@ -48,7 +48,7 @@ describe("ReplicationPlanPage", () => {
     );
   });
 
-  it("shows the add-destination empty state when no jobs exist", async () => {
+  it("[ML-REPL-048] shows the add-destination empty state when no jobs exist", async () => {
     const client = createReplicationFixtureClient({
       getPlan: vi.fn(async () => ({
         ...replicationPlan,

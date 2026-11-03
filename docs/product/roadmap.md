@@ -1,12 +1,12 @@
 # Roadmap
 
-Last updated: 2026-11-01
+Last updated: 2026-11-02
 
 ## Current state
 
-Phases 0-5 and post-v0.1 replication are implemented. Phase 6 automated
-hardening is complete; the physical-drive, replication, and clean-VM release
-pass remains.
+Phases 0-5, post-v0.1 replication, and duplicate quarantine are implemented.
+Phase 6 automated hardening is complete; the physical-drive, replication, and
+clean-VM release pass remains.
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -27,11 +27,13 @@ pass remains.
   shortfall/source-growth handling, and metadata-only promotion with rollback.
 - WMV/3GP and failed direct-playback videos use a cached FFmpeg-compatible MP4
   copy, with preparation progress and external-open fallback.
+- Duplicate quarantine: exact-group cleanup with a keeper rule, explicit
+  confirmation, journaled moves into `.memorylane_quarantine`, and no deletion.
 
-Verification at the current integration point: 545 unit/component/integration
-tests across 137 files, 11 Electron E2E flows, 100k and 200k in-memory query
-passes, coverage above the configured floors, and a packaged smoke with SHA-256
-package checksums.
+Verification at the current integration point: 11 Electron E2E flows, 100k and
+200k in-memory query passes, coverage above the configured floors, and a
+packaged smoke with SHA-256 package checksums. Requirement coverage and test
+counts live in [`../traceability/matrix.md`](../traceability/matrix.md).
 
 ## Delivered phases
 
@@ -70,6 +72,27 @@ Specifications:
 [`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md),
 [`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md),
 [`../contracts/replication.md`](../contracts/replication.md).
+
+## Delivered post-v0.1 duplicate quarantine
+
+Duplicate quarantine is implemented as a separate post-v0.1 release slice:
+
+- Exact full-SHA-256 groups choose a keeper; a verified backup copy is preferred,
+  then the oldest copy.
+- Coverage is a preference, not an eligibility gate; uncovered groups are
+  eligible with a warning.
+- The mover re-hashes before and after the move, restores on mismatch, never
+  moves the last eligible copy, and never deletes a file.
+- Every move writes a manifest, journal, and `cleanup_moves` audit row; a rescan
+  does not report moved files as missing.
+- The app never deletes the quarantine folder; restore is manual copy plus
+  rescan.
+
+Specifications:
+[`duplicate-quarantine-plan.md`](duplicate-quarantine-plan.md),
+[`../adr/0010-duplicate-quarantine.md`](../adr/0010-duplicate-quarantine.md),
+[`../contracts/health.md`](../contracts/health.md),
+[`../traceability/requirements.json`](../traceability/requirements.json).
 
 ## Remaining work
 

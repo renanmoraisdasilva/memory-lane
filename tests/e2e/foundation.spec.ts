@@ -36,7 +36,7 @@ test.afterAll(async () => {
   await rm(path.dirname(userDataPath), { recursive: true, force: true });
 });
 
-test("sets up a catalog and completes the first scan from the UI", async () => {
+test("[ML-REL-003] sets up a catalog and completes the first scan from the UI", async () => {
   test.setTimeout(90_000);
 
   const app = await electron.launch({

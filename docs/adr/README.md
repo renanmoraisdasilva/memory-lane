@@ -31,6 +31,8 @@ and status.
   workload, write-boundary, and API decisions for implementing replication.
 - `0009-bundled-ffmpeg-video-proxies.md` - Accepted bundled FFmpeg compatible
   video copies for WMV, 3GP, and direct-playback failures.
+- `0010-duplicate-quarantine.md` - Accepted duplicate quarantine exception:
+  confirmed, journaled moves of eligible duplicate copies, never deletion.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

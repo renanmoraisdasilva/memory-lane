@@ -20,7 +20,7 @@ async function removeDatabaseFiles(basePath: string): Promise<void> {
 }
 
 describe("recovery drills", () => {
-  it("restores the catalog and app databases from a SQLite backup", async () => {
+  it("[ML-SET-004] [ML-SET-011] [ML-REL-012] restores the catalog and app databases from a SQLite backup", async () => {
     const harness = await createScanHarness();
     const appDbPath = path.join(harness.root, "app.db");
     const backupDir = path.join(harness.root, "backups", harness.drive.volumeId);

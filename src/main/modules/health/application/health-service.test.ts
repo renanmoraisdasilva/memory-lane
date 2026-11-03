@@ -59,7 +59,7 @@ function metadata(): FileMetadataExtractor {
 }
 
 describe("HealthService", () => {
-  it("confirms only moved candidates that still exist and hash correctly", async () => {
+  it("[ML-HEALTH-010] confirms only moved candidates that still exist and hash correctly", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-health-"));
     const goodPath = path.join(root, "good.jpg");
     await writeFile(goodPath, "good");
@@ -112,7 +112,7 @@ describe("HealthService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("forwards missing duplicate discovery and cleanup", async () => {
+  it("[ML-HEALTH-012] forwards missing duplicate discovery and cleanup", async () => {
     const purge = vi.fn((params: { fileIds: number[]; includePendingMoves: boolean }) => ({
       removed: params.fileIds.length,
       skipped: 0,
@@ -153,7 +153,7 @@ describe("HealthService", () => {
     expect(purge).toHaveBeenLastCalledWith({ fileIds: [3], includePendingMoves: true });
   });
 
-  it("blocks missing duplicate cleanup while a workload is active", async () => {
+  it("[ML-HEALTH-023] blocks missing duplicate cleanup while a workload is active", async () => {
     const workloads = new WorkloadCoordinator();
     const lease = workloads.acquire("scan", "scan");
     const db = createDb();
@@ -171,7 +171,7 @@ describe("HealthService", () => {
     lease.release();
   });
 
-  it("pauses a stale running session when no local run is active", async () => {
+  it("[ML-HEALTH-019] pauses a stale running session when no local run is active", async () => {
     const running = {
       ...idle,
       sessionId: 7,
@@ -202,7 +202,7 @@ describe("HealthService", () => {
     expect(capturedPause.input?.now).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it("runs validation to completion", async () => {
+  it("[ML-HEALTH-014] [ML-HEALTH-015] [ML-HEALTH-020] runs validation to completion", async () => {
     let state: ValidationState = {
       sessionId: 3,
       status: "running",
@@ -260,7 +260,7 @@ describe("HealthService", () => {
     expect(finish).toHaveBeenCalled();
   });
 
-  it("passes through summaries and dismissals", async () => {
+  it("[ML-HEALTH-001] [ML-HEALTH-007] passes through summaries and dismissals", async () => {
     const summary = {
       duplicateGroups: 0,
       duplicateFiles: 0,

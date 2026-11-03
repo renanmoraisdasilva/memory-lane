@@ -208,7 +208,7 @@ describe("media request handler", () => {
     ]);
   });
 
-  it("serves a ready cached thumbnail without regenerating", async () => {
+  it("[ML-LIB-007] serves a ready cached thumbnail without regenerating", async () => {
     const harness = await createHarness();
     const cachePath = path.join(harness.directory, "cached.jpg");
     await writeFile(cachePath, Buffer.from([0xff, 0xd8, 0xff, 0xd9]));
@@ -260,7 +260,7 @@ describe("media request handler", () => {
     expect(missingResponse.status).toBe(404);
   });
 
-  it("serves media ranges and rejects unknown URLs", async () => {
+  it("[ML-LIB-006] serves media ranges and rejects unknown URLs", async () => {
     const harness = await createHarness();
     const response = await handleMediaRequest(
       {
@@ -288,7 +288,7 @@ describe("media request handler", () => {
     expect(unknown.status).toBe(404);
   });
 
-  it("converts HEIC media to a cached JPEG preview", async () => {
+  it("[ML-LIB-008] [ML-VIDEO-012] converts HEIC media to a cached JPEG preview", async () => {
     const harness = await createHarness({ mediaName: "photo.heic", mediaMime: "image/heic" });
     const dependencies = {
       db: harness.db,
@@ -315,7 +315,7 @@ describe("media request handler", () => {
     expect(harness.previews.convert).not.toHaveBeenCalled();
   });
 
-  it("records failed HEIC preview generation and returns 404", async () => {
+  it("[ML-VIDEO-012] records failed HEIC preview generation and returns 404", async () => {
     const harness = await createHarness({ mediaName: "photo.heic", mediaMime: "image/heic" });
     harness.previews.convert = vi.fn(async () => null);
 
@@ -368,7 +368,7 @@ describe("media request handler", () => {
     expect((await readFile(path.join(harness.directory, "thumbs", "1.jpg"))).length).toBe(4);
   });
 
-  it("serves a prepared video proxy with range support", async () => {
+  it("[ML-VIDEO-006] serves a prepared video proxy with range support", async () => {
     const harness = await createHarness();
     const response = await handleMediaRequest(
       {

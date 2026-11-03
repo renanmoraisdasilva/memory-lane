@@ -159,7 +159,7 @@ describe("scan catalog repository", () => {
     db.close();
   });
 
-  it("marks files missing and supports a read-error pass without marking", () => {
+  it("[ML-HEALTH-006] marks files missing and supports a read-error pass without marking", () => {
     const db = createDb();
     startSession(db);
     applyCatalogBatch(db, {

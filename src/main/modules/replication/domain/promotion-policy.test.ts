@@ -26,11 +26,11 @@ function eligible(overrides: Partial<PromotionEligibilityInput> = {}): Promotion
 }
 
 describe("promotion policy", () => {
-  it("allows an eligible complete full copy", () => {
+  it("[ML-REPL-082] allows an eligible complete full copy", () => {
     expect(evaluatePromotion(eligible())).toEqual({ canPromote: true, blockedReason: null });
   });
 
-  it("blocks every unsafe promotion state with a reason", () => {
+  it("[ML-REPL-065] [ML-REPL-082] blocks every unsafe promotion state with a reason", () => {
     const cases: Array<[Partial<PromotionEligibilityInput>, RegExp]> = [
       [{ sourceRole: "demoted_source" }, /not a source archive/],
       [{ goal: "extend_coverage" }, /full-copy goal/],
@@ -50,7 +50,7 @@ describe("promotion policy", () => {
     }
   });
 
-  it("allows rollback only for a completed promotion with an open window", () => {
+  it("[ML-REPL-086] allows rollback only for a completed promotion with an open window", () => {
     expect(evaluateRollback({ status: "completed", windowOpen: true })).toEqual({
       canRollback: true,
       blockedReason: null,

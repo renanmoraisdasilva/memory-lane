@@ -39,6 +39,7 @@ pnpm-debug.log*
 coverage/
 playwright-report/
 test-results/
+docs/traceability/test-results.json
 blob-report/
 
 # Local caches

@@ -73,7 +73,7 @@ afterEach(() => {
 });
 
 describe("MissingDuplicates", () => {
-  it("reviews and removes ready missing duplicate catalog entries", async () => {
+  it("[ML-HEALTH-013] reviews and removes ready missing duplicate catalog entries", async () => {
     render(<MissingDuplicates />);
 
     expect(screen.getByRole("heading", { name: "Missing duplicates" })).toBeVisible();
@@ -103,7 +103,7 @@ describe("MissingDuplicates", () => {
     expect(await screen.findByText(/Removed 1 missing duplicate catalog entry/)).toBeVisible();
   });
 
-  it("requires explicit confirmation before removing entries with move suggestions", async () => {
+  it("[ML-HEALTH-013] requires explicit confirmation before removing entries with move suggestions", async () => {
     query.mockReturnValue({
       data: pendingPage,
       error: null,

@@ -75,7 +75,7 @@ function backupRunner() {
 }
 
 describe("SettingsService", () => {
-  it("reports cache, catalog, and backup information", async () => {
+  it("[ML-SET-001] [ML-REL-010] reports cache, catalog, and backup information", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
@@ -117,7 +117,7 @@ describe("SettingsService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("clears generated cache files and database rows", async () => {
+  it("[ML-LIB-010] [ML-SET-002] [ML-REL-010] clears generated cache files and database rows", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
@@ -144,7 +144,7 @@ describe("SettingsService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("runs backups on demand, on the timer, and during shutdown", async () => {
+  it("[ML-SET-005] [ML-SET-006] [ML-REL-010] [ML-REL-011] runs backups on demand, on the timer, and during shutdown", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
@@ -186,7 +186,7 @@ describe("SettingsService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("records a failed backup and preserves the original error", async () => {
+  it("[ML-SET-009] [ML-SET-010] [ML-REL-011] records a failed backup and preserves the original error", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
@@ -216,7 +216,7 @@ describe("SettingsService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("coalesces overlapping backup requests", async () => {
+  it("[ML-SET-008] [ML-REL-011] coalesces overlapping backup requests", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const cachePath = path.join(root, "cache");
     const catalogPath = path.join(root, "catalog.db");
@@ -254,7 +254,7 @@ describe("SettingsService", () => {
     await rm(root, { recursive: true, force: true });
   });
 
-  it("ignores scheduled backups when no catalog is open", async () => {
+  it("[ML-SET-008] [ML-REL-011] ignores scheduled backups when no catalog is open", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-settings-service-"));
     const log = logger();
     const db = createDb({

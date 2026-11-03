@@ -12,7 +12,7 @@ import {
 } from "./promotion-merge-fixtures";
 
 describe("promotion merge", () => {
-  it("merges a mirror-layout full copy, retires fates, and preserves rows", () => {
+  it("[ML-REPL-083] [ML-REPL-085] [ML-REPL-088] merges a mirror-layout full copy, retires fates, and preserves rows", () => {
     const source = seedSource();
     const destination = seedDestination();
     const result = mergePromotion({
@@ -169,7 +169,7 @@ describe("promotion merge", () => {
     destination.close();
   });
 
-  it("supports a non-empty old source root and default active partial fates", () => {
+  it("[ML-REPL-084] supports a non-empty old source root and default active partial fates", () => {
     const source = seedSource();
     const destination = seedDestination();
     source
@@ -212,7 +212,7 @@ describe("promotion merge", () => {
     destination.close();
   });
 
-  it("rejects missing, non-full, and inactive destinations", () => {
+  it("[ML-REPL-082] rejects missing, non-full, and inactive destinations", () => {
     const source = seedSource();
     const destination = seedDestination();
     const input = {

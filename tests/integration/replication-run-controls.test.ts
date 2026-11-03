@@ -106,7 +106,7 @@ async function waitForStatus(
 }
 
 describe("backup run controls", () => {
-  it("pauses, replans, resumes, and blocks source switching while active", async () => {
+  it("[ML-REPL-055] [ML-REPL-056] [ML-REPL-061] [ML-REPL-062] [ML-REPL-066] pauses, replans, resumes, and blocks source switching while active", async () => {
     const harness = await createRunHarness();
     try {
       const started = await harness.runService.start({
@@ -138,7 +138,7 @@ describe("backup run controls", () => {
     }
   });
 
-  it("stops after the current work and records the event", async () => {
+  it("[ML-REPL-057] stops after the current work and records the event", async () => {
     const harness = await createRunHarness();
     try {
       await harness.runService.start({ scope: "partial_only", replaceStale: false });
@@ -156,7 +156,7 @@ describe("backup run controls", () => {
     }
   });
 
-  it("marks an active run interrupted on shutdown", async () => {
+  it("[ML-REPL-058] marks an active run interrupted on shutdown", async () => {
     const harness = await createRunHarness();
     try {
       await harness.runService.start({ scope: "partial_only", replaceStale: false });
@@ -169,7 +169,7 @@ describe("backup run controls", () => {
     }
   });
 
-  it("validates starts, returns the active run, and stops a paused run", async () => {
+  it("[ML-REPL-053] [ML-REPL-054] validates starts, returns the active run, and stops a paused run", async () => {
     const harness = await createRunHarness();
     try {
       expect(await harness.runService.replanIfPaused()).toBeNull();

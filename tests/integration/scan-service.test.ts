@@ -28,7 +28,7 @@ function countRows(catalogPath: string, sql: string): number {
 }
 
 describe("scan service integration", () => {
-  it("catalogs a drive through all four stages and records the report", async () => {
+  it("[ML-SCAN-005] [ML-SCAN-009] [ML-REL-004] catalogs a drive through all four stages and records the report", async () => {
     const harness = await createScanHarness();
     try {
       const photoPath = path.join(harness.drive.rootPath, "photo.png");
@@ -91,7 +91,7 @@ describe("scan service integration", () => {
     }
   });
 
-  it("detects new, changed, missing, and likely moved files on an incremental scan", async () => {
+  it("[ML-SCAN-008] [ML-HEALTH-006] [ML-REL-005] detects new, changed, missing, and likely moved files on an incremental scan", async () => {
     const harness = await createScanHarness();
     try {
       const driveRoot = harness.drive.rootPath;
@@ -150,7 +150,7 @@ describe("scan service integration", () => {
     }
   });
 
-  it("uses quick hashes for large unique files and full hashes for duplicate candidates", async () => {
+  it("[ML-SCAN-010] uses quick hashes for large unique files and full hashes for duplicate candidates", async () => {
     const harness = await createScanHarness({
       hashPolicy: { thresholdBytes: 50, sampleBytes: 8 },
     });
@@ -185,7 +185,7 @@ describe("scan service integration", () => {
     }
   });
 
-  it("rejects a scan while a replication workload is active", async () => {
+  it("[ML-REPL-067] rejects a scan while a replication workload is active", async () => {
     const workloads = new WorkloadCoordinator();
     const lease = workloads.acquire("replication", "run-1");
     const harness = await createScanHarness({ workloads });

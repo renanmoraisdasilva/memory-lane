@@ -119,8 +119,9 @@ thumbnails. The shared scheduler deduplicates in-flight work per file.
 - `movedCandidates`: missing files whose SHA-256 matches a present file first
   seen in this session.
 
-Moved candidates are counted and stored. Confirming them is a Phase 4 action;
-source files are never moved or modified.
+Moved candidates are counted and stored. Confirming them is a Phase 4 action.
+Scan never moves or modifies source files; the only source-moving operation is
+the confirmed duplicate quarantine mover.
 
 ## Additive drive fields
 
@@ -159,7 +160,7 @@ current drive letter differs from the last registered letter.
 - Catalog migration 9 extends cache entries with compatible video-proxy rows and
   source fingerprints.
 
-The current catalog schema version is 9. Opening an older catalog applies
+The current catalog schema version is 12. Opening an older catalog applies
 pending migrations checksum-safely. A catalog upgraded from schema 6 receives a
 stable archive identity and defaults existing files to `source` membership.
 Existing full SHA-256 hashes remain valid; migration 8 does not rehash them.

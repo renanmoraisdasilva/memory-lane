@@ -24,7 +24,7 @@ function directives(csp: string): Map<string, string> {
 }
 
 describe("renderer content security policy", () => {
-  it("keeps scripts self-only and blocks embedded content", async () => {
+  it("[ML-REL-001] keeps scripts self-only and blocks embedded content", async () => {
     const csp = await readCsp();
     const map = directives(csp);
 
@@ -37,7 +37,7 @@ describe("renderer content security policy", () => {
     expect(csp).not.toContain("'unsafe-eval'");
   });
 
-  it("allows local media and only local development sockets", async () => {
+  it("[ML-REL-001] allows local media and only local development sockets", async () => {
     const csp = await readCsp();
     const map = directives(csp);
     const connect = map.get("connect-src") ?? "";

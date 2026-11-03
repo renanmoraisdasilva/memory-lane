@@ -38,7 +38,7 @@ async function waitForAdoption(
 }
 
 describe("replication adoption", () => {
-  it("adopts reorganized destination files, records extras, and writes the source index", async () => {
+  it("[ML-REPL-016] adopts reorganized destination files, records extras, and writes the source index", async () => {
     const harness = await createScanHarness();
     const destinationRoot = await mkdtemp(
       path.join(os.tmpdir(), "memory-lane-adoption-destination-"),

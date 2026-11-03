@@ -256,7 +256,7 @@ describe("scan stage repository", () => {
     db.close();
   });
 
-  it("keeps full hashes, skips unique quick hashes, and rechecks quick hashes with size peers", () => {
+  it("[ML-HEALTH-002] keeps full hashes, skips unique quick hashes, and rechecks quick hashes with size peers", () => {
     const db = createDb();
     const full = insertFile(db, { path: "C:\\archive\\full.jpg", size: 50 });
     const quickUnique = insertFile(db, { path: "C:\\archive\\unique.mp4", size: 100 });

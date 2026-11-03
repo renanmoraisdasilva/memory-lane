@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildVideoProxyArgs, parseFfmpegProgressSeconds } from "./video-proxy-command";
 
 describe("video proxy command", () => {
-  it("builds a Chromium-compatible H.264/AAC MP4 command", () => {
+  it("[ML-LIB-009] [ML-VIDEO-008] builds a Chromium-compatible H.264/AAC MP4 command", () => {
     const args = buildVideoProxyArgs({
       inputPath: "C:\\archive\\clip.wmv",
       outputPath: "C:\\cache\\clip.mp4",

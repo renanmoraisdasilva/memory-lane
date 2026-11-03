@@ -50,7 +50,7 @@ function insertFile(
 }
 
 describe("other files repository", () => {
-  it("categorizes non-media files and reports category counts", () => {
+  it("[ML-REL-009] categorizes non-media files and reports category counts", () => {
     const db = createDb();
     insertFile(db, "letter.docx", "docx");
     insertFile(db, "budget.XLSX", "XLSX");
@@ -83,7 +83,7 @@ describe("other files repository", () => {
     db.close();
   });
 
-  it("filters by category, paginates, and accepts missing modified dates", () => {
+  it("[ML-REL-009] filters by category, paginates, and accepts missing modified dates", () => {
     const db = createDb();
     insertFile(db, "a.pdf", "pdf");
     insertFile(db, "b.pdf", "pdf", { modifiedAt: null });

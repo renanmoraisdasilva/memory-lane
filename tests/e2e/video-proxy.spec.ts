@@ -88,7 +88,7 @@ async function generateWmv(filePath: string): Promise<void> {
   ]);
 }
 
-test("prepares and serves a WMV compatible copy through the real bridge", async () => {
+test("[ML-REL-015] [ML-REL-018] prepares and serves a WMV compatible copy through the real bridge", async () => {
   test.setTimeout(120_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-video-e2e-"));
   const userDataPath = path.join(root, "user-data");

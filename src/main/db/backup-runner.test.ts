@@ -74,7 +74,7 @@ afterEach(async () => {
 });
 
 describe("database backup runner", () => {
-  it("backs up both databases, records the result, and replaces the previous copy", async () => {
+  it("[ML-SAFE-010] [ML-SET-004] [ML-SET-005] [ML-SET-014] [ML-REL-011] backs up both databases, records the result, and replaces the previous copy", async () => {
     const harness = await createHarness();
     const backupDir = path.join(harness.root, "backups", volumeId);
     try {

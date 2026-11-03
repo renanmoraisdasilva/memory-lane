@@ -35,7 +35,7 @@ afterEach(async () => {
 });
 
 describe("catalog registry", () => {
-  it("opens a source and destination catalog at the same time", async () => {
+  it("[ML-SAFE-006] [ML-REPL-008] opens a source and destination catalog at the same time", async () => {
     const root = await createRoot();
     const sourceRoot = path.join(root, "source");
     const destinationRoot = path.join(root, "destination");
@@ -78,7 +78,7 @@ describe("catalog registry", () => {
     ).toBe(CATALOG_SCHEMA_VERSION);
   });
 
-  it("rejects the source as a destination and duplicate destination paths", async () => {
+  it("[ML-REPL-009] [ML-REPL-010] rejects the source as a destination and duplicate destination paths", async () => {
     const root = await createRoot();
     const sourceRoot = path.join(root, "source");
     const destinationRoot = path.join(root, "destination");
@@ -124,7 +124,7 @@ describe("catalog registry", () => {
     }
   });
 
-  it("reuses the same destination session and closes it on request", async () => {
+  it("[ML-REPL-025] reuses the same destination session and closes it on request", async () => {
     const root = await createRoot();
     const destinationRoot = path.join(root, "destination");
     const registry = createCatalogRegistry();

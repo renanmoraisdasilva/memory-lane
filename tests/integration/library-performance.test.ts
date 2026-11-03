@@ -71,7 +71,7 @@ function createLargeCatalog(): Database.Database {
 }
 
 describe("large catalog performance", () => {
-  it(`pages, groups, and categorizes a ${ITEM_COUNT.toLocaleString("en-US")} file catalog`, () => {
+  it(`[ML-SCAN-014] [ML-REL-013] pages, groups, and categorizes a ${ITEM_COUNT.toLocaleString("en-US")} file catalog`, () => {
     const db = createLargeCatalog();
 
     const started = Date.now();

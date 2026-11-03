@@ -50,7 +50,7 @@ afterEach(() => {
 });
 
 describe("UndatedPage", () => {
-  it("selects undated items and assigns a year/month date", async () => {
+  it("[ML-REL-007] selects undated items and assigns a year/month date", async () => {
     const client = createLibraryFixtureClient({ undatedItems: [undatedItem()] });
     const setDate = vi.spyOn(client, "setDate");
     renderUndated(client);

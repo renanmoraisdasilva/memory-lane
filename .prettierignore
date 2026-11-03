@@ -3,6 +3,7 @@ out/
 release/
 coverage/
 test-results/
+docs/traceability/test-results.json
 playwright-report/
 ui-mockups/
 *.md

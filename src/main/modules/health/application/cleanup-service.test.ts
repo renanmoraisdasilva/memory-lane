@@ -11,6 +11,7 @@ import { createCleanupDbHandlers } from "../../../db/cleanup-db-handlers";
 import { catalogMigrations } from "../../../db/migrations/catalog-migrations";
 import { runMigrations } from "../../../db/migrations/runner";
 import { ensureDriveIdentity } from "../../../db/repositories/catalog-repository";
+import { rebuildDuplicateGroups } from "../../../db/repositories/health-repository";
 import type { DbMethod } from "../../../db/worker-protocol";
 import type { Logger } from "../../../logging/types";
 import { createFileHasher } from "../../scanning/infrastructure/file-hasher";
@@ -122,6 +123,7 @@ async function createHarness(
     ) VALUES (?, ?, 'keep\\photo.jpg', 'keep\\photo.jpg', 'keep\\photo.jpg', 'keep\\photo.jpg',
       ?, ?, 'verified', ?, ?, ?)`,
   ).run(destination.id, keeper.id, content.length, hash, now, content.length, modified);
+  rebuildDuplicateGroups(db);
 
   const handler = createCleanupDbHandlers({
     getCatalog: () => db,
@@ -172,7 +174,7 @@ async function waitForTerminal(service: CleanupService): Promise<void> {
 }
 
 describe("cleanup service", () => {
-  it("moves the candidate, keeps the keeper, and records the run", async () => {
+  it("[ML-SAFE-004] [ML-QUAR-006] [ML-QUAR-007] moves the candidate, keeps the keeper, and records the run", async () => {
     const harness = await createHarness();
     const state = await harness.service.start();
     expect(state.status).toBe("running");
@@ -203,7 +205,7 @@ describe("cleanup service", () => {
     harness.db.close();
   });
 
-  it("allows a run when no copy has verified coverage and reports the warning count", async () => {
+  it("[ML-QUAR-003] allows a run when no copy has verified coverage and reports the warning count", async () => {
     const harness = await createHarness();
     harness.db.prepare("DELETE FROM replica_files").run();
     const state = await harness.service.start();
@@ -227,7 +229,7 @@ describe("cleanup service", () => {
     harness.db.close();
   });
 
-  it("cancels after the current file", async () => {
+  it("[ML-QUAR-014] cancels after the current file", async () => {
     const gate = deferred();
     const started = deferred();
     class GatedMover extends QuarantineMover {

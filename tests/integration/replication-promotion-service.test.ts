@@ -37,7 +37,7 @@ async function waitForRun(
 }
 
 describe("promotion service", () => {
-  it("verifies, promotes with keep/retire fates, and rolls back through the service", async () => {
+  it("[ML-REPL-085] [ML-REPL-086] verifies, promotes with keep/retire fates, and rolls back through the service", async () => {
     const harness = await createScanHarness();
     const partialRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-promote-partial-"));
     const fullRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-promote-full-"));

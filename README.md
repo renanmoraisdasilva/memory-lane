@@ -1,10 +1,12 @@
 # Memory Lane
 
-**A local-first, read-only memory archive for Windows.**
+**A local-first, read-only-by-default memory archive for Windows.**
 
 Memory Lane catalogs photos, videos, documents, and everything else on external
 drives so the archive can be browsed, dated, searched by category, and checked
-for integrity. It never moves, renames, edits, or deletes the originals.
+for integrity. It never deletes or edits the originals. The only file-moving
+operation is the confirmed duplicate quarantine, which moves eligible duplicate
+copies into `.memorylane_quarantine` and never deletes them.
 
 ![Memory Lane demo: library, viewer, scan, backup destinations, plan, run, health, and settings](docs/images/memory-lane-demo.gif)
 
@@ -41,9 +43,10 @@ flowchart LR
 
 Every write is scoped to app-managed locations. The quality gate scans the
 main process for filesystem write APIs and rejects anything outside the reviewed
-cache, lock, backup, and replication allowlist. Replication writes go through a
-registered-destination writer, and promotion writes only snapshots and catalog
-metadata. The source archive remains read-only.
+cache, lock, backup, replication, and duplicate-quarantine allowlist. Replication
+writes go through a registered-destination writer, and promotion writes only
+snapshots and catalog metadata. The source archive remains read-only except for
+the reviewed duplicate quarantine mover.
 
 ## One scan, four stages
 
@@ -241,9 +244,9 @@ The IPC and media contracts are in
   degradation, and metadata-only promotion with rollback.
 - **Backup activity** in the top bar for adoption and run progress, paused, and
   interrupted states.
-- **545 automated tests** across 137 files, 11 Electron E2E flows, and a packaged
-  app smoke covering scan, library, Other files, Settings, backup, cache, and
-  WMV compatible playback.
+- A traceability matrix maps requirements to the tests that prove them. See
+  [`docs/traceability/matrix.md`](docs/traceability/matrix.md); test counts are
+  generated from the test run rather than hand-written.
 
 Phase 6 automated hardening is complete. The manual release pass (clean Windows
 VM install/uninstall, physical USB disconnect, codec playback, 200k memory
@@ -336,6 +339,8 @@ Start at [`docs/README.md`](docs/README.md).
 | [`product/roadmap.md`](docs/product/roadmap.md) | Delivered phases and next work |
 | [`product/partial-backups.md`](docs/product/partial-backups.md) | Replication behavior: adoption, copies, libraries, promotion |
 | [`product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md) | Replication slices, architecture, test matrix |
+| [`product/duplicate-quarantine-plan.md`](docs/product/duplicate-quarantine-plan.md) | Duplicate quarantine behavior, keeper rule, guardrails, and edge cases |
+| [`traceability/README.md`](docs/traceability/README.md) | Requirement ledger, review workflow, and generated matrix |
 | [`archive/phase-history.md`](docs/archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, and limits |
 | [`contracts/scan.md`](docs/contracts/scan.md) | Scan IPC, state, stages, and reports |
 | [`contracts/library.md`](docs/contracts/library.md) | Library IPC, media protocol, viewer |

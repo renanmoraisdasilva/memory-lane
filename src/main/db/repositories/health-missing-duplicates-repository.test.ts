@@ -118,7 +118,7 @@ function addVerifiedReplica(
 }
 
 describe("health missing duplicates repository", () => {
-  it("finds missing exact duplicates with cleanup warnings", () => {
+  it("[ML-HEALTH-013] finds missing exact duplicates with cleanup warnings", () => {
     const db = createDb();
     const present = insertFile(db, "keep.jpg", 100);
     addHash(db, present, "duplicate");
@@ -154,7 +154,7 @@ describe("health missing duplicates repository", () => {
     db.close();
   });
 
-  it("ignores missing duplicates without a present match or trusted hash, and flags pending moves", () => {
+  it("[ML-HEALTH-012] [ML-HEALTH-013] ignores missing duplicates without a present match or trusted hash, and flags pending moves", () => {
     const db = createDb();
     const present = insertFile(db, "keep.jpg", 100);
     addHash(db, present, "shared");
@@ -185,7 +185,7 @@ describe("health missing duplicates repository", () => {
     db.close();
   });
 
-  it("purges only eligible missing duplicate entries and refreshes adoption counters", () => {
+  it("[ML-HEALTH-012] purges only eligible missing duplicate entries and refreshes adoption counters", () => {
     const db = createDb();
     const present = insertFile(db, "keep.jpg", 100);
     addHash(db, present, "duplicate");
@@ -215,7 +215,7 @@ describe("health missing duplicates repository", () => {
     db.close();
   });
 
-  it("removes pending-move duplicates only when explicitly included", () => {
+  it("[ML-HEALTH-012] [ML-HEALTH-013] removes pending-move duplicates only when explicitly included", () => {
     const db = createDb();
     const present = insertFile(db, "keep.jpg", 100);
     addHash(db, present, "shared");

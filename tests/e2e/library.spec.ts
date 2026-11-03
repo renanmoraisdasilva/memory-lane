@@ -45,7 +45,7 @@ const ONE_PIXEL_PNG = Buffer.from(
   "base64",
 );
 
-test("exposes the scanned catalog through the library bridge", async () => {
+test("[ML-REL-006] exposes the scanned catalog through the library bridge", async () => {
   test.setTimeout(90_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-library-e2e-"));
   const userDataPath = path.join(root, "user-data");

@@ -22,7 +22,7 @@ const identity = {
 };
 
 describe("catalog repository", () => {
-  it("creates and reads the drive identity", () => {
+  it("[ML-REPL-001] [ML-REPL-003] creates and reads the drive identity", () => {
     const db = createDb();
     const created = ensureDriveIdentity(db, identity, 1);
 

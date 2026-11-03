@@ -103,7 +103,7 @@ describe("adoption runner", () => {
     expect(control.etaSeconds).toBe(0);
   });
 
-  it("flushes pending library rows when the adoption is paused", async () => {
+  it("[ML-REPL-026] flushes pending library rows when the adoption is paused", async () => {
     const control = createControl();
     const harness = createHarness(destinationFiles(30), control);
     let hashed = 0;

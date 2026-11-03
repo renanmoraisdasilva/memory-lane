@@ -14,7 +14,7 @@ function file(id: number, size: number): SourceFileFacts {
 }
 
 describe("full copy status", () => {
-  it("is complete only when every present file is verified without issues", () => {
+  it("[ML-REPL-079] is complete only when every present file is verified without issues", () => {
     expect(
       evaluateFullCopy({
         sourceFiles: [file(1, 10), file(2, 20)],
@@ -32,7 +32,7 @@ describe("full copy status", () => {
     });
   });
 
-  it("reports remaining work, shortfall, and replica issues", () => {
+  it("[ML-REPL-081] reports remaining work, shortfall, and replica issues", () => {
     const result = evaluateFullCopy({
       sourceFiles: [file(1, 10), file(2, 20)],
       verifiedFileIds: new Set([1]),

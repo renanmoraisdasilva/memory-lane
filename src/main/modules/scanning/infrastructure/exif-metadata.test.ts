@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { extractExifMetadata } from "./exif-metadata";
 
 describe("ExifTool metadata extraction", () => {
-  it("extracts dates, dimensions, camera, GPS, and video facts", () => {
+  it("[ML-SCAN-011] extracts dates, dimensions, camera, GPS, and video facts", () => {
     const metadata = extractExifMetadata({
       "EXIF:DateTimeOriginal": {
         year: 2011,

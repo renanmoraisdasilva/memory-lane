@@ -66,7 +66,7 @@ function addHash(db: Database.Database, fileId: number, sha256: string): void {
 }
 
 describe("health repository", () => {
-  it("groups exact duplicates across file types", () => {
+  it("[ML-QUAR-001] [ML-HEALTH-002] [ML-HEALTH-003] [ML-REL-005] groups exact duplicates across file types", () => {
     const db = createDb();
     const first = insertFile(db, "a.jpg", 100);
     const second = insertFile(db, "b.jpg", 100);
@@ -83,7 +83,24 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("reads precomputed duplicate totals without rebuilding on every summary", () => {
+  it("[ML-HEALTH-004] orders duplicate groups by total bytes descending", () => {
+    const db = createDb();
+    const smallA = insertFile(db, "small-a.jpg", 100);
+    const smallB = insertFile(db, "small-b.jpg", 100);
+    const largeA = insertFile(db, "large-a.jpg", 300);
+    const largeB = insertFile(db, "large-b.jpg", 300);
+    addHash(db, smallA, "small");
+    addHash(db, smallB, "small");
+    addHash(db, largeA, "large");
+    addHash(db, largeB, "large");
+    rebuildDuplicateGroups(db);
+
+    const page = getDuplicateGroups(db, 0, 10);
+    expect(page.groups.map((group) => group.totalBytes)).toEqual([600, 200]);
+    db.close();
+  });
+
+  it("[ML-HEALTH-001] [ML-HEALTH-005] reads precomputed duplicate totals without rebuilding on every summary", () => {
     const db = createDb();
     const first = insertFile(db, "a.jpg", 100);
     const second = insertFile(db, "b.jpg", 100);
@@ -104,7 +121,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("lists missing files and moved candidates", () => {
+  it("[ML-HEALTH-001] [ML-HEALTH-006] [ML-REL-005] lists missing files and moved candidates", () => {
     const db = createDb();
     const oldId = insertFile(db, "old.jpg", 100, "missing");
     const newId = insertFile(db, "new.jpg", 100);
@@ -136,7 +153,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("confirms a moved candidate and updates the catalog path", () => {
+  it("[ML-HEALTH-010] confirms a moved candidate and updates the catalog path", () => {
     const db = createDb();
     const oldId = insertFile(db, "old.jpg", 100, "missing");
     insertFile(db, "new.jpg", 100);
@@ -165,7 +182,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("dismisses moved candidates and skips unknown targets", () => {
+  it("[ML-HEALTH-011] dismisses moved candidates and skips unknown targets", () => {
     const db = createDb();
     const oldId = insertFile(db, "old.jpg", 100, "missing");
     const candidate = db
@@ -181,7 +198,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("paginates moved candidates and fetches selected candidates by id", () => {
+  it("[ML-HEALTH-009] paginates moved candidates and fetches selected candidates by id", () => {
     const db = createDb();
     const ids: number[] = [];
     for (let index = 0; index < 3; index += 1) {
@@ -209,7 +226,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("summarizes an empty catalog and records the last validation", () => {
+  it("[ML-HEALTH-001] summarizes an empty catalog and records the last validation", () => {
     const db = createDb();
     expect(getHealthSummary(db)).toEqual({
       duplicateGroups: 0,
@@ -257,7 +274,7 @@ describe("health repository", () => {
     db.close();
   });
 
-  it("dismisses and restores missing files without deleting catalog rows", () => {
+  it("[ML-HEALTH-007] [ML-HEALTH-008] dismisses and restores missing files without deleting catalog rows", () => {
     const db = createDb();
     const fileId = insertFile(db, "gone.jpg", 100, "missing");
     db.prepare(

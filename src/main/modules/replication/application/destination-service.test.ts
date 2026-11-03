@@ -31,7 +31,7 @@ function destinationDrive(rootPath: string): DetectedDrive {
 }
 
 describe("destination service", () => {
-  it("registers a dedicated destination, writes a marker, and lists it", async () => {
+  it("[ML-REPL-011] [ML-REPL-012] [ML-REPL-014] registers a dedicated destination, writes a marker, and lists it", async () => {
     const harness = await createScanHarness();
     const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-destination-"));
     roots.push(destinationRoot);
@@ -93,7 +93,7 @@ describe("destination service", () => {
     }
   });
 
-  it("rejects the source volume as a destination", async () => {
+  it("[ML-REPL-009] rejects the source volume as a destination", async () => {
     const harness = await createScanHarness();
     const service = new DestinationService({
       db: harness.db,
@@ -123,7 +123,7 @@ describe("destination service", () => {
     }
   });
 
-  it("lists candidates and updates destination settings", async () => {
+  it("[ML-REPL-089] lists candidates and updates destination settings", async () => {
     const harness = await createScanHarness();
     const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-destination-"));
     roots.push(destinationRoot);

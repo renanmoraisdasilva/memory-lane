@@ -76,7 +76,7 @@ function closeHarness(harness: Harness): void {
 }
 
 describe("settings DB handlers", () => {
-  it("reads backup state and cache stats", async () => {
+  it("[ML-SET-001] reads backup state and cache stats", async () => {
     const harness = await createHarness();
     const backupPath = path.join(harness.root, "backups", volumeId, "catalog.db");
     try {
@@ -113,7 +113,7 @@ describe("settings DB handlers", () => {
     }
   });
 
-  it("records successful and failed backups", async () => {
+  it("[ML-SET-009] records successful and failed backups", async () => {
     const harness = await createHarness();
     const backupPath = path.join(harness.root, "backups", volumeId, "catalog.db");
     try {
@@ -157,7 +157,7 @@ describe("settings DB handlers", () => {
     }
   });
 
-  it("clears generated cache rows", async () => {
+  it("[ML-SET-002] clears generated cache rows", async () => {
     const harness = await createHarness();
     try {
       expect(harness.handler.handle("settings.clearCache", {})).toEqual({ removed: 1 });

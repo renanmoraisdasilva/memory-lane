@@ -205,7 +205,7 @@ describe("library item repository", () => {
     db.close();
   });
 
-  it("saves and resolves a video proxy with its source fingerprint", () => {
+  it("[ML-VIDEO-004] saves and resolves a video proxy with its source fingerprint", () => {
     const db = createDb();
     const ids = seed(db);
     expect(resolveVideoProxy(db, ids.b)).toMatchObject({

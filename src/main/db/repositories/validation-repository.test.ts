@@ -55,7 +55,7 @@ function insertFile(db: Database.Database, name: string, hash: string | null): n
 }
 
 describe("validation repository", () => {
-  it("creates, progresses, pauses, resumes, and completes a session", () => {
+  it("[ML-HEALTH-014] [ML-HEALTH-015] [ML-HEALTH-019] [ML-HEALTH-020] [ML-REL-008] creates, progresses, pauses, resumes, and completes a session", () => {
     const db = createDb();
     insertFile(db, "a.jpg", "hash-a");
     insertFile(db, "b.jpg", null);
@@ -103,7 +103,7 @@ describe("validation repository", () => {
     db.close();
   });
 
-  it("marks missing files and stores changed hashes", () => {
+  it("[ML-HEALTH-016] [ML-HEALTH-018] [ML-HEALTH-020] marks missing files and stores changed hashes", () => {
     const db = createDb();
     const fileId = insertFile(db, "a.jpg", "old-hash");
     const state = createValidation(db, ["hash"], now);
@@ -168,7 +168,7 @@ describe("validation repository", () => {
     db.close();
   });
 
-  it("metadata refresh preserves an active manual date override", () => {
+  it("[ML-HEALTH-017] metadata refresh preserves an active manual date override", () => {
     const db = createDb();
     const file = insertFile(db, "override.jpg", "hash");
     db.prepare(

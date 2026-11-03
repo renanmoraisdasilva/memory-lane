@@ -65,7 +65,7 @@ const drive: DetectedDrive = {
 };
 
 describe("destination summary", () => {
-  it("computes safe capacity for each allocation mode", () => {
+  it("[ML-REPL-050] [ML-REPL-051] computes safe capacity for each allocation mode", () => {
     expect(toDestinationSummary(record, drive, 0)).toMatchObject({
       availableBytes: 900,
       connection: "connected",
@@ -86,7 +86,7 @@ describe("destination summary", () => {
     ).toBe(200);
   });
 
-  it("labels offline, retired, and lost destinations", () => {
+  it("[ML-REPL-031] labels offline, retired, and lost destinations", () => {
     expect(toDestinationSummary(record, undefined, 0)).toMatchObject({
       connection: "offline",
       mount: null,

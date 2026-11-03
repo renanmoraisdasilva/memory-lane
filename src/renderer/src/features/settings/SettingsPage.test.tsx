@@ -43,7 +43,7 @@ afterEach(() => {
 });
 
 describe("SettingsPage", () => {
-  it("shows storage, catalog, backup, and app information", async () => {
+  it("[ML-SET-001] [ML-SET-012] [ML-REL-001] [ML-REL-010] shows storage, catalog, backup, and app information", async () => {
     renderSettings();
 
     expect(await screen.findByRole("heading", { name: "Storage and app details" })).toBeVisible();
@@ -57,7 +57,7 @@ describe("SettingsPage", () => {
     );
   });
 
-  it("confirms cache clearing and reports the result", async () => {
+  it("[ML-LIB-010] [ML-SET-002] [ML-REL-010] confirms cache clearing and reports the result", async () => {
     const client = renderSettings();
     const clear = vi.spyOn(client, "clearCache");
     await screen.findByRole("heading", { name: "Storage and app details" });
@@ -70,7 +70,7 @@ describe("SettingsPage", () => {
     expect(clear).toHaveBeenCalledTimes(1);
   });
 
-  it("runs a backup on demand and surfaces failures", async () => {
+  it("[ML-SET-006] [ML-REL-010] runs a backup on demand and surfaces failures", async () => {
     const client = renderSettings();
     const backup = vi.spyOn(client, "runBackup");
     await screen.findByRole("heading", { name: "Storage and app details" });

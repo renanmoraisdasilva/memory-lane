@@ -150,7 +150,7 @@ describe("DriveService", () => {
     expect(drives[0]?.catalogStatus).toBe("registered");
   });
 
-  it("flags a changed letter and includes offline registered drives", async () => {
+  it("[ML-SCAN-002] [ML-REL-003] flags a changed letter and includes offline registered drives", async () => {
     const root = await createTempDirectory();
     const detected = createDevelopmentDrive(root);
     const connected: DetectedDrive = { ...detected, letter: "F:" };
@@ -242,7 +242,7 @@ describe("DriveService", () => {
     expect(drives[0]?.catalogStatus).toBe("ready");
   });
 
-  it("initializes a catalog and creates app-managed directories", async () => {
+  it("[ML-SCAN-003] [ML-REL-003] initializes a catalog and creates app-managed directories", async () => {
     const root = await createTempDirectory();
     const drive = createDevelopmentDrive(root);
     const paths = getCatalogPaths(root);

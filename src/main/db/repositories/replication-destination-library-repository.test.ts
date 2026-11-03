@@ -17,7 +17,7 @@ afterEach(async () => {
 });
 
 describe("replication destination library repository", () => {
-  it("upserts files, tracks missing files, and rejects escaped paths", async () => {
+  it("[ML-REPL-015] [ML-REPL-025] [ML-REPL-077] upserts files, tracks missing files, and rejects escaped paths", async () => {
     const db = new Database(":memory:");
     runMigrations(db, catalogMigrations);
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-destination-library-"));

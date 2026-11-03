@@ -105,7 +105,7 @@ async function prepare(
 }
 
 describe("quarantine mover", () => {
-  it("moves a verified candidate into the quarantine run folder", async () => {
+  it("[ML-SAFE-002] [ML-QUAR-011] [ML-REL-002] moves a verified candidate into the quarantine run folder", async () => {
     const root = await createRoot();
     const content = Buffer.alloc(2048, 7);
     const keeperPath = path.join(root, "keep", "photo.jpg");
@@ -167,7 +167,7 @@ describe("quarantine mover", () => {
     expect(result.move?.quarantinePath).toBe(path.join(quarantinePath, "phone", "clip.1.mp4"));
   });
 
-  it("restores a file when the quarantined copy fails verification", async () => {
+  it("[ML-QUAR-008] [ML-REL-002] restores a file when the quarantined copy fails verification", async () => {
     const root = await createRoot();
     const content = Buffer.alloc(2048, 4);
     const keeperPath = path.join(root, "keep", "photo.jpg");
@@ -203,7 +203,7 @@ describe("quarantine mover", () => {
     expect(journal).toContain('"reason":"destination-hash-mismatch"');
   });
 
-  it("skips changed, missing, hard-linked, and outside-root candidates", async () => {
+  it("[ML-QUAR-010] skips changed, missing, hard-linked, and outside-root candidates", async () => {
     const root = await createRoot();
     const content = Buffer.alloc(2048, 9);
     const keeperPath = path.join(root, "keep", "photo.jpg");
@@ -275,7 +275,7 @@ describe("quarantine mover", () => {
     ).toBe("outside-root");
   });
 
-  it("rejects a quarantine path outside the catalog root", async () => {
+  it("[ML-QUAR-010] rejects a quarantine path outside the catalog root", async () => {
     const root = await createRoot();
     const group = groupWith(
       path.join(root, "a.jpg"),

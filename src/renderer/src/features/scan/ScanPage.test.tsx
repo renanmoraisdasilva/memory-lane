@@ -89,7 +89,7 @@ describe("ScanPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("changes the processing intensity", async () => {
+  it("[ML-REL-004] changes the processing intensity", async () => {
     renderScan(fixture("active"));
 
     const max = await screen.findByRole("radio", { name: /Max/ });
@@ -110,7 +110,7 @@ describe("ScanPage", () => {
     expect(screen.getByRole("button", { name: "Resume scan" })).toBeInTheDocument();
   });
 
-  it("shows the interrupted state with manual resume and switch-drive actions", async () => {
+  it("[ML-REL-004] shows the interrupted state with manual resume and switch-drive actions", async () => {
     renderScan(fixture("interrupted"));
 
     expect(await screen.findByRole("heading", { name: /Scan stopped/ })).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe("ScanPage", () => {
     expect(await screen.findByRole("button", { name: "Pause" })).toBeInTheDocument();
   });
 
-  it("offers missing duplicate cleanup after a completed scan", async () => {
+  it("[ML-HEALTH-024] offers missing duplicate cleanup after a completed scan", async () => {
     const libraryClient: LibraryClient = {
       ...createLibraryFixtureClient(),
       getMissingDuplicates: async () => ({

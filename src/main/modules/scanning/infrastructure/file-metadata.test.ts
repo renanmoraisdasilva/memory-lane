@@ -124,7 +124,7 @@ describe("file metadata extractor", () => {
     expect(extracted.durationSeconds).toBeNull();
   });
 
-  it("uses ExifTool facts and date candidates when available", async () => {
+  it("[ML-SCAN-011] uses ExifTool facts and date candidates when available", async () => {
     const shutdown = vi.fn(async () => undefined);
     const exif: ExifMetadataReader = {
       read: vi.fn(async () => ({

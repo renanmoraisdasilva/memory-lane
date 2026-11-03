@@ -26,7 +26,7 @@ describe("database connection", () => {
     }
   });
 
-  it("opens a read-only connection for database backups", async () => {
+  it("[ML-SAFE-008] [ML-SAFE-010] opens a read-only connection for database backups", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-connection-"));
     const filePath = path.join(root, "catalog.db");
     const backupPath = path.join(root, "catalog-backup.db");

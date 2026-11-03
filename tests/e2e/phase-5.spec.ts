@@ -32,7 +32,7 @@ async function setUpCatalog(page: Page): Promise<void> {
   });
 }
 
-test("browses other files and manages settings, cache, and backups", async () => {
+test("[ML-SET-003] [ML-SET-006] [ML-SET-012] [ML-REL-009] [ML-REL-010] browses other files and manages settings, cache, and backups", async () => {
   test.setTimeout(150_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-phase-5-e2e-"));
   const userDataPath = path.join(root, "user-data");

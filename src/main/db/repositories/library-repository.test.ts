@@ -205,7 +205,7 @@ describe("library repository", () => {
     db.close();
   });
 
-  it("pages the timeline in descending date and id order", () => {
+  it("[ML-LIB-001] pages the timeline in descending date and id order", () => {
     const db = createDb();
     seed(db);
 
@@ -259,7 +259,7 @@ describe("library repository", () => {
     db.close();
   });
 
-  it("anchors a timeline at a year or month", () => {
+  it("[ML-LIB-002] anchors a timeline at a year or month", () => {
     const db = createDb();
     seed(db);
 

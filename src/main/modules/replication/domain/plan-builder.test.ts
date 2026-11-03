@@ -108,7 +108,7 @@ const files: SourceFileFacts[] = [
 ];
 
 describe("replication plan builder", () => {
-  it("fills partial destinations oldest-first and reports the remainder", () => {
+  it("[ML-REPL-036] [ML-REPL-038] [ML-REPL-039] [ML-REPL-045] fills partial destinations oldest-first and reports the remainder", () => {
     const plan = buildReplicationPlan(
       planFor(files, [
         destination(1, "extend_coverage", 50, { verifiedFileIds: [1] }),
@@ -137,7 +137,7 @@ describe("replication plan builder", () => {
     expect(plan.coverage.hasFullCopy).toBe(false);
   });
 
-  it("plans an independent full copy and reports its shortfall", () => {
+  it("[ML-REPL-040] [ML-REPL-046] plans an independent full copy and reports its shortfall", () => {
     const plan = buildReplicationPlan(planFor(files, [destination(1, "full_copy", 50)]));
     expect(plan.fullCopy).toMatchObject({
       newFiles: 5,
@@ -152,7 +152,7 @@ describe("replication plan builder", () => {
     expect(plan.coverage.fullCopyPercent).toBe(40);
   });
 
-  it("keeps full copy and partial jobs independent in a mixed plan", () => {
+  it("[ML-REPL-041] keeps full copy and partial jobs independent in a mixed plan", () => {
     const plan = buildReplicationPlan(
       planFor(files, [
         destination(1, "extend_coverage", 40),
@@ -165,7 +165,7 @@ describe("replication plan builder", () => {
     expect(plan.remainder.files).toBeGreaterThan(0);
   });
 
-  it("marks a completed full copy as promotion-ready", () => {
+  it("[ML-REPL-042] marks a completed full copy as promotion-ready", () => {
     const plan = buildReplicationPlan(
       planFor(files, [
         destination(1, "full_copy", 1_000, {
@@ -185,7 +185,7 @@ describe("replication plan builder", () => {
     expect(plan.coverage.fullCopyPercent).toBe(100);
   });
 
-  it("blocks start when every destination is offline", () => {
+  it("[ML-REPL-043] [ML-REPL-049] blocks start when every destination is offline", () => {
     const plan = buildReplicationPlan(
       planFor(files, [
         destination(1, "extend_coverage", 100, {
@@ -198,7 +198,7 @@ describe("replication plan builder", () => {
     expect(plan.warnings.map((warning) => warning.code)).toContain("offline_destination");
   });
 
-  it("blocks start when no destination is registered", () => {
+  it("[ML-REPL-048] blocks start when no destination is registered", () => {
     const plan = buildReplicationPlan(planFor(files, []));
     expect(plan.canStart).toBe(false);
     expect(plan.fullCopy).toBeNull();
@@ -206,7 +206,7 @@ describe("replication plan builder", () => {
     expect(plan.warnings.map((warning) => warning.code)).toContain("no_destination");
   });
 
-  it("is deterministic for the same inputs and changes when destination state changes", () => {
+  it("[ML-REPL-052] is deterministic for the same inputs and changes when destination state changes", () => {
     const first = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 50)]));
     const second = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 50)]));
     const changed = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 60)]));
@@ -214,7 +214,7 @@ describe("replication plan builder", () => {
     expect(changed.planHash).not.toBe(first.planHash);
   });
 
-  it("ignores free-space drift when the assigned files do not change", () => {
+  it("[ML-REPL-052] ignores free-space drift when the assigned files do not change", () => {
     const exact = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 200)]));
     const roomy = buildReplicationPlan(planFor(files, [destination(1, "extend_coverage", 900)]));
     expect(exact.partial?.rows[0]?.newFiles).toBe(5);

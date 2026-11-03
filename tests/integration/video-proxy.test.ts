@@ -100,7 +100,7 @@ async function copyIntoDrive(source: string, destination: string): Promise<void>
 }
 
 describe.skipIf(ffmpegPath === null)("video proxy integration", () => {
-  it("converts WMV and 3GP sources into playable MP4 proxies and reuses the cache", async () => {
+  it("[ML-LIB-009] [ML-REL-018] converts WMV and 3GP sources into playable MP4 proxies and reuses the cache", async () => {
     const harness = await createScanHarness();
     const service = new VideoProxyService({
       db: harness.db,
@@ -150,7 +150,7 @@ describe.skipIf(ffmpegPath === null)("video proxy integration", () => {
       await harness.dispose();
     }
   });
-  it("reports a failed conversion without creating coverage or a proxy URL", async () => {
+  it("[ML-VIDEO-007] reports a failed conversion without creating coverage or a proxy URL", async () => {
     const harness = await createScanHarness();
     const service = new VideoProxyService({
       db: harness.db,

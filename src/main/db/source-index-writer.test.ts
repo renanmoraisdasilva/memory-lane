@@ -12,7 +12,7 @@ afterEach(async () => {
 });
 
 describe("source index writer", () => {
-  it("writes a compact snapshot without WAL sidecars and replaces it atomically", async () => {
+  it("[ML-REPL-027] writes a compact snapshot without WAL sidecars and replaces it atomically", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-source-index-"));
     roots.push(root);
     const relativePath = await writeSourceIndex({

@@ -5,7 +5,7 @@ import { WorkloadCoordinator } from "./workload-coordinator";
 const now = new Date("2026-11-01T12:00:00.000Z");
 
 describe("workload coordinator", () => {
-  it("grants one heavy workload at a time", () => {
+  it("[ML-HEALTH-023] [ML-REPL-067] grants one heavy workload at a time", () => {
     const coordinator = new WorkloadCoordinator(() => now);
     const scan = coordinator.acquire("scan", "scan-1");
     expect(coordinator.current()).toMatchObject({

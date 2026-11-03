@@ -39,7 +39,7 @@ function insertFile(db: Database.Database): number {
 }
 
 describe("catalog video proxy migration", () => {
-  it("preserves existing cache entries and adds proxy columns", () => {
+  it("[ML-VIDEO-004] preserves existing cache entries and adds proxy columns", () => {
     const db = createSchemaEightDb();
     const fileId = insertFile(db);
     db.prepare(

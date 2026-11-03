@@ -57,7 +57,7 @@ afterEach(() => {
 });
 
 describe("MediaViewerPage", () => {
-  it("renders the photo state with metadata and actions", async () => {
+  it("[ML-REL-006] renders the photo state with metadata and actions", async () => {
     const client = createLibraryFixtureClient();
     const reveal = vi.spyOn(client, "revealItem");
     const details = await detailsFor(1, "photos", client);
@@ -77,7 +77,7 @@ describe("MediaViewerPage", () => {
     expect(await screen.findByText("Revealed in Explorer.")).toBeInTheDocument();
   });
 
-  it("opens the date dialog and applies a year/month override", async () => {
+  it("[ML-REL-007] opens the date dialog and applies a year/month override", async () => {
     const client = createLibraryFixtureClient();
     const setDate = vi.spyOn(client, "setDate");
     const details = await detailsFor(1, "photos", client);
@@ -102,7 +102,7 @@ describe("MediaViewerPage", () => {
     expect(screen.getByText(/Catalog date updated/)).toBeInTheDocument();
   });
 
-  it("renders the video state with native controls and a poster", async () => {
+  it("[ML-VIDEO-001] [ML-REL-006] renders the video state with native controls and a poster", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(2, "videos", client);
     const { container } = renderWithProviders(
@@ -124,7 +124,7 @@ describe("MediaViewerPage", () => {
     expect(screen.getByText("29.97 fps")).toBeInTheDocument();
   });
 
-  it("keeps metadata visible and disables actions for a missing file", async () => {
+  it("[ML-LIB-005] keeps metadata visible and disables actions for a missing file", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(7, "photos", client);
     renderViewer(details, client);
@@ -139,7 +139,7 @@ describe("MediaViewerPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows an unsupported image message and can open it externally", async () => {
+  it("[ML-REL-015] shows an unsupported image message and can open it externally", async () => {
     const client = createLibraryFixtureClient();
     const open = vi.spyOn(client, "openItem");
     const details = await detailsFor(1, "photos", client);
@@ -166,7 +166,7 @@ describe("MediaViewerPage", () => {
     });
   });
 
-  it("shows a preparation failure when a video cannot be converted", async () => {
+  it("[ML-VIDEO-001] [ML-VIDEO-007] [ML-REL-015] shows a preparation failure when a video cannot be converted", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(2, "videos", client);
     const { container } = renderWithProviders(
@@ -192,7 +192,7 @@ describe("MediaViewerPage", () => {
     expect(within(status).getByRole("button", { name: "Open externally" })).toBeInTheDocument();
   });
 
-  it("prepares a compatible copy for WMV playback", async () => {
+  it("[ML-VIDEO-001] prepares a compatible copy for WMV playback", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(2, "videos", client);
     const wmv: LibraryItemDetails = {
@@ -254,7 +254,7 @@ describe("MediaViewerPage", () => {
     expect(await screen.findByText("Explorer could not reveal this file")).toBeInTheDocument();
   });
 
-  it("navigates with arrow keys and returns to the filtered library with Escape", async () => {
+  it("[ML-LIB-004] navigates with arrow keys and returns to the filtered library with Escape", async () => {
     const client = createLibraryFixtureClient();
     const details = await detailsFor(7, "photos", client);
     renderViewer(details, client);

@@ -91,7 +91,7 @@ async function process(
 }
 
 describe("adoption file processor", () => {
-  it("verifies a path match and stores the destination hash", async () => {
+  it("[ML-REPL-017] [ML-REPL-020] verifies a path match and stores the destination hash", async () => {
     const { result } = await process(sourceFile(), destinationFile());
     expect(result.replica).toMatchObject({
       fileId: 1,
@@ -142,7 +142,7 @@ describe("adoption file processor", () => {
     expect(result.replica).toBeNull();
   });
 
-  it("marks a different hash at an expected path as a conflict", async () => {
+  it("[ML-REPL-018] marks a different hash at an expected path as a conflict", async () => {
     const { result } = await process(sourceFile(), destinationFile(), {
       hash: "b".repeat(64),
     });
@@ -152,7 +152,7 @@ describe("adoption file processor", () => {
     });
   });
 
-  it("marks a source change with an unchanged destination as stale", async () => {
+  it("[ML-REPL-019] marks a source change with an unchanged destination as stale", async () => {
     const { result } = await process(
       sourceFile({
         sha256: "c".repeat(64),
@@ -165,7 +165,7 @@ describe("adoption file processor", () => {
     expect(result.replica).toMatchObject({ status: "stale" });
   });
 
-  it("records a duplicate source match as an extra instead of a second replica", async () => {
+  it("[ML-REPL-022] records a duplicate source match as an extra instead of a second replica", async () => {
     const { result } = await process(sourceFile(), destinationFile(), { assigned: true });
     expect(result.replica).toBeNull();
     expect(result.orphan).toMatchObject({
@@ -174,7 +174,7 @@ describe("adoption file processor", () => {
     });
   });
 
-  it("reports ambiguous name/size matches", async () => {
+  it("[ML-REPL-021] reports ambiguous name/size matches", async () => {
     const { result } = await process(
       sourceFile(),
       destinationFile({ relativePath: "manual\\a.jpg" }),
@@ -194,7 +194,7 @@ describe("adoption file processor", () => {
     });
   });
 
-  it("adopts a reorganized file by hash", async () => {
+  it("[ML-REPL-017] adopts a reorganized file by hash", async () => {
     const { result } = await process(
       sourceFile(),
       destinationFile({ relativePath: "manual\\renamed.jpg", name: "renamed.jpg" }),
@@ -206,7 +206,7 @@ describe("adoption file processor", () => {
     });
   });
 
-  it("records an unrelated destination file as an extra", async () => {
+  it("[ML-REPL-022] records an unrelated destination file as an extra", async () => {
     const { result } = await process(
       sourceFile(),
       destinationFile({ relativePath: "other.bin", name: "other.bin", size: 3 }),

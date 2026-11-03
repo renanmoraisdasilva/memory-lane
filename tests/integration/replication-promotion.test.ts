@@ -35,7 +35,7 @@ async function waitForRun(
 }
 
 describe("replication promotion", () => {
-  it("merges the source into a complete full copy and rolls back before the first change", async () => {
+  it("[ML-REPL-083] [ML-REPL-085] [ML-REPL-086] [ML-REPL-087] [ML-REPL-088] merges the source into a complete full copy and rolls back before the first change", async () => {
     const harness = await createScanHarness();
     const destinationRoot = await mkdtemp(path.join(os.tmpdir(), "memory-lane-promotion-"));
     roots.push(destinationRoot);

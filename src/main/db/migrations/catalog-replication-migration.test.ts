@@ -55,7 +55,7 @@ function insertDestination(db: Database.Database): number {
 }
 
 describe("catalog replication migration", () => {
-  it("backfills archive identity and source membership from schema 6", () => {
+  it("[ML-REPL-001] [ML-REPL-002] [ML-REPL-004] backfills archive identity and source membership from schema 6", () => {
     const db = createSchemaSixDb();
     const fileId = insertFile(db);
 
@@ -113,7 +113,7 @@ describe("catalog replication migration", () => {
     db.close();
   });
 
-  it("enforces one active run and allows terminal runs", () => {
+  it("[ML-REPL-006] enforces one active run and allows terminal runs", () => {
     const db = createSchemaSixDb();
     runMigrations(db, catalogMigrations);
 
@@ -133,7 +133,7 @@ describe("catalog replication migration", () => {
     db.close();
   });
 
-  it("requires a hash for verified replicas and a unique destination id", () => {
+  it("[ML-REPL-005] requires a hash for verified replicas and a unique destination id", () => {
     const db = createSchemaSixDb();
     const fileId = insertFile(db);
     runMigrations(db, catalogMigrations);

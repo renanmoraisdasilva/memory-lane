@@ -20,7 +20,7 @@ afterEach(async () => {
 });
 
 describe("quick file hasher", () => {
-  it("hashes the head, middle, and tail deterministically", async () => {
+  it("[ML-SCAN-010] hashes the head, middle, and tail deterministically", async () => {
     const contents = Buffer.alloc(128);
     for (let index = 0; index < contents.length; index += 1) {
       contents[index] = index;

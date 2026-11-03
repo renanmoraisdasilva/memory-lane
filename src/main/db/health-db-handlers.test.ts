@@ -63,7 +63,7 @@ function createHarness() {
 }
 
 describe("health DB handlers", () => {
-  it("serves summary, duplicates, missing, and moved records", () => {
+  it("[ML-HEALTH-001] serves summary, duplicates, missing, and moved records", () => {
     const { db, handler, movedId } = createHarness();
 
     expect(handler.handle("health.getSummary", {})).toMatchObject({
@@ -99,7 +99,7 @@ describe("health DB handlers", () => {
     db.close();
   });
 
-  it("dismisses and restores missing files", () => {
+  it("[ML-HEALTH-007] [ML-HEALTH-008] dismisses and restores missing files", () => {
     const { db, handler, missingId } = createHarness();
 
     expect(handler.handle("health.getMissing", {})).toMatchObject({
@@ -133,7 +133,7 @@ describe("health DB handlers", () => {
     db.close();
   });
 
-  it("serves and purges missing duplicate entries", () => {
+  it("[ML-HEALTH-012] [ML-HEALTH-013] serves and purges missing duplicate entries", () => {
     const { db, handler, fileId } = createHarness();
     const duplicate = db
       .prepare(
@@ -171,7 +171,7 @@ describe("health DB handlers", () => {
     db.close();
   });
 
-  it("manages a validation session and saves results", () => {
+  it("[ML-HEALTH-015] manages a validation session and saves results", () => {
     const { db, handler, fileId } = createHarness();
     expect(handler.handle("health.getValidationState", {})).toMatchObject({ status: "idle" });
     const started = handler.handle("health.createValidation", {

@@ -31,14 +31,14 @@ describe("destination path policy", () => {
     expect(() => resolveRelativePath(root, "..\\outside.jpg")).toThrow(AppError);
   });
 
-  it("rejects overlapping source and destination roots", () => {
+  it("[ML-REPL-013] rejects overlapping source and destination roots", () => {
     expect(() => assertNoRootOverlap("C:\\source", "D:\\backup")).not.toThrow();
     expect(() => assertNoRootOverlap("C:\\source", "C:\\source")).toThrow(AppError);
     expect(() => assertNoRootOverlap("C:\\source", "C:\\source\\backup")).toThrow(AppError);
     expect(() => assertNoRootOverlap("C:\\source\\backup", "C:\\source")).toThrow(AppError);
   });
 
-  it("rejects the same volume", () => {
+  it("[ML-REPL-013] rejects the same volume", () => {
     expect(() => assertDifferentVolume("volume-1", "volume-2")).not.toThrow();
     try {
       assertDifferentVolume("volume-1", "volume-1");

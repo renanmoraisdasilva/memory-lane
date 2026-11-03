@@ -90,7 +90,7 @@ async function movedPage(params: MovedCandidatesParams): Promise<MovedCandidates
 }
 
 describe("HealthPage", () => {
-  it("switches between missing files, duplicates, and validation", async () => {
+  it("[ML-HEALTH-022] switches between missing files, duplicates, and validation", async () => {
     renderHealth();
 
     expect(await screen.findByText("No missing files")).toBeVisible();
@@ -101,7 +101,7 @@ describe("HealthPage", () => {
     expect(screen.getByRole("button", { name: "Run validation" })).toBeEnabled();
   });
 
-  it("paginates likely moved files and requires an explicit selection", async () => {
+  it("[ML-HEALTH-009] paginates likely moved files and requires an explicit selection", async () => {
     const client = createLibraryFixtureClient();
     const getMoved = vi.fn(movedPage);
     client.getMoved = getMoved;
@@ -127,7 +127,7 @@ describe("HealthPage", () => {
     expect(screen.getByRole("button", { name: "Confirm selected" })).toBeDisabled();
   });
 
-  it("selects all missing files and disregards them", async () => {
+  it("[ML-HEALTH-008] selects all missing files and disregards them", async () => {
     const client = createLibraryFixtureClient();
     const page: MissingFilesPage = {
       items: [missingItem, { ...missingItem, fileId: 8, name: "also-gone.jpg" }],
@@ -148,7 +148,7 @@ describe("HealthPage", () => {
     });
   });
 
-  it("shows disregarded missing files and restores them", async () => {
+  it("[ML-HEALTH-007] shows disregarded missing files and restores them", async () => {
     const client = createLibraryFixtureClient();
     const activePage: MissingFilesPage = {
       items: [],
@@ -175,7 +175,7 @@ describe("HealthPage", () => {
     });
   });
 
-  it("shows keeper badges and starts a confirmed cleanup", async () => {
+  it("[ML-QUAR-004] [ML-QUAR-005] [ML-QUAR-015] shows keeper badges and starts a confirmed cleanup", async () => {
     const client = createLibraryFixtureClient();
     const firstDate = "2020-01-01T00:00:00.000Z";
     const secondDate = "2024-01-01T00:00:00.000Z";
@@ -304,7 +304,7 @@ describe("HealthPage", () => {
     });
   });
 
-  it("starts a whole-catalog validation with the selected levels", async () => {
+  it("[ML-HEALTH-014] [ML-HEALTH-020] [ML-REL-008] starts a whole-catalog validation with the selected levels", async () => {
     const client = createLibraryFixtureClient();
     const start = vi.spyOn(client, "startValidation").mockResolvedValue(runningValidation);
     const drive = createMockDrives("catalog").find(

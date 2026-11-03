@@ -32,7 +32,7 @@ function destination(
 }
 
 describe("coverage math", () => {
-  it("counts distinct union coverage, partial coverage, full copy, and overlap", () => {
+  it("[ML-REPL-029] [ML-REPL-030] counts distinct union coverage, partial coverage, full copy, and overlap", () => {
     const result = computeCoverage(
       [source(1, 10), source(2, 20), source(3, 30)],
       [
@@ -61,7 +61,7 @@ describe("coverage math", () => {
     expect([...result.overlapIds]).toEqual([2]);
   });
 
-  it("ignores retired and lost destinations and files missing from the source", () => {
+  it("[ML-REPL-031] [ML-REPL-032] [ML-REPL-033] ignores retired and lost destinations and files missing from the source", () => {
     const result = computeCoverage(
       [source(1, 10)],
       [

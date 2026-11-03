@@ -50,7 +50,7 @@ function insertFile(db: Database.Database, name: string, date: string | null): n
 }
 
 describe("library date repository", () => {
-  it("sets and clears a manual override while preserving the extracted date", () => {
+  it("[ML-SCAN-013] sets and clears a manual override while preserving the extracted date", () => {
     const db = createDb();
     const fileId = insertFile(db, "a.jpg", "2011-07-04T15:30:00");
 

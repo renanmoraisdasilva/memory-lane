@@ -35,7 +35,7 @@ async function setUpCatalog(page: Page): Promise<void> {
   await expect(page.getByRole("heading", { name: "Memory Lane" })).toBeVisible();
 }
 
-test("assigns and clears a catalog-only date from the UI", async () => {
+test("[ML-REL-007] assigns and clears a catalog-only date from the UI", async () => {
   test.setTimeout(120_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-dates-e2e-"));
   const userDataPath = path.join(root, "user-data");

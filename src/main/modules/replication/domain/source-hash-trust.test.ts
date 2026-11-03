@@ -22,7 +22,7 @@ function source(overrides: Partial<ReplicationSourceFile> = {}): ReplicationSour
 }
 
 describe("source hash trust", () => {
-  it("trusts a hash whose recorded size and mtime match the file", () => {
+  it("[ML-REPL-007] trusts a hash whose recorded size and mtime match the file", () => {
     expect(trustedSourceHashValue(source())).toBe("a".repeat(64));
   });
 
@@ -50,7 +50,7 @@ describe("source hash trust", () => {
     ).toBe("a".repeat(64));
   });
 
-  it("does not trust a legacy hash when the file changed after hashing", () => {
+  it("[ML-REPL-007] does not trust a legacy hash when the file changed after hashing", () => {
     expect(
       trustedSourceHashValue(
         source({

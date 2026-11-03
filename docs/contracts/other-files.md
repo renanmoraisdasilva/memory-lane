@@ -34,7 +34,8 @@ catalog file ID.
 
 - Present files can be opened externally or revealed in Explorer.
 - Missing files disable both actions.
-- The app never moves, renames, edits, or deletes an original.
+- The app never deletes, edits, or renames an original. The only file-moving
+  operation is the confirmed duplicate quarantine mover.
 - No in-app document, PDF, or audio viewer is part of v0.1.
 
 ## Tests

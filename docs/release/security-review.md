@@ -1,6 +1,6 @@
 # Security review
 
-Status: Phase 6 automated review complete; replication and video-proxy write surfaces reviewed; clean-VM manual checks pending.
+Status: Phase 6 automated review complete; replication, video-proxy, and duplicate-quarantine write surfaces reviewed; clean-VM manual checks pending.
 
 ## Trust boundaries
 
@@ -8,7 +8,7 @@ Status: Phase 6 automated review complete; replication and video-proxy write sur
 |---|---|---|
 | Renderer to main process | Untrusted content, trusted origin | Context isolation, sandbox, typed preload, exact sender validation |
 | Main process to SQLite | Trusted code only | Single DB worker, prepared statements, Zod validation |
-| Main process to archive files | Read-only | No direct write APIs outside cache, logs, catalog, and backups |
+| Main process to archive files | Read-only by default | No direct write APIs outside cache, logs, catalog, backups, and the reviewed duplicate quarantine mover |
 | Main process to replication destinations | Registered destination roots only | Single destination writer, path policy, explicit plan confirmation, read-only source guard |
 | Media protocol to renderer | Catalog IDs only | `ml-media` resolves IDs through the DB worker; no raw paths |
 | Main process to FFmpeg | Local child process, validated paths | Argument array, no shell, source opened read-only, output confined to the cache proxy directory |
@@ -50,10 +50,12 @@ The read-only guard allowlist is intentionally small:
 - generated compatible video proxy files;
 - generated cache deletion;
 - SQLite catalog/app databases, logs, and backup copies (through their owning
-  modules).
+  modules);
+- duplicate quarantine moves through
+  `modules/health/infrastructure/quarantine-mover.ts`.
 
-No module is allowed to write, rename, truncate, or delete an original archive
-file.
+No module except the reviewed duplicate quarantine mover is allowed to move,
+rename, truncate, or delete an original archive file.
 
 ## Replication extension
 
@@ -78,6 +80,22 @@ drives. It does not relax the source-archive guarantee.
   allowlisted `db/promotion-snapshot-files.ts` adapter.
 - The security review and read-only guard cover the destination writer and the
   promotion snapshot adapter.
+
+## Duplicate quarantine extension
+
+`modules/health/infrastructure/quarantine-mover.ts` is the only module allowed to
+move an original archive file. It exists only for confirmed duplicate cleanup.
+
+- It accepts only a validated catalog root, a validated quarantine root, and a
+  candidate from an eligible duplicate group.
+- It re-hashes the source immediately before the same-volume rename and the
+  quarantined copy immediately after.
+- A mismatch moves the file back to its source path and journals the restore; if
+  the restore fails, the run aborts.
+- It never deletes a file. The app never deletes the quarantine folder.
+- It never moves the last eligible copy.
+- The read-only guard allowlist names only this mover; every other source write
+  remains blocked.
 
 ## Video compatible-copy extension
 

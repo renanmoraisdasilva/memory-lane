@@ -88,7 +88,7 @@ afterEach(() => {
 });
 
 describe("OtherFilesPage", () => {
-  it("lists non-media files with categories and missing state", async () => {
+  it("[ML-REL-009] lists non-media files with categories and missing state", async () => {
     renderFiles();
 
     expect(await screen.findByRole("heading", { name: "Other files" })).toBeVisible();
@@ -99,7 +99,7 @@ describe("OtherFilesPage", () => {
     expect(screen.getByText("1–50 of 120")).toBeVisible();
   });
 
-  it("filters by category and pages through results", async () => {
+  it("[ML-REL-009] filters by category and pages through results", async () => {
     const client = renderFiles();
     const list = vi.spyOn(client, "getOtherFiles");
     await screen.findByText("report.docx");
@@ -120,7 +120,7 @@ describe("OtherFilesPage", () => {
     });
   });
 
-  it("opens and reveals present files", async () => {
+  it("[ML-REL-009] opens and reveals present files", async () => {
     const client = renderFiles();
     const open = vi.spyOn(client, "openItem");
     const reveal = vi.spyOn(client, "revealItem");

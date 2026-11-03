@@ -18,7 +18,7 @@ afterEach(async () => {
 });
 
 describe("destination writer", () => {
-  it("writes text and temp files only inside the destination root", async () => {
+  it("[ML-REPL-076] [ML-REPL-091] writes text and temp files only inside the destination root", async () => {
     const root = await createRoot();
     const writer = createDestinationWriter(root);
 
@@ -41,7 +41,7 @@ describe("destination writer", () => {
     ).toBe("photo");
   });
 
-  it("rejects traversal, absolute paths, and non-temp cleanup", async () => {
+  it("[ML-REPL-076] rejects traversal, absolute paths, and non-temp cleanup", async () => {
     const root = await createRoot();
     const writer = createDestinationWriter(root);
 
@@ -66,7 +66,7 @@ describe("destination writer", () => {
     expect(await readFile(path.join(root, "full", "x"), "utf8")).toBe("x");
   });
 
-  it("rejects a symlink that escapes the destination root", async () => {
+  it("[ML-REPL-024] [ML-REPL-076] rejects a symlink that escapes the destination root", async () => {
     const root = await createRoot();
     const outside = await createRoot();
     const writer = createDestinationWriter(root);

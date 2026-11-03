@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildAppPaths } from "./app-paths";
 
 describe("app paths", () => {
-  it("builds app-managed paths from a base directory", () => {
+  it("[ML-SET-005] builds app-managed paths from a base directory", () => {
     const base = path.resolve("fixtures", "memory-lane");
     const paths = buildAppPaths(base);
 

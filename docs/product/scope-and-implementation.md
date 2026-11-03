@@ -48,10 +48,13 @@ Verified at the Phase 6 automated integration point:
 - The packaged smoke resolves an EXIF date through the packaged ExifTool binary
   and covers Other files, Settings, backup, and cache clearing.
 
-Post-v0.1 replication adds 154 tests and two Electron E2E flows. Lazy hashing,
-video-proxy, UI control, drive-root regression, backup activity, hash-trust, and missing-duplicate cleanup coverage add 76 more tests.
-Current totals are 545 tests across 137 files and 11 Electron E2E flows. See
+Post-v0.1 replication adds destination libraries, partial and full copies, and
+promotion. Duplicate quarantine adds exact-group cleanup with journaled moves.
+Requirement coverage and test counts live in
+[`../traceability/matrix.md`](../traceability/matrix.md); the counts are
+generated from the test run rather than hand-written. See
 [`partial-backups.md`](partial-backups.md),
+[`duplicate-quarantine-plan.md`](duplicate-quarantine-plan.md),
 [`../contracts/replication.md`](../contracts/replication.md),
 [`../contracts/library.md`](../contracts/library.md), and
 [`../release/codec-matrix.md`](../release/codec-matrix.md).

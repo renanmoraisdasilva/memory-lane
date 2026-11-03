@@ -70,7 +70,7 @@ function insertDestinationRow(db: Database.Database) {
 }
 
 describe("replication destination repository", () => {
-  it("inserts, lists, finds, and updates destinations", () => {
+  it("[ML-REPL-005] [ML-REPL-014] inserts, lists, finds, and updates destinations", () => {
     const db = createDb();
     const created = insertDestinationRow(db);
 
@@ -133,7 +133,7 @@ describe("replication destination repository", () => {
     db.close();
   });
 
-  it("counts verified, orphan, and source-missing replicas", () => {
+  it("[ML-REPL-023] counts verified, orphan, and source-missing replicas", () => {
     const db = createDb();
     const destination = insertDestinationRow(db);
     const presentFile = insertFile(db);

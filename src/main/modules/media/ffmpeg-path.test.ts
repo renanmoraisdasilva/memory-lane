@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { resolveFfmpegPath } from "./ffmpeg-path";
 
 describe("ffmpeg path", () => {
-  it("uses the packaged resources directory", () => {
+  it("[ML-VIDEO-009] uses the packaged resources directory", () => {
     expect(resolveFfmpegPath(true, "C:\\app\\resources")).toBe(
       path.join("C:\\app\\resources", "bin", "ffmpeg.exe"),
     );

@@ -97,7 +97,7 @@ async function createFullCopyHarness(allocationBytes: number | null): Promise<Fu
 }
 
 describe("replication full copy", () => {
-  it("copies every present source file and marks the copy complete", async () => {
+  it("[ML-REPL-040] [ML-REPL-079] copies every present source file and marks the copy complete", async () => {
     const harness = await createFullCopyHarness(null);
     try {
       const plan = await harness.planService.getPlan();
@@ -142,7 +142,7 @@ describe("replication full copy", () => {
     }
   });
 
-  it("reports a shortfall and never spills a full copy into partial destinations", async () => {
+  it("[ML-REPL-046] [ML-REPL-080] reports a shortfall and never spills a full copy into partial destinations", async () => {
     const harness = await createFullCopyHarness(4);
     try {
       const plan = await harness.planService.getPlan();

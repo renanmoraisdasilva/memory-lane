@@ -52,6 +52,21 @@ jobs:
       - name: Unused files and dependencies
         run: npm run knip
 
+      # Blocking: the ledger must validate before the rest of the suite runs.
+      - name: Traceability gate
+        run: npm run traceability:check
+
+      - name: Upload traceability report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traceability
+          path: |
+            docs/traceability/matrix.md
+            docs/traceability/conflicts.md
+            docs/traceability/reviews/*.md
+          if-no-files-found: ignore
+
       - name: Unit, component, and integration tests with coverage
         run: npm run test:coverage
 

@@ -102,7 +102,7 @@ describe("LibraryPage", () => {
     expect(screen.getByText("Loading library summary…")).toBeInTheDocument();
   });
 
-  it("shows the populated timeline with header, filters, density, and grouped media", async () => {
+  it("[ML-REL-006] shows the populated timeline with header, filters, density, and grouped media", async () => {
     renderLibrary();
 
     expect(await screen.findByRole("heading", { name: "Memory Lane" })).toBeInTheDocument();
@@ -214,7 +214,7 @@ describe("LibraryPage", () => {
     expect(screen.getByText("June 2024")).toBeInTheDocument();
   });
 
-  it("changes density and keeps the selected density in the URL", async () => {
+  it("[ML-REL-006] changes density and keeps the selected density in the URL", async () => {
     renderLibrary();
 
     await screen.findByRole("heading", { name: "Memory Lane" });
@@ -303,7 +303,7 @@ describe("LibraryPage", () => {
     expect(screen.getByRole("button", { name: "2024" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("only mounts a bounded number of tiles for a large fixture", async () => {
+  it("[ML-LIB-003] only mounts a bounded number of tiles for a large fixture", async () => {
     const items = createLargeLibraryFixture(500);
     renderLibrary(createLibraryFixtureClient({ items }));
 

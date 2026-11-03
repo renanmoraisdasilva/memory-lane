@@ -24,7 +24,7 @@ import {
 import { getDuplicateGroups } from "./health-repository";
 
 describe("health cleanup repository", () => {
-  it("summarizes eligible and skipped groups with the keeper rule", () => {
+  it("[ML-QUAR-002] [ML-QUAR-003] summarizes eligible and skipped groups with the keeper rule", () => {
     const db = createDb();
     const eligible = insertGroup(db, "a".repeat(64), [
       {
@@ -157,7 +157,7 @@ describe("health cleanup repository", () => {
     db.close();
   });
 
-  it("records a run, deletes moved rows, and refreshes adoption counters", () => {
+  it("[ML-QUAR-011] [ML-QUAR-012] records a run, deletes moved rows, and refreshes adoption counters", () => {
     const db = createDb();
     const destination = createDestination(db);
     const ids = insertGroup(db, "a".repeat(64), [
@@ -315,7 +315,7 @@ describe("health cleanup repository", () => {
     db.close();
   });
 
-  it("marks a stale running run as failed when its state is read", () => {
+  it("[ML-QUAR-014] marks a stale running run as failed when its state is read", () => {
     const db = createDb();
     insertGroup(db, "a".repeat(64), [
       { input: { path: "E:\\archive\\a.jpg" }, covered: true },

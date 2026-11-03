@@ -32,7 +32,7 @@ const disks = [
 ];
 
 describe("volume identity", () => {
-  it("computes a stable SHA-256 volume id", () => {
+  it("[ML-SCAN-001] [ML-REPL-012] computes a stable SHA-256 volume id", () => {
     const first = computeVolumeId({
       serialNumber: "SERIAL",
       label: "Archive",
@@ -50,7 +50,7 @@ describe("volume identity", () => {
     expect(first).toHaveLength(64);
   });
 
-  it("changes the id when stable volume details change", () => {
+  it("[ML-REPL-012] changes the id when stable volume details change", () => {
     const base = {
       serialNumber: "SERIAL",
       label: "Archive",

@@ -30,7 +30,7 @@ function renderRun(
 }
 
 describe("ReplicationRunPage", () => {
-  it("shows progress, order, events, and pauses a running backup", async () => {
+  it("[ML-REPL-055] shows progress, order, events, and pauses a running backup", async () => {
     const client = renderRun(
       createReplicationFixtureClient({
         getRunState: vi.fn(async () => runningRun),
@@ -45,7 +45,7 @@ describe("ReplicationRunPage", () => {
     await waitFor(() => expect(client.pauseRun).toHaveBeenCalledTimes(1));
   });
 
-  it("resumes a paused backup and refreshes the plan", async () => {
+  it("[ML-REPL-056] resumes a paused backup and refreshes the plan", async () => {
     const client = renderRun(
       createReplicationFixtureClient({
         getRunState: vi.fn(async () => pausedRun),

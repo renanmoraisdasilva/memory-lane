@@ -43,7 +43,7 @@ afterAll(async () => {
 });
 
 describe("ExifTool integration", () => {
-  it("reads a real JPEG and resolves its capture date", async () => {
+  it("[ML-REL-007] reads a real JPEG and resolves its capture date", async () => {
     const { filePath } = await createPhoto();
     const extractor = createFileMetadataExtractor();
     const file: PendingMetadataFile = {

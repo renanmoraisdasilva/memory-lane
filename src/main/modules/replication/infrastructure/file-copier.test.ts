@@ -37,7 +37,7 @@ afterEach(async () => {
 });
 
 describe("file copier", () => {
-  it("streams, hashes, verifies, and renames a copy", async () => {
+  it("[ML-REPL-068] [ML-REPL-070] streams, hashes, verifies, and renames a copy", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");
@@ -64,7 +64,7 @@ describe("file copier", () => {
     ).resolves.toBe("hello backup");
   });
 
-  it("discards a temp file when the source hash changes", async () => {
+  it("[ML-REPL-069] [ML-REPL-071] discards a temp file when the source hash changes", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");
@@ -86,7 +86,7 @@ describe("file copier", () => {
     expect(remaining.some((name) => name.startsWith(".memorylane-tmp-"))).toBe(false);
   });
 
-  it("refuses to overwrite without replacement approval", async () => {
+  it("[ML-REPL-019] refuses to overwrite without replacement approval", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");
@@ -109,7 +109,7 @@ describe("file copier", () => {
     await expect(readFile(path.join(destinationRoot, "source.bin"), "utf8")).resolves.toBe("old");
   });
 
-  it("replaces a previously approved stale copy", async () => {
+  it("[ML-REPL-019] replaces a previously approved stale copy", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");
@@ -132,7 +132,7 @@ describe("file copier", () => {
     await expect(readFile(path.join(destinationRoot, "source.bin"), "utf8")).resolves.toBe("new");
   });
 
-  it("rejects a copy without safe free space", async () => {
+  it("[ML-REPL-073] rejects a copy without safe free space", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");
@@ -152,7 +152,7 @@ describe("file copier", () => {
     ).toMatchObject({ status: "insufficient_space" });
   });
 
-  it("rejects a non-file destination target and an unreadable source", async () => {
+  it("[ML-REPL-074] rejects a non-file destination target and an unreadable source", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
     const destinationRoot = path.join(root, "destination");

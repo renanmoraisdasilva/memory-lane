@@ -76,7 +76,7 @@ function delay(milliseconds: number): Promise<void> {
 }
 
 describe("scan controls integration", () => {
-  it("pauses after the current file, holds progress, and resumes manually", async () => {
+  it("[ML-SCAN-004] [ML-SCAN-006] [ML-REL-004] pauses after the current file, holds progress, and resumes manually", async () => {
     const blocking = createBlockingHasher();
     const harness = await createScanHarness({ hasher: blocking.hasher });
     try {
@@ -107,7 +107,7 @@ describe("scan controls integration", () => {
     }
   });
 
-  it("persists an interruption on shutdown and resumes it explicitly", async () => {
+  it("[ML-SCAN-007] [ML-REL-004] persists an interruption on shutdown and resumes it explicitly", async () => {
     const blocking = createBlockingHasher();
     const harness = await createScanHarness({ hasher: blocking.hasher });
     try {
@@ -132,7 +132,7 @@ describe("scan controls integration", () => {
     }
   });
 
-  it("fails cleanly when the drive disconnects and resumes after it returns", async () => {
+  it("[ML-REL-016] fails cleanly when the drive disconnects and resumes after it returns", async () => {
     const blocking = createBlockingHasher();
     const checker = createToggleChecker();
     const harness = await createScanHarness({

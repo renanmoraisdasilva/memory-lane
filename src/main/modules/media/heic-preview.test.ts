@@ -67,7 +67,7 @@ afterEach(async () => {
 });
 
 describe("HEIC preview worker", () => {
-  it("returns converted bytes and deduplicates requests for the same output", async () => {
+  it("[ML-LIB-008] [ML-VIDEO-011] returns converted bytes and deduplicates requests for the same output", async () => {
     const harness = await createHarness();
     const outputPath = path.join(harness.directory, "preview.jpg");
 

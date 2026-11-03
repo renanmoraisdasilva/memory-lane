@@ -29,7 +29,7 @@ function renderOverview(
 }
 
 describe("ReplicationOverviewPage", () => {
-  it("shows verified coverage, destinations, and opens the add drawer", async () => {
+  it("[ML-REPL-034] shows verified coverage, destinations, and opens the add drawer", async () => {
     const client = renderOverview();
     expect(await screen.findByRole("heading", { name: "Backup destinations" })).toBeVisible();
     expect(screen.getByText("Verified coverage")).toBeVisible();
@@ -58,7 +58,7 @@ describe("ReplicationOverviewPage", () => {
     expect(screen.getByText(/Existing Memory Lane copies are adopted/)).toBeVisible();
   });
 
-  it("labels an all-offline deployment without implying current coverage", async () => {
+  it("[ML-REPL-035] [ML-REPL-049] labels an all-offline deployment without implying current coverage", async () => {
     const offline = { ...replicationDestination, connection: "offline" as const };
     const client = createReplicationFixtureClient({
       getOverview: vi.fn(async () => ({

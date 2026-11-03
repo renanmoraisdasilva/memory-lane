@@ -66,7 +66,7 @@ function setup(): { db: Database.Database; destinationId: number; fileId: number
 }
 
 describe("replication run repository", () => {
-  it("creates, updates, and recovers runs", () => {
+  it("[ML-REPL-006] creates, updates, and recovers runs", () => {
     const { db } = setup();
     expect(getLatestRun(db)).toBeNull();
     expect(() => getRun(db, 999)).toThrow();

@@ -12,6 +12,8 @@ needed.
 | [`product/roadmap.md`](product/roadmap.md) | Delivered phases, current status, and remaining work |
 | [`product/partial-backups.md`](product/partial-backups.md) | Implemented post-v0.1 replication: adoption, partial and full copies, destination libraries, and source promotion |
 | [`product/replication-implementation-plan.md`](product/replication-implementation-plan.md) | Replication module layout, delivery slices, risks, and acceptance-test matrix |
+| [`product/duplicate-quarantine-plan.md`](product/duplicate-quarantine-plan.md) | Implemented duplicate quarantine: keeper rule, eligibility, guardrails, and edge cases |
+| [`traceability/README.md`](traceability/README.md) | Requirement ledger, review workflow, generated matrix, and conflicts |
 | [`archive/phase-history.md`](archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, tests, and known limits |
 
 ## Contracts
@@ -29,7 +31,7 @@ needed.
 
 | Document | Purpose |
 |---|---|
-| [`release/acceptance.md`](release/acceptance.md) | v0.1 and replication acceptance criteria and sign-off status |
+| [`release/acceptance.md`](release/acceptance.md) | v0.1, replication, and duplicate-quarantine acceptance criteria and sign-off status |
 | [`release/release-checklist.md`](release/release-checklist.md) | Clean-VM, recovery, disconnect, codec, real-archive, and replication pass |
 | [`release/security-review.md`](release/security-review.md) | Trust boundaries, controls, and residual risks |
 | [`release/codec-matrix.md`](release/codec-matrix.md) | Image/video cataloging, playback expectations, fallbacks |

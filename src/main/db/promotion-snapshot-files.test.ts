@@ -29,7 +29,7 @@ async function root(): Promise<string> {
 }
 
 describe("promotion snapshot files", () => {
-  it("writes, reads, and removes the rollback marker", async () => {
+  it("[ML-REPL-087] writes, reads, and removes the rollback marker", async () => {
     const directory = await root();
     expect(readRollbackMarker(directory)).toBeNull();
     writeRollbackMarker(directory, {

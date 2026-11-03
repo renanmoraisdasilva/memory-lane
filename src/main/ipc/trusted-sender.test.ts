@@ -5,7 +5,7 @@ const expected =
   "file:///C:/Program%20Files/Memory%20Lane/resources/app.asar/out/renderer/index.html";
 
 describe("trusted renderer URL", () => {
-  it("accepts only the exact packaged renderer document and hash routes", () => {
+  it("[ML-REL-001] accepts only the exact packaged renderer document and hash routes", () => {
     expect(isTrustedRendererUrl(expected, expected, undefined)).toBe(true);
     expect(isTrustedRendererUrl(`${expected}#/library`, expected, undefined)).toBe(true);
     expect(isTrustedRendererUrl(`${expected}#/settings`, expected, undefined)).toBe(true);

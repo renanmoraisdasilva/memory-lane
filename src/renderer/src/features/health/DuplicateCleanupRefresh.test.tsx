@@ -148,7 +148,7 @@ afterEach(() => {
 });
 
 describe("duplicate cleanup refresh", () => {
-  it("refreshes duplicates after the cleanup dialog is dismissed", async () => {
+  it("[ML-HEALTH-025] refreshes duplicates after the cleanup dialog is dismissed", async () => {
     const client = createLibraryFixtureClient();
     let phase: "idle" | "running" | "complete" = "idle";
     const getDuplicates = vi.fn(async () => page);

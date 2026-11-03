@@ -46,7 +46,7 @@ describe("date resolution", () => {
     });
   });
 
-  it("prefers metadata dates over filesystem dates", () => {
+  it("[ML-SCAN-012] prefers metadata dates over filesystem dates", () => {
     const result = resolveDateForFile(file, [
       dateCandidateFromValue("2011:07:04 15:30:00", "exif.datetimeOriginal", 0.95, 2026),
     ]);
@@ -66,7 +66,7 @@ describe("date resolution", () => {
     });
   });
 
-  it("rejects invalid values and flags suspicious metadata", () => {
+  it("[ML-SCAN-012] rejects invalid values and flags suspicious metadata", () => {
     expect(dateCandidateFromValue("not a date", "exif.createDate", 0.9, 2026)).toBeNull();
     const future = dateCandidateFromValue(
       "2099:01:01 00:00:00",

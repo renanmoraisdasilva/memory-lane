@@ -29,7 +29,7 @@ const ONE_PIXEL_PNG = Buffer.from(
   "base64",
 );
 
-test("runs a four-stage scan through the real preload bridge", async () => {
+test("[ML-REL-004] runs a four-stage scan through the real preload bridge", async () => {
   test.setTimeout(90_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-scan-e2e-"));
   const userDataPath = path.join(root, "user-data");

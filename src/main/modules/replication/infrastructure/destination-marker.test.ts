@@ -48,7 +48,7 @@ describe("destination marker", () => {
     expect(await readAnyMarker(root)).toEqual(marker);
   });
 
-  it("returns null for missing or corrupt markers", async () => {
+  it("[ML-REPL-028] returns null for missing or corrupt markers", async () => {
     const root = await createRoot();
     expect(await readMarker(root, "missing")).toBeNull();
 

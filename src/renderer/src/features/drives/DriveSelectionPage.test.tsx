@@ -48,7 +48,7 @@ describe("DriveSelectionPage", () => {
     });
   });
 
-  it("sets up a new catalog and starts the first scan", async () => {
+  it("[ML-REL-003] sets up a new catalog and starts the first scan", async () => {
     const base = createMockPhaseOneClient({ scenario: "mixed" });
     const initializeCatalog = vi.fn(base.initializeCatalog);
     const startScan = vi.fn(base.startScan);
@@ -101,7 +101,7 @@ describe("DriveSelectionPage", () => {
     expect(within(card).getByRole("button", { name: "Not supported" })).toBeDisabled();
   });
 
-  it("confirms a changed drive letter", async () => {
+  it("[ML-REL-003] confirms a changed drive letter", async () => {
     const base = createMockPhaseOneClient({ scenario: "letter-change" });
     const confirmDriveLetter = vi.fn(base.confirmDriveLetter);
     renderGate({ ...base, confirmDriveLetter });

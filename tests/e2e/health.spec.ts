@@ -32,7 +32,7 @@ async function setUpCatalog(page: Page): Promise<void> {
   });
 }
 
-test("cleans up missing duplicates that also have move suggestions", async () => {
+test("[ML-HEALTH-012] [ML-HEALTH-013] cleans up missing duplicates that also have move suggestions", async () => {
   test.setTimeout(180_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-missing-duplicates-e2e-"));
   const userDataPath = path.join(root, "user-data");
@@ -90,7 +90,7 @@ test("cleans up missing duplicates that also have move suggestions", async () =>
   }
 });
 
-test("reports duplicate groups and runs a catalog validation", async () => {
+test("[ML-QUAR-004] [ML-QUAR-005] [ML-HEALTH-014] [ML-HEALTH-022] [ML-REL-008] reports duplicate groups and runs a catalog validation", async () => {
   test.setTimeout(120_000);
   const root = await mkdtemp(path.join(os.tmpdir(), "memory-lane-health-e2e-"));
   const userDataPath = path.join(root, "user-data");

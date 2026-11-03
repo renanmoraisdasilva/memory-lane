@@ -23,7 +23,7 @@ afterEach(async () => {
 });
 
 describe("file enumerator", () => {
-  it("walks nested folders, batches files, and skips app-managed and system folders", async () => {
+  it("[ML-SAFE-009] walks nested folders, batches files, and skips app-managed and system folders", async () => {
     const root = await createTempDirectory();
     await mkdir(path.join(root, "nested"), { recursive: true });
     await mkdir(path.join(root, ".memorylane", "cache"), { recursive: true });

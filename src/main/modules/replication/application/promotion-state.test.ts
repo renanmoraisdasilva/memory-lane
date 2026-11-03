@@ -220,7 +220,7 @@ describe("promotion state", () => {
     expect(state.canRollback).toBe(false);
   });
 
-  it("reports blockers for a missing job, offline drive, and active run", () => {
+  it("[ML-REPL-082] reports blockers for a missing job, offline drive, and active run", () => {
     const noJob = buildPromotionState(
       context({ execution: { plan: plan(null), partial: [], fullCopy: null } }),
       new WorkloadCoordinator(),
@@ -265,7 +265,7 @@ describe("promotion state", () => {
     expect(completed.previousSourceVolumeId).toBe(toVolumeId("volume-source"));
   });
 
-  it("unlocks rollback only before the first change and lists partial destinations", () => {
+  it("[ML-REPL-086] unlocks rollback only before the first change and lists partial destinations", () => {
     const partial = record({
       id: 2,
       destinationId: "dest-2",
