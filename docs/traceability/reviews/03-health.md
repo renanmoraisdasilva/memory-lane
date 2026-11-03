@@ -153,7 +153,7 @@ Kinds: outcome 19, invariant 5, constraint 1.
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md`
 - **Existing tests:** `src/main/db/repositories/health-repository.test.ts`, `src/main/db/health-db-handlers.test.ts`, `src/renderer/src/features/health/HealthPage.test.tsx`
-- **Test notes:** Candidate tests cover paging and bulk selection; not yet ID-tagged.
+- **Test notes:** Tests cover offset paging, newest-first disregarded order, and bulk selection across pages.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified

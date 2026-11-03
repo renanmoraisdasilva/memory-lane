@@ -12,6 +12,9 @@ export function getMissingFiles(
   dismissedOnly = false,
 ): MissingFilesPage {
   const predicate = dismissedOnly ? "mf.dismissed_at IS NOT NULL" : ACTIVE_MISSING;
+  const orderBy = dismissedOnly
+    ? "mf.dismissed_at DESC, f.name COLLATE NOCASE, f.id"
+    : "f.name COLLATE NOCASE, f.id";
   const rows = db
     .prepare(
       `SELECT
@@ -32,7 +35,7 @@ export function getMissingFiles(
        FROM missing_files mf
        JOIN files f ON f.id = mf.file_id
        WHERE ${predicate}
-       ORDER BY f.name COLLATE NOCASE, f.id
+       ORDER BY ${orderBy}
        LIMIT ? OFFSET ?`,
     )
     .all(limit, offset) as Array<{
@@ -68,7 +71,7 @@ export function getMissingFiles(
        FROM missing_files mf
        JOIN files f ON f.id = mf.file_id
        WHERE ${predicate}
-       ORDER BY f.name COLLATE NOCASE, f.id`,
+       ORDER BY ${orderBy}`,
     )
     .all() as Array<{ id: number }>;
   const dismissedRow = db

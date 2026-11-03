@@ -274,6 +274,27 @@ describe("health repository", () => {
     db.close();
   });
 
+  it("[ML-HEALTH-008] orders disregarded files newest first and pages them", () => {
+    const db = createDb();
+    const older = insertFile(db, "older.jpg", 100, "missing");
+    const newer = insertFile(db, "newer.jpg", 100, "missing");
+    db.prepare(
+      "INSERT INTO missing_files (file_id, last_path, last_seen_at, reason, dismissed_at) VALUES (?, ?, ?, 'scan', ?)",
+    ).run(older, "C:\\archive\\older.jpg", now, "2026-11-01T12:00:00.000Z");
+    db.prepare(
+      "INSERT INTO missing_files (file_id, last_path, last_seen_at, reason, dismissed_at) VALUES (?, ?, ?, 'scan', ?)",
+    ).run(newer, "C:\\archive\\newer.jpg", now, "2026-11-03T12:00:00.000Z");
+
+    const first = getMissingFiles(db, 0, 1, true);
+    expect(first.total).toBe(2);
+    expect(first.items[0]?.fileId).toBe(newer);
+    expect(first.fileIds).toEqual([newer, older]);
+
+    const second = getMissingFiles(db, 1, 1, true);
+    expect(second.items[0]?.fileId).toBe(older);
+    db.close();
+  });
+
   it("[ML-HEALTH-007] [ML-HEALTH-008] dismisses and restores missing files without deleting catalog rows", () => {
     const db = createDb();
     const fileId = insertFile(db, "gone.jpg", 100, "missing");

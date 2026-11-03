@@ -92,10 +92,11 @@ them.
   the catalog row intact. Files on source and backup drives are never changed.
 - Disregarded files are hidden from the Missing files and Missing duplicates
   views. `dismissedOnly` returns the disregarded list, and the restore action
-  clears `dismissed_at`.
-- The missing list is offset-paged. The response includes `fileIds` for every
-  matching missing file so Select all can cover files beyond the visible page,
-  plus `dismissedTotal` for the Show disregarded control.
+  clears `dismissed_at`. The disregarded list is ordered by `dismissed_at`
+  descending so the most recent dismissals appear first.
+- The missing list is offset-paged in the UI. The response includes `fileIds`
+  for every matching missing file so Select all can cover files beyond the
+  visible page, plus `dismissedTotal` for the Show disregarded control.
 - Dismiss and restore accept up to 50,000 file ids per request. Select all covers
   every matching missing file, not only the visible page.
 - A pending moved candidate contains old path, new path, size, and SHA-256.

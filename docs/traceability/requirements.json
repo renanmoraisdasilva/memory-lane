@@ -1423,7 +1423,7 @@
         "src/main/db/health-db-handlers.test.ts",
         "src/renderer/src/features/health/HealthPage.test.tsx"
       ],
-      "testNotes": "Candidate tests cover paging and bulk selection; not yet ID-tagged.",
+      "testNotes": "Tests cover offset paging, newest-first disregarded order, and bulk selection across pages.",
       "status": "verified",
       "conflictsWith": [],
       "notes": ""

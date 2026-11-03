@@ -148,6 +148,41 @@ describe("HealthPage", () => {
     });
   });
 
+  it("[ML-HEALTH-008] pages the disregarded missing list", async () => {
+    const client = createLibraryFixtureClient();
+    const getMissing = vi.fn(
+      async (params: { offset?: number; limit?: number; dismissedOnly?: boolean }) => {
+        if (params.dismissedOnly !== true) {
+          return { items: [], total: 0, fileIds: [], dismissedTotal: 150 };
+        }
+        const offset = params.offset ?? 0;
+        const limit = params.limit ?? 100;
+        const count = Math.max(0, Math.min(limit, 150 - offset));
+        return {
+          items: Array.from({ length: count }, (_, index) => ({
+            ...missingItem,
+            fileId: offset + index + 1,
+            name: `disregarded-${offset + index + 1}.jpg`,
+            dismissedAt: "2026-11-03T12:00:00.000Z",
+          })),
+          total: 150,
+          fileIds: Array.from({ length: 150 }, (_, index) => index + 1),
+          dismissedTotal: 150,
+        };
+      },
+    );
+    const clientWithPages = Object.assign(client, { getMissing });
+    renderHealth(clientWithPages);
+
+    await userEvent.click(await screen.findByRole("button", { name: "Show disregarded (150)" }));
+    expect(await screen.findByText("Page 1 of 2")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => {
+      expect(getMissing).toHaveBeenLastCalledWith({ offset: 100, limit: 100, dismissedOnly: true });
+    });
+    expect(await screen.findByText("Page 2 of 2")).toBeVisible();
+  });
+
   it("[ML-HEALTH-007] shows disregarded missing files and restores them", async () => {
     const client = createLibraryFixtureClient();
     const activePage: MissingFilesPage = {

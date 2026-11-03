@@ -1,13 +1,12 @@
-import { AlertTriangle, CheckCircle2, EyeOff, RotateCcw } from "lucide-react";
+import { AlertTriangle, EyeOff, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import type { MissingFile, MissingFilesPage } from "@shared/contracts/health";
-import { EmptyState } from "../../components/ui/EmptyState";
 import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
+import { emptyModeFor, MissingEmptyState } from "./MissingEmptyState";
 import { useDismissMissing, useHealthMissing, useRestoreMissing } from "./use-health";
+import { MissingPagination } from "./MissingPagination";
 import styles from "./HealthPage.module.css";
-
-const MISSING_LIMIT = 100;
-
+const MISSING_PAGE_SIZE = 100;
 function MissingRow({
   item,
   selected,
@@ -158,24 +157,13 @@ function ViewButton({
   );
 }
 
-function ToolbarNote({
-  page,
-  showDismissed,
-}: {
-  page: MissingFilesPage;
-  showDismissed: boolean;
-}): React.JSX.Element {
+function ToolbarNote({ showDismissed }: { showDismissed: boolean }): React.JSX.Element {
   const message = showDismissed
     ? "Restoring brings these files back into the missing list. Catalog rows are never deleted."
     : "Disregarding hides the selected files from the health report and dismisses their pending move suggestions. Files on the archive and backup drives are not changed.";
-  const hidden =
-    page.total > page.items.length
-      ? ` Showing the first ${formatCount(page.items.length)} of ${formatCount(page.total)}; Select all still covers every matching file.`
-      : "";
   return (
     <p className={styles.tableNote}>
-      {message}
-      {hidden}
+      {message} Select all covers every matching file across pages.
     </p>
   );
 }
@@ -237,7 +225,7 @@ function MissingToolbar({
           onToggle={onToggleView}
         />
       </div>
-      <ToolbarNote page={page} showDismissed={showDismissed} />
+      <ToolbarNote showDismissed={showDismissed} />
       <ToolbarError error={error} />
     </div>
   );
@@ -245,12 +233,22 @@ function MissingToolbar({
 
 function MissingResults({
   page,
+  pageNumber,
+  pageCount,
   showDismissed,
   onToggleView,
+  onPreviousPage,
+  onNextPage,
+  onMutated,
 }: {
   page: MissingFilesPage;
+  pageNumber: number;
+  pageCount: number;
   showDismissed: boolean;
   onToggleView: () => void;
+  onPreviousPage: () => void;
+  onNextPage: () => void;
+  onMutated: () => void;
 }): React.JSX.Element {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const dismiss = useDismissMissing();
@@ -275,11 +273,27 @@ function MissingResults({
   }
 
   function dismissSelected(): void {
-    dismiss.mutate({ fileIds: [...selected] }, { onSuccess: () => setSelected(new Set()) });
+    dismiss.mutate(
+      { fileIds: [...selected] },
+      {
+        onSuccess: () => {
+          setSelected(new Set());
+          onMutated();
+        },
+      },
+    );
   }
 
   function restoreSelected(): void {
-    restore.mutate({ fileIds: [...selected] }, { onSuccess: () => setSelected(new Set()) });
+    restore.mutate(
+      { fileIds: [...selected] },
+      {
+        onSuccess: () => {
+          setSelected(new Set());
+          onMutated();
+        },
+      },
+    );
   }
 
   return (
@@ -297,14 +311,31 @@ function MissingResults({
         onToggleView={toggleView}
       />
       <MissingRows page={page} selected={selected} onToggle={toggle} />
+      <MissingPagination
+        page={pageNumber}
+        pageCount={pageCount}
+        pending={pending}
+        onPrevious={onPreviousPage}
+        onNext={onNextPage}
+      />
     </section>
   );
 }
 
 export function MissingFiles(): React.JSX.Element {
   const [showDismissed, setShowDismissed] = useState(false);
-  const query = useHealthMissing({ limit: MISSING_LIMIT, dismissedOnly: showDismissed });
-
+  const [page, setPage] = useState(0);
+  const query = useHealthMissing({
+    offset: page * MISSING_PAGE_SIZE,
+    limit: MISSING_PAGE_SIZE,
+    dismissedOnly: showDismissed,
+  });
+  const pageCount = Math.max(1, Math.ceil((query.data?.total ?? 0) / MISSING_PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const toggleView = (): void => {
+    setPage(0);
+    setShowDismissed((current) => !current);
+  };
   if (query.isLoading) {
     return <p className={styles.muted}>Loading missing files…</p>;
   }
@@ -318,39 +349,20 @@ export function MissingFiles(): React.JSX.Element {
   if (query.data === undefined) {
     return <p className={styles.muted}>No missing files</p>;
   }
-  if (showDismissed && query.data.total === 0) {
-    return (
-      <section className={styles.tableCard} aria-label="Missing files">
-        <p className={styles.muted}>No disregarded missing files.</p>
-        <div className={styles.actions}>
-          <button
-            className={styles.secondaryButton}
-            type="button"
-            onClick={() => setShowDismissed(false)}
-          >
-            Back to active missing files
-          </button>
-        </div>
-      </section>
-    );
-  }
-  if (query.data.total === 0 && query.data.dismissedTotal === 0) {
-    return (
-      <EmptyState
-        icon={<CheckCircle2 size={26} aria-hidden="true" />}
-        title="No missing files"
-        action={null}
-      >
-        Every cataloged path currently resolves on the archive drive. Missing files remain cataloged
-        until the user decides what to do with them.
-      </EmptyState>
-    );
+  const emptyMode = emptyModeFor(query.data, showDismissed);
+  if (emptyMode !== null) {
+    return <MissingEmptyState mode={emptyMode} onShowActive={toggleView} />;
   }
   return (
     <MissingResults
       page={query.data}
+      pageNumber={currentPage}
+      pageCount={pageCount}
       showDismissed={showDismissed}
-      onToggleView={() => setShowDismissed((current) => !current)}
+      onToggleView={toggleView}
+      onPreviousPage={() => setPage(Math.max(0, currentPage - 1))}
+      onNextPage={() => setPage(Math.min(pageCount - 1, currentPage + 1))}
+      onMutated={() => setPage(0)}
     />
   );
 }
