@@ -229,7 +229,7 @@ function restoreMainWindow(): void {
 
 async function startServices(): Promise<void> {
   const workerPath = path.join(__dirname, "db-worker.js");
-  const db = new DbWorkerClient(workerPath, paths.appDbPath);
+  const db = new DbWorkerClient(workerPath, paths.appDbPath, { logger });
   dbClient = db;
   try {
     await db.start();

@@ -1,15 +1,23 @@
 import { Worker } from "node:worker_threads";
 import { APP_ERROR_CODES, AppError, toAppError } from "@shared/domain/errors";
 import { isDbResponse, type DbMethod, type DbResponse } from "../db/worker-protocol";
+import type { Logger } from "../logging/types";
 
 interface PendingRequest {
   resolve: (value: unknown) => void;
   reject: (error: unknown) => void;
   timeout: NodeJS.Timeout;
+  method: DbMethod;
+  startedAt: number;
 }
 
 export interface DbClient {
   request<T>(method: DbMethod, params: unknown): Promise<T>;
+}
+
+export interface DbWorkerClientOptions {
+  logger?: Logger;
+  slowRequestMs?: number;
 }
 
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -36,6 +44,8 @@ const MAINTENANCE_METHODS: ReadonlySet<DbMethod> = new Set<DbMethod>([
   "cleanup.getState",
   "health.getDuplicates",
   "replication.listSourceFiles",
+  "replication.listVerifiedCoverage",
+  "replication.listDestinations",
   "replication.saveSourceHash",
   "replication.registerDestination",
   "replication.updateDestination",
@@ -68,10 +78,14 @@ function timeoutFor(method: DbMethod): number {
 export class DbWorkerClient implements DbClient {
   private readonly worker: Worker;
   private readonly pending = new Map<number, PendingRequest>();
+  private readonly logger: Logger | undefined;
+  private readonly slowRequestMs: number;
   private nextId = 1;
   private closing = false;
 
-  constructor(workerPath: string, appDbPath: string) {
+  constructor(workerPath: string, appDbPath: string, options: DbWorkerClientOptions = {}) {
+    this.logger = options.logger;
+    this.slowRequestMs = options.slowRequestMs ?? 1_000;
     this.worker = new Worker(workerPath, {
       workerData: { appDbPath },
     });
@@ -100,10 +114,12 @@ export class DbWorkerClient implements DbClient {
 
     const id = this.nextId;
     this.nextId += 1;
+    const startedAt = Date.now();
 
     return new Promise<T>((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pending.delete(id);
+        this.logSlow(method, startedAt);
         reject(new AppError(APP_ERROR_CODES.WORKER_ERROR, `Database request timed out: ${method}`));
       }, timeoutFor(method));
       timeout.unref();
@@ -112,6 +128,8 @@ export class DbWorkerClient implements DbClient {
         resolve: (value) => resolve(value as T),
         reject,
         timeout,
+        method,
+        startedAt,
       });
 
       this.worker.postMessage({ id, method, params });
@@ -150,6 +168,7 @@ export class DbWorkerClient implements DbClient {
 
     clearTimeout(request.timeout);
     this.pending.delete(response.id);
+    this.logSlow(request.method, request.startedAt);
 
     if (response.ok) {
       request.resolve(response.data);
@@ -158,6 +177,13 @@ export class DbWorkerClient implements DbClient {
 
     const error = new AppError(response.error.code, response.error.message, response.error.details);
     request.reject(error);
+  }
+
+  private logSlow(method: DbMethod, startedAt: number): void {
+    const durationMs = Date.now() - startedAt;
+    if (durationMs >= this.slowRequestMs) {
+      this.logger?.warn("Slow database request", { method, durationMs });
+    }
   }
 
   private rejectAll(error: unknown): void {

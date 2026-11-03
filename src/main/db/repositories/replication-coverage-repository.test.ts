@@ -7,6 +7,7 @@ import { runMigrations } from "../migrations/runner";
 import { ensureDriveIdentity } from "./catalog-repository";
 import { insertDestination, nextDestinationPriority } from "./replication-destination-repository";
 import {
+  getCoverageSummary,
   getDestinationCoverageMap,
   getDestinationOverlapBytes,
   getDestinationReplicaHealth,
@@ -198,6 +199,22 @@ describe("replication coverage repository", () => {
     expect(getOverlapBytes(db)).toBe(20);
     expect(getDestinationOverlapBytes(db, first.id)).toBe(20);
     expect(getDestinationOverlapBytes(db, second.id)).toBe(20);
+    expect(getCoverageSummary(db)).toEqual({
+      sourceFiles: 5,
+      sourceBytes: 180,
+      partialFiles: 2,
+      partialBytes: 30,
+      partialPercent: 40,
+      partialRemainderFiles: 3,
+      partialRemainderBytes: 150,
+      fullCopyFiles: 0,
+      fullCopyBytes: 0,
+      allDestinationFiles: 2,
+      allDestinationBytes: 30,
+      allDestinationPercent: 40,
+      overlapBytes: 20,
+      coverageAsOf: now,
+    });
 
     db.prepare("UPDATE files SET size = 21 WHERE id = 2").run();
     expect(listVerifiedCoverage(db)[0]?.verifiedFileIds).toEqual(new Set([1]));

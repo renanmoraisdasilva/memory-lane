@@ -4431,6 +4431,31 @@
       "status": "implemented",
       "conflictsWith": [],
       "notes": "Maps acceptance.md row 18."
+    },
+    {
+      "id": "ML-REPL-094",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "constraint",
+      "title": "Backup overview uses aggregate coverage queries",
+      "text": "The Backup overview reads aggregate source and coverage counts instead of loading every source file and verified replica row.",
+      "sources": [
+        "docs/product/partial-backups.md#12-ui-specification",
+        "docs/contracts/replication.md",
+        "docs/product/product-specification.md#13-performance-requirements"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/main/modules/replication/application/plan-service.ts",
+        "src/main/db/repositories/replication-coverage-repository.ts",
+        "src/main/clients/db-client.ts"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "The PlanService overview test asserts the aggregate coverage method is used and the heavy source/coverage list methods are not called; the repository test checks the aggregate values.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Performance follow-up for startup/overview timeouts on large catalogs."
     }
   ],
   "conflicts": [

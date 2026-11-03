@@ -72,7 +72,57 @@ export class PlanService {
   constructor(private readonly dependencies: PlanServiceDependencies) {}
 
   async getOverview(): Promise<ReplicationOverview> {
-    const data = await this.load();
+    const records = await this.dependencies.db.request<ReplicationDestinationRecord[]>(
+      "replication.listDestinations",
+      {},
+    );
+    const hasActiveFullCopy = records.some(
+      (record) => record.goal === "full_copy" && record.status === "active",
+    );
+    if (hasActiveFullCopy) {
+      return this.overviewFromData(await this.load());
+    }
+
+    const [drives, identity, coverage] = await Promise.all([
+      this.dependencies.listDetected(),
+      this.dependencies.db.request<ArchiveIdentity>("replication.getSourceIdentity", {}),
+      this.dependencies.db.request<CoverageSummary>("replication.getCoverageSummary", {}),
+    ]);
+    const drivesByVolume = new Map(drives.map((drive) => [drive.volumeId, drive]));
+    const firstPriority = firstPartialPriority(records);
+    const destinations = records.map((record) =>
+      toDestinationSummary(
+        record,
+        drivesByVolume.get(record.volumeId as DetectedDrive["volumeId"]),
+        firstPriority,
+      ),
+    );
+    return {
+      source: {
+        label: identity.label,
+        volumeId: toVolumeId(identity.activeSourceVolumeId ?? identity.catalogId),
+        fileCount: coverage.sourceFiles,
+        bytes: coverage.sourceBytes,
+        coverageAsOf: coverage.coverageAsOf,
+        readOnly: true,
+      },
+      coverage,
+      destinations,
+      hasFullCopy: destinations.some(
+        (destination) =>
+          destination.goal === "full_copy" &&
+          destination.connection !== "retired" &&
+          destination.connection !== "lost",
+      ),
+      run: null,
+    };
+  }
+
+  async getCoverage(): Promise<CoverageSummary> {
+    return this.dependencies.db.request<CoverageSummary>("replication.getCoverageSummary", {});
+  }
+
+  private overviewFromData(data: PlanData): ReplicationOverview {
     return {
       source: {
         label: data.identity.label,
@@ -87,11 +137,6 @@ export class PlanService {
       hasFullCopy: data.hasFullCopy,
       run: null,
     };
-  }
-
-  async getCoverage(): Promise<CoverageSummary> {
-    const data = await this.load();
-    return data.coverage.summary;
   }
 
   async getPlan(): Promise<ReplicationPlan> {

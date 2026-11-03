@@ -28,6 +28,7 @@ export const REPLICATION_DB_METHODS = [
   "replication.saveAdoptionBatch",
   "replication.markUnseenReplicasMissing",
   "replication.markInterruptedAdoptions",
+  "replication.getCoverageSummary",
   "replication.listVerifiedCoverage",
   "replication.getDestinationCoverageMap",
   "replication.getDestinationReplicaHealth",

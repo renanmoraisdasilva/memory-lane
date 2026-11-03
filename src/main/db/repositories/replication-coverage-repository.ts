@@ -1,7 +1,11 @@
 import type Database from "better-sqlite3";
 import { z } from "zod";
 import { APP_ERROR_CODES, AppError } from "@shared/domain/errors";
-import type { CoverageMapCell } from "@shared/contracts/replication/types";
+import {
+  CoverageSummarySchema,
+  type CoverageMapCell,
+  type CoverageSummary,
+} from "@shared/contracts/replication/types";
 import type { ReplicaStatusCounts } from "../../modules/replication/domain/replication-types";
 
 const CoverageRowSchema = z.object({
@@ -21,6 +25,23 @@ const StatusCountRowSchema = z.object({
   status: z.string(),
   count: z.number().int().nonnegative(),
 });
+
+const CoverageSummaryRowSchema = z.object({
+  source_files: z.number().int().nonnegative(),
+  source_bytes: z.number().int().nonnegative(),
+  partial_files: z.number().int().nonnegative(),
+  partial_bytes: z.number().int().nonnegative(),
+  full_copy_files: z.number().int().nonnegative(),
+  full_copy_bytes: z.number().int().nonnegative(),
+  all_destination_files: z.number().int().nonnegative(),
+  all_destination_bytes: z.number().int().nonnegative(),
+  overlap_bytes: z.number().int().nonnegative(),
+  coverage_as_of: z.string().nullable(),
+});
+
+function coveragePercent(part: number, whole: number): number {
+  return whole === 0 ? 100 : Math.round((part / whole) * 10000) / 100;
+}
 
 export interface DestinationCoverage {
   destinationRowId: number;
@@ -69,6 +90,78 @@ export function listVerifiedCoverage(db: Database.Database): DestinationCoverage
     verifiedBytes: value.bytes,
     lastVerifiedAt: value.last,
   }));
+}
+
+export function getCoverageSummary(db: Database.Database): CoverageSummary {
+  const row = db
+    .prepare(
+      `WITH source AS (
+         SELECT id, size, modified_at_fs FROM files
+         WHERE state = 'present' AND source_membership = 'source'
+       ),
+       active AS (
+         SELECT id, replica_goal FROM replica_destinations WHERE status = 'active'
+       ),
+       verified AS (
+         SELECT rf.file_id, rf.replica_id, d.replica_goal
+         FROM replica_files rf
+         JOIN active d ON d.id = rf.replica_id
+         JOIN source s ON s.id = rf.file_id
+         WHERE rf.status = 'verified'
+           AND rf.source_size_at_verify = s.size
+           AND rf.source_modified_at_fs_at_verify IS s.modified_at_fs
+       ),
+       per_file AS (
+         SELECT file_id,
+           COUNT(DISTINCT replica_id) AS cover_count,
+           MAX(CASE WHEN replica_goal = 'extend_coverage' THEN 1 ELSE 0 END) AS in_partial,
+           MAX(CASE WHEN replica_goal = 'full_copy' THEN 1 ELSE 0 END) AS in_full
+         FROM verified
+         GROUP BY file_id
+       )
+       SELECT
+         (SELECT COUNT(*) FROM source) AS source_files,
+         (SELECT COALESCE(SUM(size), 0) FROM source) AS source_bytes,
+         (SELECT COUNT(*) FROM per_file WHERE in_partial = 1) AS partial_files,
+         (SELECT COALESCE(SUM(s.size), 0) FROM per_file p JOIN source s ON s.id = p.file_id
+           WHERE p.in_partial = 1) AS partial_bytes,
+         (SELECT COUNT(*) FROM per_file WHERE in_full = 1) AS full_copy_files,
+         (SELECT COALESCE(SUM(s.size), 0) FROM per_file p JOIN source s ON s.id = p.file_id
+           WHERE p.in_full = 1) AS full_copy_bytes,
+         (SELECT COUNT(*) FROM per_file) AS all_destination_files,
+         (SELECT COALESCE(SUM(s.size), 0) FROM per_file p JOIN source s ON s.id = p.file_id)
+           AS all_destination_bytes,
+         (SELECT COALESCE(SUM(s.size), 0) FROM per_file p JOIN source s ON s.id = p.file_id
+           WHERE p.cover_count >= 2) AS overlap_bytes,
+         (SELECT MAX(rf.verified_at)
+           FROM replica_files rf
+           JOIN replica_destinations d ON d.id = rf.replica_id
+           WHERE d.status = 'active' AND rf.status = 'verified') AS coverage_as_of`,
+    )
+    .get();
+  const parsed = CoverageSummaryRowSchema.safeParse(row);
+  if (!parsed.success) {
+    throw new AppError(APP_ERROR_CODES.DB_ERROR, "Coverage summary row is invalid", {
+      issues: parsed.error.issues,
+    });
+  }
+  const data = parsed.data;
+  return CoverageSummarySchema.parse({
+    sourceFiles: data.source_files,
+    sourceBytes: data.source_bytes,
+    partialFiles: data.partial_files,
+    partialBytes: data.partial_bytes,
+    partialPercent: coveragePercent(data.partial_files, data.source_files),
+    partialRemainderFiles: data.source_files - data.partial_files,
+    partialRemainderBytes: data.source_bytes - data.partial_bytes,
+    fullCopyFiles: data.full_copy_files,
+    fullCopyBytes: data.full_copy_bytes,
+    allDestinationFiles: data.all_destination_files,
+    allDestinationBytes: data.all_destination_bytes,
+    allDestinationPercent: coveragePercent(data.all_destination_files, data.source_files),
+    overlapBytes: data.overlap_bytes,
+    coverageAsOf: data.coverage_as_of,
+  });
 }
 
 export function getDestinationCoverageMap(

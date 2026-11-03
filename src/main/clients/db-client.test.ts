@@ -25,6 +25,7 @@ const workerMocks = vi.hoisted(() => {
       if (
         request.method === "slow" ||
         request.method === "replication.saveAdoptionBatch" ||
+        request.method === "replication.listVerifiedCoverage" ||
         request.method === "library.getSummary"
       ) {
         return;
@@ -136,6 +137,44 @@ describe("DbWorkerClient", () => {
     await vi.advanceTimersByTimeAsync(50_000);
     expect(rejected).toBe(true);
     await request;
+    await client.close();
+  });
+
+  it("gives replication coverage reads a longer timeout", async () => {
+    vi.useFakeTimers();
+    const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db");
+    let rejected = false;
+    const request = client.request("replication.listVerifiedCoverage", {}).catch(() => {
+      rejected = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(rejected).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(50_000);
+    expect(rejected).toBe(true);
+    await request;
+    await client.close();
+  });
+
+  it("logs a slow database request", async () => {
+    vi.useFakeTimers();
+    const logger = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+    const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db", {
+      logger,
+      slowRequestMs: 1_000,
+    });
+    const request = client.request(slowMethod, {});
+    const posted = getWorker().posted[0] as { id: number };
+
+    await vi.advanceTimersByTimeAsync(1_500);
+    getWorker().emit("message", { id: posted.id, ok: true, data: {} });
+    await request;
+
+    expect(logger.warn).toHaveBeenCalledWith("Slow database request", {
+      method: slowMethod,
+      durationMs: 1_500,
+    });
     await client.close();
   });
 

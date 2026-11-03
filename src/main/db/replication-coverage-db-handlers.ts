@@ -3,6 +3,7 @@ import type {
   ReplicationDbHandlerOptions,
 } from "./replication-db-handler-options";
 import {
+  getCoverageSummary,
   getDestinationCoverageMap,
   getDestinationOverlapBytes,
   getDestinationReplicaHealth,
@@ -15,6 +16,7 @@ export function createReplicationCoverageDbHandlers(
   options: ReplicationDbHandlerOptions,
 ): ReplicationDbHandlerMap {
   return {
+    "replication.getCoverageSummary": () => getCoverageSummary(options.getCatalog()),
     "replication.listVerifiedCoverage": () =>
       listVerifiedCoverage(options.getCatalog()).map((coverage) => ({
         destinationRowId: coverage.destinationRowId,

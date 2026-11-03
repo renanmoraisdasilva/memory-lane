@@ -1,12 +1,12 @@
 # Batch 7 review — Replication: copy, promotion, and safety
 
-Status: **implemented**. Requirements: **26**. Conflicts: **0**.
+Status: **implemented**. Requirements: **27**. Conflicts: **0**.
 
 This sheet is generated from `docs/traceability/requirements.json`. This batch is accepted; the matrix is the live view. New requirements start at `needs-review`.
 
-Kinds: invariant 17, outcome 8, constraint 1.
+Kinds: invariant 17, outcome 8, constraint 2.
 
-Verification: automated-test 26.
+Verification: automated-test 27.
 
 ## Summary
 
@@ -38,6 +38,7 @@ Verification: automated-test 26.
 | ML-REPL-091 | constraint | verified | automated-test | All destination writes go through the allowlisted writer |
 | ML-REPL-092 | invariant | verified | automated-test | No source file content or metadata is modified |
 | ML-REPL-093 | invariant | implemented | automated-test | No restore-to-source or destination reveal IPC exists |
+| ML-REPL-094 | constraint | verified | automated-test | Backup overview uses aggregate coverage queries |
 
 ## Requirements
 
@@ -482,6 +483,22 @@ Verification: automated-test 26.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-91.
 - **Decision:** implemented
+
+### ML-REPL-094 — Backup overview uses aggregate coverage queries
+
+- **Kind:** constraint
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** The Backup overview reads aggregate source and coverage counts instead of loading every source file and verified replica row.
+- **Sources:** `docs/product/partial-backups.md#12-ui-specification`, `docs/contracts/replication.md`, `docs/product/product-specification.md#13-performance-requirements`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/main/modules/replication/application/plan-service.ts`, `src/main/db/repositories/replication-coverage-repository.ts`, `src/main/clients/db-client.ts`
+- **Proving tests:** `src/main/modules/replication/application/plan-service.test.ts`
+- **Test notes:** The PlanService overview test asserts the aggregate coverage method is used and the heavy source/coverage list methods are not called; the repository test checks the aggregate values.
+- **Conflicts:** _none_
+- **Notes:** Performance follow-up for startup/overview timeouts on large catalogs.
+- **Decision:** verified
 
 ## Conflicts
 
