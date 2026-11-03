@@ -72,7 +72,7 @@ Rules:
   npm run traceability:check
   ```
 
-- `npm run check` includes the traceability check. CI is report-only for now.
+- `npm run check` includes the traceability check, and CI blocks on it.
 - Keep the ledger to product requirements and durable invariants, not every
   implementation detail.
 
