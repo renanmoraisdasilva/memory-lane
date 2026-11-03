@@ -6,38 +6,40 @@ This sheet is generated from `docs/traceability/requirements.json`. This batch i
 
 Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
+Verification: automated-test 25, none 3.
+
 ## Summary
 
-| ID | Kind | Status | Title |
-|---|---|---|---|
-| ML-SAFE-001 | invariant | verified | Original files are never deleted, edited, or truncated |
-| ML-SAFE-002 | invariant | verified | Only the duplicate quarantine mover may move or rename an original file |
-| ML-SAFE-003 | invariant | verified | Every non-quarantine source read opens the original file read-only |
-| ML-SAFE-004 | invariant | verified | The quarantine mover is the only source write path |
-| ML-SAFE-005 | constraint | verified | The read-only guard fails on unreviewed write APIs |
-| ML-SAFE-006 | invariant | verified | The DB worker is the only SQLite writer |
-| ML-SAFE-007 | invariant | verified | No IPC contract accepts a source path for writing |
-| ML-SAFE-008 | invariant | verified | The source catalog database may be written; source archive files may not |
-| ML-SAFE-009 | invariant | verified | Scans exclude app-managed directories |
-| ML-SAFE-010 | invariant | verified | Backups and validation read source data read-only |
-| ML-QUAR-001 | outcome | verified | Duplicate groups are exact full-SHA-256 groups |
-| ML-QUAR-002 | outcome | verified | The keeper is a verified backup copy first, then the oldest copy |
-| ML-QUAR-003 | outcome | verified | Coverage is a preference, not an eligibility gate |
-| ML-QUAR-004 | outcome | verified | The duplicates view shows KEEP/MOVE and SKIP with a reason |
-| ML-QUAR-005 | outcome | verified | The confirmation states the full consequence |
-| ML-QUAR-006 | outcome | verified | Progress shows moved files, bytes, current path, and cancel |
-| ML-QUAR-007 | outcome | verified | Completion states the manual next steps |
-| ML-QUAR-008 | invariant | verified | The mover verifies before and after the move |
-| ML-QUAR-009 | invariant | verified | The mover never moves the last eligible copy |
-| ML-QUAR-010 | invariant | verified | The mover skips unsafe or ambiguous candidates |
-| ML-QUAR-011 | invariant | verified | Every move is auditable and the quarantine is never deleted |
-| ML-QUAR-012 | outcome | verified | A move batch updates the catalog and audit state |
-| ML-QUAR-013 | outcome | verified | A rescan does not report moved files as missing |
-| ML-QUAR-014 | outcome | verified | Cancel, failure, and interruption leave an auditable run |
-| ML-QUAR-015 | constraint | verified | The Move button is live; there is no preview-only phase |
-| ML-QUAR-016 | non-goal | non-goal | No user-defined protected folders in the first release |
-| ML-QUAR-017 | non-goal | non-goal | No history or restore UI in the first release |
-| ML-QUAR-018 | non-goal | non-goal | No automatic quarantine removal |
+| ID | Kind | Status | Verification | Title |
+|---|---|---|---|---|
+| ML-SAFE-001 | invariant | verified | automated-test | Original files are never deleted, edited, or truncated |
+| ML-SAFE-002 | invariant | verified | automated-test | Only the duplicate quarantine mover may move or rename an original file |
+| ML-SAFE-003 | invariant | verified | automated-test | Every non-quarantine source read opens the original file read-only |
+| ML-SAFE-004 | invariant | verified | automated-test | The quarantine mover is the only source write path |
+| ML-SAFE-005 | constraint | verified | automated-test | The read-only guard fails on unreviewed write APIs |
+| ML-SAFE-006 | invariant | verified | automated-test | The DB worker is the only SQLite writer |
+| ML-SAFE-007 | invariant | verified | automated-test | No IPC contract accepts a source path for writing |
+| ML-SAFE-008 | invariant | verified | automated-test | The source catalog database may be written; source archive files may not |
+| ML-SAFE-009 | invariant | verified | automated-test | Scans exclude app-managed directories |
+| ML-SAFE-010 | invariant | verified | automated-test | Backups and validation read source data read-only |
+| ML-QUAR-001 | outcome | verified | automated-test | Duplicate groups are exact full-SHA-256 groups |
+| ML-QUAR-002 | outcome | verified | automated-test | The keeper is a verified backup copy first, then the oldest copy |
+| ML-QUAR-003 | outcome | verified | automated-test | Coverage is a preference, not an eligibility gate |
+| ML-QUAR-004 | outcome | verified | automated-test | The duplicates view shows KEEP/MOVE and SKIP with a reason |
+| ML-QUAR-005 | outcome | verified | automated-test | The confirmation states the full consequence |
+| ML-QUAR-006 | outcome | verified | automated-test | Progress shows moved files, bytes, current path, and cancel |
+| ML-QUAR-007 | outcome | verified | automated-test | Completion states the manual next steps |
+| ML-QUAR-008 | invariant | verified | automated-test | The mover verifies before and after the move |
+| ML-QUAR-009 | invariant | verified | automated-test | The mover never moves the last eligible copy |
+| ML-QUAR-010 | invariant | verified | automated-test | The mover skips unsafe or ambiguous candidates |
+| ML-QUAR-011 | invariant | verified | automated-test | Every move is auditable and the quarantine is never deleted |
+| ML-QUAR-012 | outcome | verified | automated-test | A move batch updates the catalog and audit state |
+| ML-QUAR-013 | outcome | verified | automated-test | A rescan does not report moved files as missing |
+| ML-QUAR-014 | outcome | verified | automated-test | Cancel, failure, and interruption leave an auditable run |
+| ML-QUAR-015 | constraint | verified | automated-test | The Move button is live; there is no preview-only phase |
+| ML-QUAR-016 | non-goal | non-goal | _none_ | No user-defined protected folders in the first release |
+| ML-QUAR-017 | non-goal | non-goal | _none_ | No history or restore UI in the first release |
+| ML-QUAR-018 | non-goal | non-goal | _none_ | No automatic quarantine removal |
 
 ## Requirements
 
@@ -45,13 +47,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The app never deletes, edits, or truncates an original archive file.
-- **Current / source:** The app never deletes or edits original files.
+- **Verification:** automated-test
+- **Text:** The app never deletes, edits, or truncates an original archive file.
+- **Source text:** The app never deletes or edits original files.
 - **Sources:** `docs/product/product-specification.md#5-source-safety-guarantee`, `README.md`, `docs/release/acceptance.md`
 - **ADRs:** `docs/adr/0002-whole-catalog-integrity.md`
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `scripts/check-read-only.mjs`, `tests/integration/read-only-guard.test.ts`
-- **Test notes:** Static read-only guard; no direct Vitest assertion yet.
+- **Implementation:** `scripts/check-read-only.mjs`
+- **Proving tests:** `tests/integration/read-only-guard.test.ts`
+- **Test notes:** Static guard plus the read-only integration test prove the invariant.
 - **Conflicts:** C-001
 - **Notes:** This is the core promise. The quarantine exception must not weaken it.
 - **Decision:** verified
@@ -60,13 +64,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The only operation that may move or rename an original file is the duplicate quarantine mover, after explicit confirmation. Every other source operation is read-only.
-- **Current / source:** Original files are never moved, renamed, edited, or deleted.
+- **Verification:** automated-test
+- **Text:** The only operation that may move or rename an original file is the duplicate quarantine mover, after explicit confirmation. Every other source operation is read-only.
+- **Source text:** Original files are never moved, renamed, edited, or deleted.
 - **Sources:** `docs/product/product-specification.md#5-source-safety-guarantee`, `docs/product/scope-and-implementation.md#53-source-safety-enforcement`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`, `src/main/modules/health/application/cleanup-service.test.ts`
-- **Test notes:** Covers the mover and the confirmed cleanup service; not yet ID-tagged.
+- **Implementation:** `src/main/modules/health/infrastructure/quarantine-mover.ts`, `scripts/check-read-only.mjs`
+- **Proving tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`
+- **Test notes:** Covers the mover and the confirmed cleanup service.
 - **Conflicts:** C-001
 - **Notes:** The README, acceptance row 2, scan contract, other-files contract, and security review still state the old absolute rule.
 - **Decision:** verified
@@ -75,13 +81,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** Scan, metadata, thumbnails, hashing, validation, media playback, and replication open source files read-only. Only the quarantine mover may open a source file for a rename.
-- **Current / source:** Source files are opened with read access only, except by the quarantine mover.
+- **Verification:** automated-test
+- **Text:** Scan, metadata, thumbnails, hashing, validation, media playback, and replication open source files read-only. Only the quarantine mover may open a source file for a rename.
+- **Source text:** Source files are opened with read access only, except by the quarantine mover.
 - **Sources:** `docs/product/scope-and-implementation.md#53-source-safety-enforcement`, `docs/release/security-review.md`
 - **ADRs:** `docs/adr/0008-replication-implementation-boundaries.md`
 - **Contracts:** `docs/contracts/scan.md`, `docs/contracts/library.md`, `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/media/media-request-handler.test.ts`, `src/main/modules/media/video-proxy-command.test.ts`, `tests/integration/scan-service.test.ts`, `src/main/modules/scanning/infrastructure/quick-file-hasher.read-only.test.ts`
-- **Test notes:** Candidate tests exercise the readers, but none asserts the open mode directly.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/scanning/infrastructure/quick-file-hasher.read-only.test.ts`
+- **Test notes:** Tests exercise the readers; none asserts the open mode directly.
 - **Conflicts:** _none_
 - **Notes:** A direct open-mode assertion would make this invariant stronger than a code review.
 - **Decision:** verified
@@ -90,12 +98,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The quarantine mover is the only source write path. It is reachable only through the confirmed cleanup operation, and every other source write is rejected by the guard.
-- **Current / source:** The read-only guard allows only the quarantine mover to rename source files.
+- **Verification:** automated-test
+- **Text:** The quarantine mover is the only source write path. It is reachable only through the confirmed cleanup operation, and every other source write is rejected by the guard.
+- **Source text:** The read-only guard allows only the quarantine mover to rename source files.
 - **Sources:** `docs/contracts/health.md#duplicate-quarantine`, `docs/product/duplicate-quarantine-plan.md`, `docs/product/scope-and-implementation.md#53-source-safety-enforcement`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`, `src/main/modules/health/application/cleanup-service.test.ts`, `src/main/db/cleanup-db-handlers.test.ts`
+- **Implementation:** `src/main/modules/health/infrastructure/quarantine-mover.ts`, `scripts/check-read-only.mjs`
+- **Proving tests:** `src/main/modules/health/application/cleanup-service.test.ts`
 - **Test notes:** Covers the mover and the cleanup handler; the static guard is separate.
 - **Conflicts:** C-002
 - **Notes:** The security review allowlist does not yet name the quarantine mover.
@@ -105,12 +115,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** constraint
 - **Status:** verified
-- **Proposed:** The read-only guard fails the quality gate when a direct filesystem write API appears outside the reviewed allowlist. The allowlist names every permitted writer and is reviewed with the security review.
-- **Current / source:** A static read-only guard fails the build if direct filesystem write calls appear outside the reviewed allowlist.
+- **Verification:** automated-test
+- **Text:** The read-only guard fails the quality gate when a direct filesystem write API appears outside the reviewed allowlist. The allowlist names every permitted writer and is reviewed with the security review.
+- **Source text:** A static read-only guard fails the build if direct filesystem write calls appear outside the reviewed allowlist.
 - **Sources:** `docs/product/scope-and-implementation.md#53-source-safety-enforcement`, `docs/release/security-review.md`
 - **ADRs:** _none_
 - **Contracts:** _none_
-- **Existing tests:** `scripts/check-read-only.mjs`, `tests/integration/read-only-guard.test.ts`
+- **Implementation:** `scripts/check-read-only.mjs`
+- **Proving tests:** `tests/integration/read-only-guard.test.ts`
 - **Test notes:** The guard is the gate itself; it is not a Vitest test.
 - **Conflicts:** C-002
 - **Notes:** The guard is defense-in-depth, not the primary runtime control.
@@ -120,13 +132,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The DB worker is the only SQLite writer for the app database and the active catalog. Main and renderer never open SQLite directly.
-- **Current / source:** The DB worker is the single SQLite writer for both databases. The main process never opens SQLite directly.
+- **Verification:** automated-test
+- **Text:** The DB worker is the only SQLite writer for the app database and the active catalog. Main and renderer never open SQLite directly.
+- **Source text:** The DB worker is the single SQLite writer for both databases. The main process never opens SQLite directly.
 - **Sources:** `docs/product/scope-and-implementation.md#51-process-model`, `docs/release/security-review.md`
 - **ADRs:** `docs/adr/0008-replication-implementation-boundaries.md`
 - **Contracts:** _none_
-- **Existing tests:** `src/main/db/worker-protocol.test.ts`, `src/main/db/catalog-registry.test.ts`
-- **Test notes:** Candidate tests cover the worker protocol and catalog registry; dependency-cruiser enforces the import boundary.
+- **Implementation:** `src/main/workers/db-worker.ts`, `src/main/db/db-worker-handler.ts`
+- **Proving tests:** `src/main/db/catalog-registry.test.ts`
+- **Test notes:** Tests cover the worker protocol and catalog registry; dependency-cruiser enforces the import boundary.
 - **Conflicts:** _none_
 - **Notes:** The boundary is also enforced by .dependency-cruiser.cjs.
 - **Decision:** verified
@@ -135,13 +149,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** No IPC contract accepts a source path for writing outside the quarantine operation. Renderer requests use catalog IDs, never arbitrary filesystem paths.
-- **Current / source:** No replication IPC accepts a source path for writing.
+- **Verification:** automated-test
+- **Text:** No IPC contract accepts a source path for writing outside the quarantine operation. Renderer requests use catalog IDs, never arbitrary filesystem paths.
+- **Source text:** No replication IPC accepts a source path for writing.
 - **Sources:** `docs/release/security-review.md`, `docs/product/scope-and-implementation.md#53-source-safety-enforcement`
 - **ADRs:** `docs/adr/0008-replication-implementation-boundaries.md`
 - **Contracts:** `docs/contracts/scan.md`, `docs/contracts/library.md`, `docs/contracts/health.md`, `docs/contracts/replication.md`
-- **Existing tests:** `src/main/ipc/trusted-sender.test.ts`, `src/shared/contracts/health.test.ts`, `src/shared/contracts/replication/types.test.ts`, `tests/integration/source-path-safety.test.ts`
-- **Test notes:** Candidate tests cover sender trust and contract shapes; no single test scans every IPC contract for source paths.
+- **Implementation:** _none_
+- **Proving tests:** `tests/integration/source-path-safety.test.ts`
+- **Test notes:** Tests cover sender trust and contract shapes; no single test scans every IPC contract for source paths.
 - **Conflicts:** _none_
 - **Notes:** A contract-wide scan could become a traceability check later.
 - **Decision:** verified
@@ -150,13 +166,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The app writes the source archive's catalog database and app-managed caches. It does not write source archive files, except for the quarantine mover.
-- **Current / source:** Source files remain unmodified; only the source archive's catalog database is written.
+- **Verification:** automated-test
+- **Text:** The app writes the source archive's catalog database and app-managed caches. It does not write source archive files, except for the quarantine mover.
+- **Source text:** Source files remain unmodified; only the source archive's catalog database is written.
 - **Sources:** `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/release/security-review.md`
 - **ADRs:** `docs/adr/0008-replication-implementation-boundaries.md`
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/connection.test.ts`, `src/main/db/source-index-writer.test.ts`
-- **Test notes:** Candidate tests cover read-only database connections and the source index.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/connection.test.ts`
+- **Test notes:** Tests cover read-only database connections and the source index.
 - **Conflicts:** C-001
 - **Notes:** This is the wording that lets replication write metadata without weakening the source-file promise.
 - **Decision:** verified
@@ -165,12 +183,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** Scans exclude both `.memorylane` and `.memorylane_quarantine` so app-managed data is never cataloged as archive content.
-- **Current / source:** Scans exclude `.memorylane`; `.memorylane_quarantine` is also excluded.
+- **Verification:** automated-test
+- **Text:** Scans exclude both `.memorylane` and `.memorylane_quarantine` so app-managed data is never cataloged as archive content.
+- **Source text:** Scans exclude `.memorylane`; `.memorylane_quarantine` is also excluded.
 - **Sources:** `docs/product/product-specification.md#5-source-safety-guarantee`, `docs/product/duplicate-quarantine-plan.md`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/scan.md`
-- **Existing tests:** `src/main/modules/scanning/infrastructure/file-enumerator.test.ts`
+- **Implementation:** `src/main/modules/scanning/infrastructure/file-enumerator.ts`
+- **Proving tests:** `src/main/modules/scanning/infrastructure/file-enumerator.test.ts`
 - **Test notes:** The enumerator test creates a quarantine folder and asserts it is skipped.
 - **Conflicts:** _none_
 - **Notes:** _none_
@@ -180,13 +200,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** Backups and validation open source databases and files read-only. Backups use SQLite's online backup API, not a live file copy.
-- **Current / source:** Backups open both databases read-only and use SQLite's backup API.
+- **Verification:** automated-test
+- **Text:** Backups and validation open source databases and files read-only. Backups use SQLite's online backup API, not a live file copy.
+- **Source text:** Backups open both databases read-only and use SQLite's backup API.
 - **Sources:** `docs/adr/0003-scheduled-backups-and-cache.md`, `docs/release/security-review.md`
 - **ADRs:** `docs/adr/0003-scheduled-backups-and-cache.md`
 - **Contracts:** _none_
-- **Existing tests:** `src/main/db/connection.test.ts`, `src/main/db/backup-runner.test.ts`, `tests/integration/recovery.test.ts`
-- **Test notes:** Candidate tests cover the read-only connection and backup runner.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/backup-runner.test.ts`, `src/main/db/connection.test.ts`
+- **Test notes:** Tests cover the read-only connection and backup runner.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -195,13 +217,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** Duplicate groups contain only files with the same full SHA-256 and list every present copy.
-- **Current / source:** Duplicate files are detected by SHA-256 and shown with all locations.
+- **Verification:** automated-test
+- **Text:** Duplicate groups contain only files with the same full SHA-256 and list every present copy.
+- **Source text:** Duplicate files are detected by SHA-256 and shown with all locations.
 - **Sources:** `docs/product/product-specification.md#10-duplicate-detection`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** `docs/adr/0002-whole-catalog-integrity.md`
 - **Contracts:** `docs/contracts/health.md`
-- **Existing tests:** `src/main/db/repositories/health-repository.test.ts`, `src/shared/domain/duplicate-cleanup.test.ts`
-- **Test notes:** Candidate tests cover exact grouping and the cleanup domain.
+- **Implementation:** `src/main/db/repositories/duplicate-evaluation.ts`
+- **Proving tests:** `src/main/db/repositories/health-repository.test.ts`
+- **Test notes:** Tests cover exact grouping and the cleanup domain.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -210,13 +234,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** The keeper is a verified backup copy first. If several copies are covered, the oldest covered copy wins; otherwise the oldest copy wins. Remaining tiebreakers are oldest modified, shallower and shorter path, shorter name, then lower file ID.
-- **Current / source:** The keeper is a verified backup copy first. If several copies are covered, the oldest covered copy wins, then oldest modified, then shallower and shorter path, then shorter name, then lower file ID.
+- **Verification:** automated-test
+- **Text:** The keeper is a verified backup copy first. If several copies are covered, the oldest covered copy wins; otherwise the oldest copy wins. Remaining tiebreakers are oldest modified, shallower and shorter path, shorter name, then lower file ID.
+- **Source text:** The keeper is a verified backup copy first. If several copies are covered, the oldest covered copy wins, then oldest modified, then shallower and shorter path, then shorter name, then lower file ID.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#keeper-rule`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/shared/domain/duplicate-cleanup.test.ts`, `src/main/db/repositories/health-cleanup-repository.test.ts`
-- **Test notes:** Candidate tests cover the keeper comparator and covered-copy promotion.
+- **Implementation:** `src/main/db/repositories/duplicate-evaluation.ts`
+- **Proving tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/shared/domain/duplicate-cleanup.test.ts`
+- **Test notes:** Tests cover the keeper comparator and covered-copy promotion.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -225,13 +251,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** Coverage is a preference, not an eligibility gate. A group with no covered copy remains eligible and is shown with a warning that the quarantine folder is not a backup until it is copied elsewhere.
-- **Current / source:** Verified backup coverage is not required. A group with no covered copy is eligible, but the confirmation and completion screens warn that the quarantine folder is not a backup until it is copied elsewhere.
+- **Verification:** automated-test
+- **Text:** Coverage is a preference, not an eligibility gate. A group with no covered copy remains eligible and is shown with a warning that the quarantine folder is not a backup until it is copied elsewhere.
+- **Source text:** Verified backup coverage is not required. A group with no covered copy is eligible, but the confirmation and completion screens warn that the quarantine folder is not a backup until it is copied elsewhere.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#eligibility`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/shared/domain/duplicate-cleanup.test.ts`, `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/renderer/src/features/health/HealthPage.test.tsx`, `src/main/modules/health/application/cleanup-service.test.ts`
-- **Test notes:** Candidate tests cover uncovered-group eligibility and the warning UI.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/main/modules/health/application/cleanup-service.test.ts`, `src/shared/domain/duplicate-cleanup.test.ts`
+- **Test notes:** Tests cover uncovered-group eligibility and the warning UI.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -240,13 +268,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** The duplicates view shows KEEP and MOVE badges for eligible groups, and SKIP with the reason for every group that fails a gate.
-- **Current / source:** The page shows KEEP / MOVE badges for eligible groups and SKIP plus the reason for groups that fail a gate.
+- **Verification:** automated-test
+- **Text:** The duplicates view shows KEEP and MOVE badges for eligible groups, and SKIP with the reason for every group that fails a gate.
+- **Source text:** The page shows KEEP / MOVE badges for eligible groups and SKIP plus the reason for groups that fail a gate.
 - **Sources:** `docs/contracts/health.md#duplicate-quarantine`, `docs/product/duplicate-quarantine-plan.md#ux`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `tests/e2e/health.spec.ts`
-- **Test notes:** Candidate component and E2E tests cover keeper badges and skip reasons.
+- **Implementation:** _none_
+- **Proving tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `tests/e2e/health.spec.ts`
+- **Test notes:** Component and E2E tests cover keeper badges and skip reasons.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -255,13 +285,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** The confirmation shows the counts, keeper rule, quarantine path, skip rules, required acknowledgement, and how many groups have no verified backup.
-- **Current / source:** The confirmation requires an explicit acknowledgement and reports how many groups have no verified backup.
+- **Verification:** automated-test
+- **Text:** The confirmation shows the counts, keeper rule, quarantine path, skip rules, required acknowledgement, and how many groups have no verified backup.
+- **Source text:** The confirmation requires an explicit acknowledgement and reports how many groups have no verified backup.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#ux`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `tests/e2e/health.spec.ts`
-- **Test notes:** Candidate tests cover the dialog and the required acknowledgement.
+- **Implementation:** _none_
+- **Proving tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `tests/e2e/health.spec.ts`
+- **Test notes:** Tests cover the dialog and the required acknowledgement.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -270,13 +302,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** Progress shows files and bytes moved, the current path, and a cancel action that stops after the current file.
-- **Current / source:** Progress shows files/bytes moved, current path, and cancel-after-current.
+- **Verification:** automated-test
+- **Text:** Progress shows files and bytes moved, the current path, and a cancel action that stops after the current file.
+- **Source text:** Progress shows files/bytes moved, current path, and cancel-after-current.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#ux`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/application/cleanup-service.test.ts`, `src/renderer/src/features/health/HealthPage.test.tsx`
-- **Test notes:** Candidate tests cover progress state and cancel-after-current.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/health/application/cleanup-service.test.ts`
+- **Test notes:** Tests cover progress state and cancel-after-current.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -285,13 +319,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** Completion shows moved and skipped totals and the manual next steps: back up the quarantine folder, remove it, and rescan.
-- **Current / source:** Completion shows moved/skipped totals and the manual next steps: back up the quarantine folder, remove it, rescan.
+- **Verification:** automated-test
+- **Text:** Completion shows moved and skipped totals and the manual next steps: back up the quarantine folder, remove it, and rescan.
+- **Source text:** Completion shows moved/skipped totals and the manual next steps: back up the quarantine folder, remove it, rescan.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#ux`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `src/main/modules/health/application/cleanup-service.test.ts`
-- **Test notes:** Candidate tests cover completion state and totals.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/health/application/cleanup-service.test.ts`
+- **Test notes:** Tests cover completion state and totals.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -300,12 +336,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The mover re-hashes the source immediately before the move and the quarantined copy immediately after. A mismatch restores the source and journals the restore; if the restore fails, the run aborts.
-- **Current / source:** The mover re-checks the keeper and every candidate with full SHA-256 immediately before the same-volume move. After the move it hashes the quarantined copy again. A mismatch is moved back to the source path and journaled; if the restore fails, the run aborts.
+- **Verification:** automated-test
+- **Text:** The mover re-hashes the source immediately before the move and the quarantined copy immediately after. A mismatch restores the source and journals the restore; if the restore fails, the run aborts.
+- **Source text:** The mover re-checks the keeper and every candidate with full SHA-256 immediately before the same-volume move. After the move it hashes the quarantined copy again. A mismatch is moved back to the source path and journaled; if the restore fails, the run aborts.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#guardrails`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`
 - **Test notes:** The mover test restores a file when the quarantined copy fails verification.
 - **Conflicts:** _none_
 - **Notes:** _none_
@@ -315,13 +353,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The mover never moves the last eligible copy. Every group retains one keeper.
-- **Current / source:** One keeper per group; never move the last copy.
+- **Verification:** automated-test
+- **Text:** The mover never moves the last eligible copy. Every group retains one keeper.
+- **Source text:** One keeper per group; never move the last copy.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#guardrails`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/shared/domain/duplicate-cleanup.test.ts`, `src/main/modules/health/infrastructure/quarantine-mover.test.ts`
-- **Test notes:** Candidate tests cover keeper selection and the last-copy guard.
+- **Implementation:** _none_
+- **Proving tests:** `src/shared/domain/duplicate-cleanup.test.ts`
+- **Test notes:** Tests cover keeper selection and the last-copy guard.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -330,13 +370,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** The mover skips and reports groups with active date overrides on non-keeper copies, multiple overrides, hard links, empty files, files under 1 KB, changed or missing files, outside-root paths, or cross-volume renames.
-- **Current / source:** Skip groups with active date overrides on non-keeper copies, multiple overrides, hard links, empty files, files under 1 KB, changed or missing files, outside-root paths, or cross-volume renames.
+- **Verification:** automated-test
+- **Text:** The mover skips and reports groups with active date overrides on non-keeper copies, multiple overrides, hard links, empty files, files under 1 KB, changed or missing files, outside-root paths, or cross-volume renames.
+- **Source text:** Skip groups with active date overrides on non-keeper copies, multiple overrides, hard links, empty files, files under 1 KB, changed or missing files, outside-root paths, or cross-volume renames.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#eligibility`, `docs/product/duplicate-quarantine-plan.md#edge-cases`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/shared/domain/duplicate-cleanup.test.ts`, `src/main/modules/health/infrastructure/quarantine-mover.test.ts`, `src/main/modules/scanning/infrastructure/file-enumerator.test.ts`
-- **Test notes:** Candidate tests cover changed, missing, hard-link, and outside-root cases.
+- **Implementation:** `src/main/modules/health/infrastructure/quarantine-mover.ts`
+- **Proving tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`, `src/shared/domain/duplicate-cleanup.test.ts`
+- **Test notes:** Tests cover changed, missing, hard-link, and outside-root cases.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -345,13 +387,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** invariant
 - **Status:** verified
-- **Proposed:** Every move writes a manifest entry, a journal line, and a `cleanup_moves` audit row. The app never deletes the quarantine folder.
-- **Current / source:** Write a journal line for every move. The app never deletes the quarantine folder.
+- **Verification:** automated-test
+- **Text:** Every move writes a manifest entry, a journal line, and a `cleanup_moves` audit row. The app never deletes the quarantine folder.
+- **Source text:** Write a journal line for every move. The app never deletes the quarantine folder.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#quarantine`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/infrastructure/quarantine-mover.test.ts`, `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/main/db/migrations/catalog-cleanup-migration.test.ts`
-- **Test notes:** Candidate tests cover the manifest, journal, audit rows, and migration.
+- **Implementation:** `src/main/modules/health/infrastructure/quarantine-mover.ts`, `src/main/db/repositories/health-cleanup-repository.ts`
+- **Proving tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/main/modules/health/infrastructure/quarantine-mover.test.ts`
+- **Test notes:** Tests cover the manifest, journal, audit rows, and migration.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -360,13 +404,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** After a move batch, the moved catalog rows are deleted, `cleanup_moves` keeps the audit record, duplicate groups are rebuilt, and destination adoption counters are refreshed.
-- **Current / source:** Moves are applied to the catalog in batches. The moved files rows are deleted, cleanup_moves keeps the audit record, duplicate groups are rebuilt, and destination adoption counters are refreshed.
+- **Verification:** automated-test
+- **Text:** After a move batch, the moved catalog rows are deleted, `cleanup_moves` keeps the audit record, duplicate groups are rebuilt, and destination adoption counters are refreshed.
+- **Source text:** Moves are applied to the catalog in batches. The moved files rows are deleted, cleanup_moves keeps the audit record, duplicate groups are rebuilt, and destination adoption counters are refreshed.
 - **Sources:** `docs/contracts/health.md#duplicate-quarantine`, `docs/product/duplicate-quarantine-plan.md#quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/main/modules/health/application/cleanup-service.test.ts`
-- **Test notes:** Candidate tests cover row deletion, audit rows, duplicate rebuild, and counters.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`
+- **Test notes:** Tests cover row deletion, audit rows, duplicate rebuild, and counters.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -375,13 +421,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** After a cleanup, a rescan does not report the moved files as missing because their catalog rows were removed with the move.
-- **Current / source:** A rescan therefore does not treat the moved files as missing.
+- **Verification:** automated-test
+- **Text:** After a cleanup, a rescan does not report the moved files as missing because their catalog rows were removed with the move.
+- **Source text:** A rescan therefore does not treat the moved files as missing.
 - **Sources:** `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/application/cleanup-service.test.ts`, `tests/integration/scan-service.test.ts`, `tests/integration/cleanup-rescan.test.ts`
-- **Test notes:** Candidate tests cover catalog row deletion; no dedicated rescan-after-cleanup E2E yet.
+- **Implementation:** _none_
+- **Proving tests:** `tests/integration/cleanup-rescan.test.ts`
+- **Test notes:** Tests cover catalog row deletion; no dedicated rescan-after-cleanup E2E yet.
 - **Conflicts:** _none_
 - **Notes:** This is a good candidate for a new integration test.
 - **Decision:** verified
@@ -390,13 +438,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** Cancel stops after the current file. A cancelled, failed, or interrupted run remains auditable through its journal, manifest, and cleanup run record.
-- **Current / source:** Cancel stops after the current file. The run remains auditable if it is cancelled, fails, or is interrupted by an app restart.
+- **Verification:** automated-test
+- **Text:** Cancel stops after the current file. A cancelled, failed, or interrupted run remains auditable through its journal, manifest, and cleanup run record.
+- **Source text:** Cancel stops after the current file. The run remains auditable if it is cancelled, fails, or is interrupted by an app restart.
 - **Sources:** `docs/contracts/health.md#duplicate-quarantine`, `docs/product/duplicate-quarantine-plan.md#edge-cases`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/main/modules/health/application/cleanup-service.test.ts`, `src/main/db/repositories/health-cleanup-repository.test.ts`
-- **Test notes:** Candidate tests cover cancel and interrupted state.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/health-cleanup-repository.test.ts`, `src/main/modules/health/application/cleanup-service.test.ts`
+- **Test notes:** Tests cover cancel and interrupted state.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -405,13 +455,15 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** constraint
 - **Status:** verified
-- **Proposed:** The Move button is live in the first release. There is no preview-only phase and no settings toggle.
-- **Current / source:** The Move button is live in the first release; no read-only preview phase and no settings toggle.
+- **Verification:** automated-test
+- **Text:** The Move button is live in the first release. There is no preview-only phase and no settings toggle.
+- **Source text:** The Move button is live in the first release; no read-only preview phase and no settings toggle.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#decisions`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md#duplicate-quarantine`
-- **Existing tests:** `src/renderer/src/features/health/HealthPage.test.tsx`, `tests/e2e/health.spec.ts`
-- **Test notes:** Candidate tests cover the live button and confirmation.
+- **Implementation:** _none_
+- **Proving tests:** `src/renderer/src/features/health/HealthPage.test.tsx`
+- **Test notes:** Tests cover the live button and confirmation.
 - **Conflicts:** _none_
 - **Notes:** _none_
 - **Decision:** verified
@@ -420,12 +472,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** non-goal
 - **Status:** non-goal
-- **Proposed:** The first release does not support user-defined protected folders. System paths `.memorylane` and `.memorylane_quarantine` are always excluded.
-- **Current / source:** Scope: all eligible groups; no user-defined protected folders.
+- **Verification:** _none_
+- **Text:** The first release does not support user-defined protected folders. System paths `.memorylane` and `.memorylane_quarantine` are always excluded.
+- **Source text:** Scope: all eligible groups; no user-defined protected folders.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#decisions`
 - **ADRs:** _none_
 - **Contracts:** _none_
-- **Existing tests:** _none_
+- **Implementation:** _none_
+- **Proving tests:** _none_
 - **Test notes:** No test: explicit non-goal.
 - **Conflicts:** _none_
 - **Notes:** _none_
@@ -435,12 +489,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** non-goal
 - **Status:** non-goal
-- **Proposed:** The first release has no history or restore UI. Restore is a manual copy back plus a rescan.
-- **Current / source:** Restore manually by copying files back and rescanning. History/restore is phase 2.
+- **Verification:** _none_
+- **Text:** The first release has no history or restore UI. Restore is a manual copy back plus a rescan.
+- **Source text:** Restore manually by copying files back and rescanning. History/restore is phase 2.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#quarantine`
 - **ADRs:** _none_
 - **Contracts:** _none_
-- **Existing tests:** _none_
+- **Implementation:** _none_
+- **Proving tests:** _none_
 - **Test notes:** No test: explicit non-goal.
 - **Conflicts:** _none_
 - **Notes:** _none_
@@ -450,12 +506,14 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 - **Kind:** non-goal
 - **Status:** non-goal
-- **Proposed:** The app never deletes the quarantine folder and never removes quarantine content automatically.
-- **Current / source:** The app never deletes the quarantine folder. Journal and DB audit; no automatic quarantine removal.
+- **Verification:** _none_
+- **Text:** The app never deletes the quarantine folder and never removes quarantine content automatically.
+- **Source text:** The app never deletes the quarantine folder. Journal and DB audit; no automatic quarantine removal.
 - **Sources:** `docs/product/duplicate-quarantine-plan.md#guardrails`, `docs/contracts/health.md#duplicate-quarantine`
 - **ADRs:** _none_
 - **Contracts:** _none_
-- **Existing tests:** _none_
+- **Implementation:** _none_
+- **Proving tests:** _none_
 - **Test notes:** No test: explicit non-goal.
 - **Conflicts:** _none_
 - **Notes:** _none_
@@ -576,8 +634,13 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 
 This batch is approved. For future batches, either:
 
-1. change `status` to `accepted` and keep the proposed text;
-2. edit `proposedText` in the JSON and keep `needs-review`; or
+1. change `status` to `accepted` and keep the text;
+2. edit `text` in the JSON and keep `needs-review`; or
 3. change `status` to `non-goal` if the item is out of scope.
 
-Do not mark a requirement `verified` until at least one test carries its ID and the test result is green.
+Do not mark a requirement `verified` unless its `verificationMethod` is satisfied:
+
+- `automated-test`: at least one test carries the requirement ID and passes;
+- `automated-check`: an implementation or guard path is recorded;
+- `manual`: a test note records the manual acceptance;
+- `inspection`: an implementation or guard path is recorded.

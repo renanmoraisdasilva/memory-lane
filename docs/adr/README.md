@@ -33,6 +33,9 @@ and status.
   video copies for WMV, 3GP, and direct-playback failures.
 - `0010-duplicate-quarantine.md` - Accepted duplicate quarantine exception:
   confirmed, journaled moves of eligible duplicate copies, never deletion.
+- `0011-traceability-ledger-v2.md` - Accepted traceability ledger v2: derived
+  test links from ID tags, one authoritative text, explicit verification
+  methods, and evidence-checking gates.
 
 Other implemented decisions are summarized in
 `../product/scope-and-implementation.md`.

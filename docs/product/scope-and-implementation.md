@@ -37,7 +37,8 @@ The guiding rule remains:
 
 Verified at the Phase 6 automated integration point:
 
-- 315 unit/component/integration tests across 69 files.
+- The unit, component, and integration suite is green; counts live in the
+  matrix.
 - 7 Electron E2E flows, including setup -> scan -> Memory Lane -> viewer,
   Date unavailable, Library health, and Other files/Settings backups.
 - 100,000-file and 200,000-file in-memory query passes.

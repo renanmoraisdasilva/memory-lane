@@ -47,22 +47,27 @@ Read first:
 
 ## Traceability
 
-Traceability is the map from requirements to sources, contracts, ADRs, tests,
-and results. The ledger is `docs/traceability/requirements.json`.
+Traceability is the map from requirements to sources, contracts, ADRs,
+implementation, tests, and results. The ledger is
+`docs/traceability/requirements.json`.
 
 Rules:
 
 - Requirements have stable IDs such as `ML-HEALTH-008`. Never reuse or rename an
   ID.
-- When behavior changes, update the existing requirement's text, sources,
-  contracts, tests, and test notes. Add a new ID only for new scope.
-- Mark replaced requirements `superseded`; do not delete the old ID.
-- Tag at least one proving test with the requirement ID in the test name, for
-  example:
+- `text` is the authoritative requirement. `sourceText` is optional history.
+  Do not add `currentText`, `proposedText`, or a `tests` list.
+- Test links are derived: a test proves a requirement only when its name carries
+  the ID, for example:
   `it("[ML-HEALTH-008] orders disregarded files newest first and pages them", ...)`.
-- A requirement is `verified` only when the ID-tagged test passes. `implemented`
-  means code and a candidate test exist. New requirements start at
-  `needs-review`.
+- When behavior changes, update `text`, sources, contracts, `implementation`,
+  `verificationMethod`, and `testNotes`. Add a new ID only for new scope.
+- `verificationMethod` is required for `verified` and `implemented`:
+  `automated-test`, `automated-check`, `manual`, or `inspection`.
+- A requirement is `verified` only when its method is satisfied. `implemented`
+  means code exists and evidence is partial or missing. New requirements start
+  at `needs-review`.
+- Mark replaced requirements `superseded`; do not delete the old ID.
 - `requirements.json` is the source. `reviews/*`, `matrix.md`, and `conflicts.md`
   are generated; do not hand-edit them.
 - After changing the ledger:
@@ -72,7 +77,17 @@ Rules:
   npm run traceability:check
   ```
 
-- `npm run check` includes the traceability check, and CI blocks on it.
+- To check evidence locally, run the tests first:
+
+  ```powershell
+  npm run test:traceability
+  npm run traceability:check -- --require-results
+  ```
+
+- CI runs tests before the gate, checks fresh results, and fails if the
+  generated traceability files are stale.
+- Use `npm run trace:impact -- <paths>` to see which requirements and tests a
+  change touches.
 - Keep the ledger to product requirements and durable invariants, not every
   implementation detail.
 

@@ -6,36 +6,38 @@ This sheet is generated from `docs/traceability/requirements.json`. This batch i
 
 Kinds: outcome 9, invariant 16, constraint 1.
 
+Verification: automated-test 26.
+
 ## Summary
 
-| ID | Kind | Status | Title |
-|---|---|---|---|
-| ML-REPL-001 | outcome | verified | Fresh catalogs migrate to the current catalog schema |
-| ML-REPL-002 | outcome | verified | Schema 6 catalogs migrate without data loss |
-| ML-REPL-003 | invariant | verified | Archive identity has one stable catalog id |
-| ML-REPL-004 | invariant | verified | Source membership defaults to source |
-| ML-REPL-005 | constraint | verified | Replica and run tables enforce constraints |
-| ML-REPL-006 | invariant | verified | One active run per source |
-| ML-REPL-007 | invariant | verified | Hash records track source size and modified time |
-| ML-REPL-008 | outcome | verified | Destination and source catalogs open together |
-| ML-REPL-009 | invariant | verified | Source cannot be a destination |
-| ML-REPL-010 | invariant | verified | Duplicate catalog paths are rejected |
-| ML-REPL-011 | invariant | verified | Destination identity uses volume id and marker |
-| ML-REPL-012 | invariant | verified | Identical drives are not merged |
-| ML-REPL-013 | invariant | verified | Overlapping roots are rejected |
-| ML-REPL-014 | invariant | verified | Destination subfolder survives letter changes |
-| ML-REPL-015 | outcome | implemented | Destination library resolves after letter change |
-| ML-REPL-016 | outcome | verified | Missing marker adoption works |
-| ML-REPL-017 | outcome | verified | Adoption match order is path, name, hash |
-| ML-REPL-018 | invariant | verified | First-adoption conflict is never overwritten |
-| ML-REPL-019 | outcome | verified | Stale replacement requires approval |
-| ML-REPL-020 | invariant | verified | Changed destination file is re-verified |
-| ML-REPL-021 | invariant | verified | Ambiguous files are reported, never guessed |
-| ML-REPL-022 | invariant | verified | Only-on-drive extras stay visible and untouched |
-| ML-REPL-023 | invariant | verified | Source-missing replicas are attention-only |
-| ML-REPL-024 | invariant | verified | Symlink escapes are rejected |
-| ML-REPL-025 | outcome | verified | Destination catalog is reused or created once |
-| ML-REPL-026 | outcome | implemented | Adoption progress survives pause and restart |
+| ID | Kind | Status | Verification | Title |
+|---|---|---|---|---|
+| ML-REPL-001 | outcome | verified | automated-test | Fresh catalogs migrate to the current catalog schema |
+| ML-REPL-002 | outcome | verified | automated-test | Schema 6 catalogs migrate without data loss |
+| ML-REPL-003 | invariant | verified | automated-test | Archive identity has one stable catalog id |
+| ML-REPL-004 | invariant | verified | automated-test | Source membership defaults to source |
+| ML-REPL-005 | constraint | verified | automated-test | Replica and run tables enforce constraints |
+| ML-REPL-006 | invariant | verified | automated-test | One active run per source |
+| ML-REPL-007 | invariant | verified | automated-test | Hash records track source size and modified time |
+| ML-REPL-008 | outcome | verified | automated-test | Destination and source catalogs open together |
+| ML-REPL-009 | invariant | verified | automated-test | Source cannot be a destination |
+| ML-REPL-010 | invariant | verified | automated-test | Duplicate catalog paths are rejected |
+| ML-REPL-011 | invariant | verified | automated-test | Destination identity uses volume id and marker |
+| ML-REPL-012 | invariant | verified | automated-test | Identical drives are not merged |
+| ML-REPL-013 | invariant | verified | automated-test | Overlapping roots are rejected |
+| ML-REPL-014 | invariant | verified | automated-test | Destination subfolder survives letter changes |
+| ML-REPL-015 | outcome | implemented | automated-test | Destination library resolves after letter change |
+| ML-REPL-016 | outcome | verified | automated-test | Missing marker adoption works |
+| ML-REPL-017 | outcome | verified | automated-test | Adoption match order is path, name, hash |
+| ML-REPL-018 | invariant | verified | automated-test | First-adoption conflict is never overwritten |
+| ML-REPL-019 | outcome | verified | automated-test | Stale replacement requires approval |
+| ML-REPL-020 | invariant | verified | automated-test | Changed destination file is re-verified |
+| ML-REPL-021 | invariant | verified | automated-test | Ambiguous files are reported, never guessed |
+| ML-REPL-022 | invariant | verified | automated-test | Only-on-drive extras stay visible and untouched |
+| ML-REPL-023 | invariant | verified | automated-test | Source-missing replicas are attention-only |
+| ML-REPL-024 | invariant | verified | automated-test | Symlink escapes are rejected |
+| ML-REPL-025 | outcome | verified | automated-test | Destination catalog is reused or created once |
+| ML-REPL-026 | outcome | implemented | automated-test | Adoption progress survives pause and restart |
 
 ## Requirements
 
@@ -43,14 +45,16 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-01
-- **Proposed:** Fresh catalogs migrate to the current catalog schema.
-- **Current / source:** Fresh catalogs migrate to the current schema (8)
+- **Text:** Fresh catalogs migrate to the current catalog schema.
+- **Source text:** Fresh catalogs migrate to the current schema (8)
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
-- **Test notes:** From the replication matrix evidence: migration test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`, `src/main/db/repositories/catalog-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: migration test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-01. C-006 removed the stale schema number.
 - **Decision:** verified
@@ -59,14 +63,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-02
-- **Proposed:** Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage
-- **Current / source:** Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage
+- **Text:** Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
-- **Test notes:** From the replication matrix evidence: migration/backfill test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
+- **Test notes:** From the replication matrix evidence: migration/backfill test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-02.
 - **Decision:** verified
@@ -75,14 +80,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-03
-- **Proposed:** `archive_identity` has one stable `catalog_id` and `role = source` for existing archives
-- **Current / source:** `archive_identity` has one stable `catalog_id` and `role = source` for existing archives
+- **Text:** `archive_identity` has one stable `catalog_id` and `role = source` for existing archives
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/repositories/catalog-repository.test.ts`
-- **Test notes:** From the replication matrix evidence: catalog repository test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/catalog-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: catalog repository test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-03.
 - **Decision:** verified
@@ -91,14 +97,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-04
-- **Proposed:** `files.source_membership` defaults/backfills to `source`
-- **Current / source:** `files.source_membership` defaults/backfills to `source`
+- **Text:** `files.source_membership` defaults/backfills to `source`
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
-- **Test notes:** From the replication matrix evidence: migration test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
+- **Test notes:** From the replication matrix evidence: migration test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-04.
 - **Decision:** verified
@@ -107,14 +114,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** constraint
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-05
-- **Proposed:** Replica and run tables enforce status, path, and uniqueness constraints
-- **Current / source:** Replica and run tables enforce status, path, and uniqueness constraints
+- **Text:** Replica and run tables enforce status, path, and uniqueness constraints
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/repositories/replication-destination-repository.test.ts`
-- **Test notes:** From the replication matrix evidence: repository tests. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`, `src/main/db/repositories/replication-destination-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: repository tests.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-05.
 - **Decision:** verified
@@ -123,14 +131,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-06
-- **Proposed:** At most one active run per source is enforced
-- **Current / source:** At most one active run per source is enforced
+- **Text:** At most one active run per source is enforced
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/repositories/replication-run-repository.test.ts`
-- **Test notes:** From the replication matrix evidence: unique-index/trigger test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`, `src/main/db/repositories/replication-run-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: unique-index/trigger test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-06.
 - **Decision:** verified
@@ -139,14 +148,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-07
-- **Proposed:** Hash records store source size and modified time; legacy values rehash only when the file changed after hashing
-- **Current / source:** Hash records store source size and modified time; legacy values rehash only when the file changed after hashing
+- **Text:** Hash records store source size and modified time; legacy values rehash only when the file changed after hashing
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/domain/source-hash-trust.test.ts`
-- **Test notes:** From the replication matrix evidence: source-hash test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/domain/source-hash-trust.test.ts`
+- **Test notes:** From the replication matrix evidence: source-hash test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-07.
 - **Decision:** verified
@@ -155,14 +165,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-08
-- **Proposed:** A destination catalog can be opened while the source catalog stays open
-- **Current / source:** A destination catalog can be opened while the source catalog stays open
+- **Text:** A destination catalog can be opened while the source catalog stays open
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/catalog-registry.test.ts`
-- **Test notes:** From the replication matrix evidence: catalog-registry test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/catalog-registry.test.ts`
+- **Test notes:** From the replication matrix evidence: catalog-registry test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-08.
 - **Decision:** verified
@@ -171,14 +182,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-09
-- **Proposed:** The source catalog cannot be opened as a destination
-- **Current / source:** The source catalog cannot be opened as a destination
+- **Text:** The source catalog cannot be opened as a destination
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/catalog-registry.test.ts`
-- **Test notes:** From the replication matrix evidence: catalog-registry test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/catalog-registry.test.ts`, `src/main/modules/replication/application/destination-service.test.ts`
+- **Test notes:** From the replication matrix evidence: catalog-registry test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-09.
 - **Decision:** verified
@@ -187,14 +199,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-10
-- **Proposed:** Duplicate catalog paths are rejected
-- **Current / source:** Duplicate catalog paths are rejected
+- **Text:** Duplicate catalog paths are rejected
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/catalog-registry.test.ts`
-- **Test notes:** From the replication matrix evidence: catalog-registry test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/catalog-registry.test.ts`
+- **Test notes:** From the replication matrix evidence: catalog-registry test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-10.
 - **Decision:** verified
@@ -203,14 +216,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-11
-- **Proposed:** Destination is identified by volume ID plus marker `destination_id`
-- **Current / source:** Destination is identified by volume ID plus marker `destination_id`
+- **Text:** Destination is identified by volume ID plus marker `destination_id`
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/application/destination-service.test.ts`
-- **Test notes:** From the replication matrix evidence: registration test. Candidate test file, not yet ID-tagged.
+- **Implementation:** `src/main/modules/replication/infrastructure/destination-marker.ts`
+- **Proving tests:** `src/main/modules/replication/application/destination-service.test.ts`
+- **Test notes:** From the replication matrix evidence: registration test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-11.
 - **Decision:** verified
@@ -219,14 +233,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-12
-- **Proposed:** Two identical drives are not merged by volume ID collision
-- **Current / source:** Two identical drives are not merged by volume ID collision
+- **Text:** Two identical drives are not merged by volume ID collision
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/drives/infrastructure/volume-identity.test.ts`
-- **Test notes:** From the replication matrix evidence: identity test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/drives/infrastructure/volume-identity.test.ts`, `src/main/modules/replication/application/destination-service.test.ts`
+- **Test notes:** From the replication matrix evidence: identity test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-12.
 - **Decision:** verified
@@ -235,14 +250,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-13
-- **Proposed:** Same-volume or overlapping source/destination roots are hard-rejected
-- **Current / source:** Same-volume or overlapping source/destination roots are hard-rejected
+- **Text:** Same-volume or overlapping source/destination roots are hard-rejected
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/platform/destination-path-policy.test.ts`
-- **Test notes:** From the replication matrix evidence: path-policy test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/platform/destination-path-policy.test.ts`
+- **Test notes:** From the replication matrix evidence: path-policy test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-13.
 - **Decision:** verified
@@ -251,14 +267,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-14
-- **Proposed:** Destination root subfolder is stored relative and survives letter changes
-- **Current / source:** Destination root subfolder is stored relative and survives letter changes
+- **Text:** Destination root subfolder is stored relative and survives letter changes
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/application/destination-service.test.ts`
-- **Test notes:** From the replication matrix evidence: registration test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/replication-destination-repository.test.ts`, `src/main/modules/replication/application/destination-service.test.ts`
+- **Test notes:** From the replication matrix evidence: registration test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-14.
 - **Decision:** verified
@@ -267,13 +284,14 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** implemented
+- **Verification:** automated-test
 - **Legacy ID:** R-14a
-- **Proposed:** Destination library resolves files through `relative_path` after a letter change
-- **Current / source:** Destination library resolves files through `relative_path` after a letter change
+- **Text:** Destination library resolves files through `relative_path` after a letter change
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/repositories/replication-destination-library-repository.test.ts`
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/replication-destination-library-repository.test.ts`
 - **Test notes:** Relative-path resolution is covered by the destination-library test; an explicit letter-change assertion is still missing.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-14a.
@@ -283,14 +301,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-15
-- **Proposed:** Missing marker adoption still works
-- **Current / source:** Missing marker adoption still works
+- **Text:** Missing marker adoption still works
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: adoption test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `tests/integration/replication-adoption.test.ts`
+- **Test notes:** From the replication matrix evidence: adoption test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-15.
 - **Decision:** verified
@@ -299,14 +318,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-16
-- **Proposed:** Adoption matches path/size, unique name/size, then unique hash
-- **Current / source:** Adoption matches path/size, unique name/size, then unique hash
+- **Text:** Adoption matches path/size, unique name/size, then unique hash
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: adoption test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
+- **Test notes:** From the replication matrix evidence: adoption test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-16.
 - **Decision:** verified
@@ -315,14 +335,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-17
-- **Proposed:** First-adoption different hash is a conflict and is never overwritten
-- **Current / source:** First-adoption different hash is a conflict and is never overwritten
+- **Text:** First-adoption different hash is a conflict and is never overwritten
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: adoption test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
+- **Test notes:** From the replication matrix evidence: adoption test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-17.
 - **Decision:** verified
@@ -331,14 +352,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-18
-- **Proposed:** Prior verified stale copy is replaceable only after approval
-- **Current / source:** Prior verified stale copy is replaceable only after approval
+- **Text:** Prior verified stale copy is replaceable only after approval
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
-- **Test notes:** From the replication matrix evidence: replacement test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`, `src/main/modules/replication/infrastructure/file-copier.test.ts`
+- **Test notes:** From the replication matrix evidence: replacement test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-18.
 - **Decision:** verified
@@ -347,14 +369,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-19
-- **Proposed:** Destination changed or missing file is re-verified before coverage
-- **Current / source:** Destination changed or missing file is re-verified before coverage
+- **Text:** Destination changed or missing file is re-verified before coverage
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: adoption test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
+- **Test notes:** From the replication matrix evidence: adoption test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-19.
 - **Decision:** verified
@@ -363,14 +386,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-20
-- **Proposed:** Ambiguous file is reported, never guessed
-- **Current / source:** Ambiguous file is reported, never guessed
+- **Text:** Ambiguous file is reported, never guessed
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: adoption test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
+- **Test notes:** From the replication matrix evidence: adoption test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-20.
 - **Decision:** verified
@@ -379,14 +403,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-21
-- **Proposed:** Only-on-drive extra is visible, never coverage, never copied/deleted
-- **Current / source:** Only-on-drive extra is visible, never coverage, never copied/deleted
+- **Text:** Only-on-drive extra is visible, never coverage, never copied/deleted
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `tests/integration/replication-adoption.test.ts`
-- **Test notes:** From the replication matrix evidence: orphan test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
+- **Test notes:** From the replication matrix evidence: orphan test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-21.
 - **Decision:** verified
@@ -395,14 +420,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-22
-- **Proposed:** Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release
-- **Current / source:** Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release
+- **Text:** Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
-- **Test notes:** From the replication matrix evidence: attention/coverage tests. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/repositories/replication-destination-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: attention/coverage tests.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-22.
 - **Decision:** verified
@@ -411,14 +437,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** invariant
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-23
-- **Proposed:** Symlink/junction/reparse escape is skipped or rejected
-- **Current / source:** Symlink/junction/reparse escape is skipped or rejected
+- **Text:** Symlink/junction/reparse escape is skipped or rejected
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/platform/destination-path-policy.test.ts`
-- **Test notes:** From the replication matrix evidence: path-policy test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/infrastructure/destination-writer.test.ts`
+- **Test notes:** From the replication matrix evidence: path-policy test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-23.
 - **Decision:** verified
@@ -427,14 +454,15 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
+- **Verification:** automated-test
 - **Legacy ID:** R-24
-- **Proposed:** Destination local catalog is reused or created once
-- **Current / source:** Destination local catalog is reused or created once
+- **Text:** Destination local catalog is reused or created once
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/db/repositories/replication-destination-library-repository.test.ts`
-- **Test notes:** From the replication matrix evidence: destination-library test. Candidate test file, not yet ID-tagged.
+- **Implementation:** _none_
+- **Proving tests:** `src/main/db/catalog-registry.test.ts`, `src/main/db/repositories/replication-destination-library-repository.test.ts`
+- **Test notes:** From the replication matrix evidence: destination-library test.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-24.
 - **Decision:** verified
@@ -443,13 +471,14 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 - **Kind:** outcome
 - **Status:** implemented
+- **Verification:** automated-test
 - **Legacy ID:** R-24a
-- **Proposed:** Adoption progress is visible; pause, resume, and restart recover the session
-- **Current / source:** Adoption progress is visible; pause, resume, and restart recover the session
+- **Text:** Adoption progress is visible; pause, resume, and restart recover the session
 - **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Existing tests:** `src/main/modules/replication/application/adoption-runner.test.ts`
+- **Implementation:** _none_
+- **Proving tests:** `src/main/modules/replication/application/adoption-runner.test.ts`
 - **Test notes:** Pause flushing is covered; restart recovery is not explicitly asserted yet.
 - **Conflicts:** _none_
 - **Notes:** Legacy replication matrix ID: R-24a.
@@ -482,8 +511,13 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 This batch is approved. For future batches, either:
 
-1. change `status` to `accepted` and keep the proposed text;
-2. edit `proposedText` in the JSON and keep `needs-review`; or
+1. change `status` to `accepted` and keep the text;
+2. edit `text` in the JSON and keep `needs-review`; or
 3. change `status` to `non-goal` if the item is out of scope.
 
-Do not mark a requirement `verified` until at least one test carries its ID and the test result is green.
+Do not mark a requirement `verified` unless its `verificationMethod` is satisfied:
+
+- `automated-test`: at least one test carries the requirement ID and passes;
+- `automated-check`: an implementation or guard path is recorded;
+- `manual`: a test note records the manual acceptance;
+- `inspection`: an implementation or guard path is recorded.

@@ -1,15 +1,15 @@
 # Traceability
 
-This directory links requirements to the tests that prove them. Batches 1-9 are
-accepted; batch 9 is implemented with partial and deferred requirements. The
-ledger and matrix are the live view. The check is blocking in CI and part of
-`npm run check`.
+This directory maps requirements to their sources, decisions, implementation,
+and tests. The ledger is `requirements.json`; the review sheets, matrix, and
+conflicts view are generated from it. `npm run check` validates the ledger, and
+CI blocks on the same gate.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `requirements.json` | The ledger: stable requirement IDs, proposed wording, sources, existing tests, status, and conflicts. |
+| `requirements.json` | The ledger: stable requirement IDs, text, sources, decisions, implementation, verification method, status, and conflicts. |
 | `reviews/01-source-safety.md` | Batch 1 review sheet, generated from the ledger. |
 | `reviews/02-scan-library.md` | Batch 2 review sheet, generated from the ledger. |
 | `reviews/03-health.md` | Batch 3 review sheet, generated from the ledger. |
@@ -19,138 +19,164 @@ ledger and matrix are the live view. The check is blocking in CI and part of
 | `reviews/07-replication-safety.md` | Batch 7 review sheet, generated from the ledger. |
 | `reviews/08-video-settings.md` | Batch 8 review sheet, generated from the ledger. |
 | `reviews/09-release.md` | Batch 9 review sheet, generated from the ledger. |
-| `conflicts.md` | Open contradictions and proposed resolutions, generated from the ledger. |
-| `matrix.md` | Requirement → test file → result view, generated from the ledger. |
-| `test-results.json` | Optional Vitest JSON output. When present, `matrix.md` shows pass/fail per requirement. |
+| `conflicts.md` | Decisions that reconciled contradictory sources, generated from the ledger. |
+| `matrix.md` | Requirement to test to result view, generated from the ledger. |
+| `test-results.json` | Optional Vitest JSON output. Gitignored; the matrix shows pass/fail only when it exists and is fresh. |
 
-## Current batches
+## Ledger schema
 
-Batch 1 covers **source safety and duplicate quarantine**: 28 requirements and
-5 conflicts. It is `verified`: 25 requirements have passing ID-tagged tests and
-3 are explicit non-goals.
+Each requirement has:
 
-The read-only conflict is resolved. README, acceptance row 2, scan contract,
-other-files contract, and security review now use the canonical wording:
-originals are never deleted or edited; only the confirmed quarantine mover may
-move an eligible duplicate copy. ADR-0010 records the exception, and
-`conflicts.md` keeps the decision record.
+- `id`: stable ID such as `ML-HEALTH-008`. Never reuse or rename it.
+- `batch`, `capability`, `kind`, `title`.
+- `text`: the authoritative requirement.
+- `sourceText`: optional original source wording, kept only when it differs.
+- `sources`, `adrs`, `contracts`: document links, including `#anchors`.
+- `implementation`: optional code, directory, or guard paths for durable
+  invariants.
+- `verificationMethod`: `automated-test`, `automated-check`, `manual`, or
+  `inspection`.
+- `testNotes`: what the evidence covers and what remains.
+- `status`: see below.
+- `conflictsWith`, `notes`.
 
-Batch 2 covers **scan and library**: 24 requirements and 0 conflicts. It is
-`verified`: all 24 requirements have passing ID-tagged tests.
-
-Batch 3 covers **health and validation**: 25 requirements and 0 conflicts. It is
-`implemented`: 24 requirements have passing ID-tagged tests; ML-HEALTH-025
-(catalog-changing actions refresh affected views) remains implemented because its
-test covers the duplicate-cleanup dialog but not every affected view.
-
-Batch 4 covers **replication: schema, adoption, and coverage**: 26 requirements
-and 1 conflict. It is `implemented`: 24 requirements have passing ID-tagged
-tests. ML-REPL-015 (letter-change resolution) and ML-REPL-026 (adoption restart
-recovery) remain implemented because their tests cover only part of the
-behavior. C-006 is resolved: R-01 now says the current catalog schema.
-
-Batch 5 covers **replication: coverage and planning**: 26 requirements and 0
-conflicts. It is `implemented`: 20 requirements have passing ID-tagged tests.
-ML-REPL-028, 042, 043, 044, 047, and 050 remain implemented because their tests
-cover only part of the behavior; ML-REPL-047 has no test at all.
-
-Batch 6 covers **replication: run controls and failures**: 15 requirements and 0
-conflicts. It is `implemented`: 11 requirements have passing ID-tagged tests.
-ML-REPL-059, 060, 063, and 064 remain implemented because there is no test for
-run reachability, running-state edit locks, replan recopy behavior, or queued
-destination addition.
-
-Batch 7 covers **replication: copy, promotion, and safety**: 26 requirements and
-0 conflicts. It is `implemented`: 17 requirements have passing ID-tagged tests.
-ML-REPL-072, 073, 074, 075, 077, 078, 081, 087, and 093 remain implemented
-because their tests cover only part of the behavior; 072, 075, 078, and 093
-have no ID-tagged test at all.
-
-Batch 8 covers **video playback and settings/backups**: 26 requirements and 1
-conflict. It is `implemented`: 14 requirements have passing ID-tagged tests and
-1 is a non-goal. ML-VIDEO-002, 003, 005, 006, 009, and 010 and ML-SET-003, 007,
-010, 011, and 014 remain implemented because their tests cover only part of the
-behavior; ML-VIDEO-002, 003, 005, and 010 and ML-SET-003 and 007 have no
-ID-tagged Vitest test. C-007 is resolved: the product spec now names both
-SQLite databases.
-
-Batch 9 covers **release acceptance criteria**: 18 requirements and 0 conflicts.
-It is `implemented`: 7 requirements are verified, 10 remain implemented because
-their automated evidence is green but a real-drive, clean-VM, packaging, or
-mixed-corpus pass is still manual, and ML-REL-017 is deferred because the clean
-Windows VM release pass is manual only.
-
-## Workflow
-
-1. Read the review sheet for the batch you are working on.
-2. For a new batch, inventory each requirement as `needs-review`.
-3. Edit `requirements.json` directly:
-   - change `status` from `needs-review` to `accepted` or `non-goal`;
-   - edit `proposedText` if the wording needs work;
-   - add review notes in `notes`.
-4. Regenerate the review sheet:
-
-   ```powershell
-   npm run traceability:review
-   ```
-
-5. After the batch is approved, add `[ML-...]` IDs to the test names that prove
-   each requirement.
-6. Run the tests with the JSON reporter and regenerate the matrix:
-
-   ```powershell
-   npx vitest run --reporter=json --outputFile=docs/traceability/test-results.json
-   npm run traceability:review
-   ```
-
-7. The check is blocking in CI and part of `npm run check`.
-   `npm run traceability:check` exits non-zero on malformed IDs, missing
-   sources, missing test files, unknown statuses, or a `verified` requirement
-   without a test.
+The ledger does **not** store test paths. A test proves a requirement only when
+its name contains `[ML-...]`. The review sheets and matrix derive the links from
+the tags.
 
 ## Status values
 
 | Status | Meaning |
 |---|---|
 | `needs-review` | The requirement is inventoried but the wording is not approved. |
-| `accepted` | The wording is approved; implementation or tests may still be missing. |
-| `implemented` | Code exists and the requirement has at least one candidate test. |
-| `verified` | The requirement has a test carrying its ID and the test is green. |
+| `accepted` | The wording is approved; implementation or evidence may still be missing. |
+| `implemented` | Code exists and the requirement has a candidate test or recorded evidence. |
+| `verified` | The verification method is satisfied: a tagged test passes, or the manual, inspection, or script evidence is recorded. |
 | `superseded` | A later requirement replaced this one; keep the old ID for history. |
 | `non-goal` | Explicitly out of scope; no test required. |
 | `deferred` | Deliberately postponed; no test required yet. |
 
-## ID scheme
+## Verification methods
 
-IDs are stable and capability-scoped:
+| Method | Evidence |
+|---|---|
+| `automated-test` | A Vitest or Playwright test name carries the requirement ID. |
+| `automated-check` | A guard, smoke, or packaging script proves it; `implementation` names the script or code. |
+| `manual` | A human release pass is the final evidence; `testNotes` records what was done. |
+| `inspection` | A static or document review is the final evidence; `implementation` names the reviewed path. |
 
-- `ML-SAFE-*` — source safety and read-only invariants.
-- `ML-QUAR-*` — duplicate quarantine.
-- `ML-SCAN-*`, `ML-LIB-*`, `ML-HEALTH-*`, `ML-REPL-*` — scan, library, health,
-  and replication.
-- `ML-VIDEO-*` — video playback and HEIC previews.
-- `ML-SET-*` — settings, cache, and backups.
-- `ML-REL-*` — release acceptance criteria.
+## Workflow
 
-The replication matrix keeps `R-01`…`R-91` as legacy aliases when it is
-migrated.
+1. Add or edit a requirement in `requirements.json`. New IDs start at
+   `needs-review`.
+2. Approve the text and change the status to `accepted`.
+3. Tag the proving test with the requirement ID, for example:
+   `it("[ML-HEALTH-008] orders disregarded files newest first", ...)`.
+4. For `automated-check`, `manual`, or `inspection`, record the implementation
+   path or the test note that proves the method.
+5. Change the status to `implemented` when code exists, and to `verified` only
+   when the method is satisfied.
+6. Regenerate the review sheets and matrix:
 
-## What the first batch found
+   ```powershell
+   npm run traceability:review
+   ```
 
-- The read-only promise and the quarantine mover disagreed across five documents.
-- The security review allowlist did not name the quarantine mover.
-- The cleanup-then-rescan test exposed a missing `rebuildDuplicateGroups` import
-  in `health-cleanup-repository.ts`; cleanup runs failed after moving files until
-  it was fixed.
-- Catalog schema references were 12, 9, and 6; the current migration is 0012.
-- Published test counts were stale; the matrix is now the source for requirement
-  coverage and test counts.
+7. Validate the ledger:
 
-## What is not done yet
+   ```powershell
+   npm run traceability:check
+   ```
 
-- The gate validates ledger structure and test-file existence; it does not
-  rerun tests. The matrix shows pass/fail only when `test-results.json` is
-  present.
-- Batch 9 is implemented; the manual release checklist items remain.
-- The full Vitest run is 595 tests. The matrix is generated from
-  `test-results.json`.
+8. To check evidence locally, produce fresh results first:
+
+   ```powershell
+   npm run test:traceability
+   npm run traceability:check -- --require-results
+   ```
+
+9. In CI, the tests run before the gate and `--require-results` is always on.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run traceability:review` | Regenerate the review sheets, matrix, and conflicts view. |
+| `npm run traceability:check` | Validate the ledger, links, tags, and docs without requiring fresh results. |
+| `npm run test:traceability` | Run Vitest with the JSON reporter for the evidence gate. |
+| `npm run traceability:check -- --require-results` | Validate with fresh results; fail on missing, stale, or failing evidence. |
+| `npm run trace:impact -- <paths>` | Map changed files to affected requirements and tests. |
+| `npm run trace:impact -- --staged` | Use staged files instead of explicit paths. |
+| `npm run trace:impact -- --since HEAD~1` | Use files changed since a git ref. |
+| `npm run trace:impact -- --json <paths>` | Print the same mapping as JSON. |
+
+`traceability:check` never rewrites the generated files. Run
+`traceability:review` after changing the ledger, then commit the regenerated
+review sheets, matrix, and conflicts view.
+
+## What the gate checks
+
+Errors:
+
+- malformed, duplicate, or missing requirement IDs and required fields;
+- unknown statuses, kinds, batches, conflicts, or verification methods;
+- missing source, ADR, or contract files, and missing heading anchors;
+- missing `implementation` paths;
+- ID tags in non-test files, or tags that no requirement uses;
+- a `verified` automated requirement without an ID-tagged test;
+- a `verified` manual requirement without a test note;
+- a `verified` script or inspection requirement without an implementation path;
+- with `--require-results`: missing, stale, or failing Vitest evidence;
+- schema-version drift in contracts, hand-written test counts, and unindexed
+  ADRs.
+
+Warnings:
+
+- an `implemented` automated requirement without a tag yet;
+- E2E-only evidence, because the quality job does not run Electron;
+- script or manual evidence, because it is not executed by this gate;
+- stale results outside `--require-results`.
+
+## Impact analysis
+
+Traceability is useful when it answers a coding question: what does this change
+touch?
+
+```powershell
+npm run trace:impact -- src/main/db/repositories/health-missing-repository.ts
+npm run trace:impact -- --staged
+npm run trace:impact -- --since HEAD~1
+```
+
+The command matches changed paths against `sources`, `adrs`, `contracts`,
+`implementation`, and the test files that carry each requirement ID. It prints
+the affected requirements, their status and method, the test files to run, and
+a ready-to-run Vitest command.
+
+## CI
+
+The quality job:
+
+1. runs `npm run test:coverage` with the default and JSON reporters;
+2. runs `npm run traceability:check -- --require-results`;
+3. fails if `git diff --exit-code docs/traceability` finds a stale generated
+   file;
+4. uploads the matrix, review sheets, conflicts, and coverage.
+
+The Electron job runs Playwright separately. E2E-only evidence is labeled `e2e`
+in the matrix; the quality gate does not mark it `verified` on its own.
+
+## What the gate does not do
+
+- It does not judge whether a test fully proves a requirement. The tag says the
+  test is the evidence; the review notes say whether it is sufficient.
+- It does not run Playwright, `automated-check` scripts, or the manual release
+  checklist. Those run in their own CI steps or by hand.
+- It does not track requirement-to-requirement dependencies. Add them only if
+  impact analysis needs them.
+
+## Batches
+
+Batches 1 through 9 are accepted. Each review sheet is generated from the
+ledger and shows the current status, verification method, derived proving
+tests, and conflicts for that batch.

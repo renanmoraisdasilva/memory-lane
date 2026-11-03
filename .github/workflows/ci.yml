@@ -52,9 +52,18 @@ jobs:
       - name: Unused files and dependencies
         run: npm run knip
 
-      # Blocking: the ledger must validate before the rest of the suite runs.
+      # The traceability gate needs fresh evidence, so tests run first.
+      - name: Unit, component, and integration tests with coverage
+        run: npm run test:coverage -- --reporter=default --reporter=json --outputFile=docs/traceability/test-results.json
+
+      - name: Regenerate traceability views
+        run: npm run traceability:review
+
       - name: Traceability gate
-        run: npm run traceability:check
+        run: npm run traceability:check -- --require-results
+
+      - name: Generated traceability files are current
+        run: git diff --exit-code -- docs/traceability
 
       - name: Upload traceability report
         if: always()
@@ -66,9 +75,6 @@ jobs:
             docs/traceability/conflicts.md
             docs/traceability/reviews/*.md
           if-no-files-found: ignore
-
-      - name: Unit, component, and integration tests with coverage
-        run: npm run test:coverage
 
       - name: Upload coverage
         if: always()
