@@ -46,7 +46,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-01
 - **Proposed:** Fresh catalogs migrate to the current catalog schema.
 - **Current / source:** Fresh catalogs migrate to the current schema (8)
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
@@ -62,7 +62,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-02
 - **Proposed:** Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage
 - **Current / source:** Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
@@ -78,7 +78,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-03
 - **Proposed:** `archive_identity` has one stable `catalog_id` and `role = source` for existing archives
 - **Current / source:** `archive_identity` has one stable `catalog_id` and `role = source` for existing archives
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/repositories/catalog-repository.test.ts`
@@ -94,7 +94,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-04
 - **Proposed:** `files.source_membership` defaults/backfills to `source`
 - **Current / source:** `files.source_membership` defaults/backfills to `source`
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/migrations/catalog-replication-migration.test.ts`
@@ -110,7 +110,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-05
 - **Proposed:** Replica and run tables enforce status, path, and uniqueness constraints
 - **Current / source:** Replica and run tables enforce status, path, and uniqueness constraints
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/repositories/replication-destination-repository.test.ts`
@@ -126,7 +126,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-06
 - **Proposed:** At most one active run per source is enforced
 - **Current / source:** At most one active run per source is enforced
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/repositories/replication-run-repository.test.ts`
@@ -142,7 +142,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-07
 - **Proposed:** Hash records store source size and modified time; legacy values rehash only when the file changed after hashing
 - **Current / source:** Hash records store source size and modified time; legacy values rehash only when the file changed after hashing
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/source-hash-trust.test.ts`
@@ -158,7 +158,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-08
 - **Proposed:** A destination catalog can be opened while the source catalog stays open
 - **Current / source:** A destination catalog can be opened while the source catalog stays open
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/catalog-registry.test.ts`
@@ -174,7 +174,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-09
 - **Proposed:** The source catalog cannot be opened as a destination
 - **Current / source:** The source catalog cannot be opened as a destination
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/catalog-registry.test.ts`
@@ -190,7 +190,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-10
 - **Proposed:** Duplicate catalog paths are rejected
 - **Current / source:** Duplicate catalog paths are rejected
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/catalog-registry.test.ts`
@@ -206,7 +206,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-11
 - **Proposed:** Destination is identified by volume ID plus marker `destination_id`
 - **Current / source:** Destination is identified by volume ID plus marker `destination_id`
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/destination-service.test.ts`
@@ -222,7 +222,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-12
 - **Proposed:** Two identical drives are not merged by volume ID collision
 - **Current / source:** Two identical drives are not merged by volume ID collision
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/drives/infrastructure/volume-identity.test.ts`
@@ -238,7 +238,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-13
 - **Proposed:** Same-volume or overlapping source/destination roots are hard-rejected
 - **Current / source:** Same-volume or overlapping source/destination roots are hard-rejected
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/platform/destination-path-policy.test.ts`
@@ -254,7 +254,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-14
 - **Proposed:** Destination root subfolder is stored relative and survives letter changes
 - **Current / source:** Destination root subfolder is stored relative and survives letter changes
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/destination-service.test.ts`
@@ -270,7 +270,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-14a
 - **Proposed:** Destination library resolves files through `relative_path` after a letter change
 - **Current / source:** Destination library resolves files through `relative_path` after a letter change
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/repositories/replication-destination-library-repository.test.ts`
@@ -286,7 +286,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-15
 - **Proposed:** Missing marker adoption still works
 - **Current / source:** Missing marker adoption still works
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -302,7 +302,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-16
 - **Proposed:** Adoption matches path/size, unique name/size, then unique hash
 - **Current / source:** Adoption matches path/size, unique name/size, then unique hash
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -318,7 +318,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-17
 - **Proposed:** First-adoption different hash is a conflict and is never overwritten
 - **Current / source:** First-adoption different hash is a conflict and is never overwritten
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -334,7 +334,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-18
 - **Proposed:** Prior verified stale copy is replaceable only after approval
 - **Current / source:** Prior verified stale copy is replaceable only after approval
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/adoption-file-processor.test.ts`
@@ -350,7 +350,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-19
 - **Proposed:** Destination changed or missing file is re-verified before coverage
 - **Current / source:** Destination changed or missing file is re-verified before coverage
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -366,7 +366,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-20
 - **Proposed:** Ambiguous file is reported, never guessed
 - **Current / source:** Ambiguous file is reported, never guessed
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -382,7 +382,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-21
 - **Proposed:** Only-on-drive extra is visible, never coverage, never copied/deleted
 - **Current / source:** Only-on-drive extra is visible, never coverage, never copied/deleted
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-adoption.test.ts`
@@ -398,7 +398,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-22
 - **Proposed:** Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release
 - **Current / source:** Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -414,7 +414,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-23
 - **Proposed:** Symlink/junction/reparse escape is skipped or rejected
 - **Current / source:** Symlink/junction/reparse escape is skipped or rejected
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/platform/destination-path-policy.test.ts`
@@ -430,7 +430,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-24
 - **Proposed:** Destination local catalog is reused or created once
 - **Current / source:** Destination local catalog is reused or created once
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/repositories/replication-destination-library-repository.test.ts`
@@ -446,7 +446,7 @@ Kinds: outcome 9, invariant 16, constraint 1.
 - **Legacy ID:** R-24a
 - **Proposed:** Adoption progress is visible; pause, resume, and restart recover the session
 - **Current / source:** Adoption progress is visible; pause, resume, and restart recover the session
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/adoption-runner.test.ts`
@@ -466,8 +466,8 @@ Kinds: outcome 9, invariant 16, constraint 1.
 
 **Claims**
 
-- `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-01 says fresh catalogs migrate to the current schema (8).
-- `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-02 says existing schema 6 catalogs migrate without data loss.
+- `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-01 says fresh catalogs migrate to the current schema (8).
+- `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-02 says existing schema 6 catalogs migrate without data loss.
 
 **Contradicted by**
 

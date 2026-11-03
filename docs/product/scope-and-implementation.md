@@ -171,7 +171,7 @@ Replication has a complete product specification
 ([`partial-backups.md`](partial-backups.md)), a decision record
 ([`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md)),
 and an implementation plan with delivery slices and an acceptance-test matrix
-([`replication-implementation-plan.md`](replication-implementation-plan.md)).
+([`replication-implementation-plan.md`](../archive/replication-implementation-plan.md)).
 
 ---
 
@@ -514,21 +514,21 @@ Resolved:
 - Whole-catalog validation outcomes and wording.
 - Exact renderer-document IPC sender validation and tightened CSP.
 - Read-only static guard across main-process code.
+- Timezone handling preserves EXIF wall-clock time without inventing a timezone.
+- Codec strategy and playback fallback are recorded in ADR 0009 and the codec
+  matrix.
+- Replication schema, coverage, and promotion are implemented; see
+  [`partial-backups.md`](partial-backups.md) and
+  [`../contracts/replication.md`](../contracts/replication.md).
+- Unreadable, encrypted, corrupt, and permission-restricted files are skipped
+  with explicit error or failed states.
 
 Open:
 
 - ExifTool concurrency and performance on a mixed corpus.
-- Timezone conversion policy when EXIF wall-clock dates are displayed outside
-  the capture timezone.
 - Confirming actual image/video playback on the release Windows VM.
 - Access-time preservation policy.
-- Behavior for encrypted, corrupt, permission-restricted, or unreadable files.
 - Manual 200,000-file memory measurement.
-- Replication schema and coverage definition are specified in
-  [`partial-backups.md`](partial-backups.md) and
-  [`../contracts/replication.md`](../contracts/replication.md); implementation
-  slices are in
-  [`replication-implementation-plan.md`](replication-implementation-plan.md).
 - Search design and whether SQLite FTS5 is required.
 
 ---
@@ -538,6 +538,8 @@ Open:
 - `product-specification.md` - product requirements.
 - `roadmap.md` - delivered phases and remaining work.
 - `../archive/phase-history.md` - preserved Phase 3-6 scope, decisions, tests, and limits.
+- `../archive/replication-design-detail.md` - archived replication data model, test plan, resolved decisions, and implementation phases.
+- `../archive/replication-implementation-plan.md` - archived replication delivery plan and acceptance matrix.
 - `../contracts/scan.md` - scan IPC and state contract.
 - `../contracts/library.md` - library IPC and media contract.
 - `../contracts/health.md` - Library health IPC and validation contract.

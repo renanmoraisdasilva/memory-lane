@@ -753,21 +753,20 @@ The initial release should not be considered complete unless:
 
 ## 18. Open implementation decisions
 
-These items remain open and should be resolved before or during the owning
-phase:
+These items remain open or are accepted limitations for the current release:
 
--   Timezone conversion policy when EXIF wall-clock dates are displayed outside
-    the capture timezone.
 -   ExifTool concurrency and performance on a 100,000-item mixed corpus.
--   Supported image/video formats, codec strategy, and whether ffmpeg/ffprobe or
-    Sharp are needed for unsupported playback or thumbnails.
 -   Whether filesystem access-time updates must be prevented.
--   Behavior for unreadable, encrypted, corrupt, or permission-restricted files.
 -   Search design and whether SQLite FTS5 is required (post-v0.1).
+
+Resolved: timezone handling preserves EXIF wall-clock time without inventing a
+timezone; codec strategy is recorded in ADR 0009 and the codec matrix; unreadable,
+encrypted, corrupt, and permission-restricted files are skipped with explicit
+error or failed states.
 
 Replication-specific decisions, including conflict handling, destination
 capacity, and one destination relationship per drive, are resolved in
-[`partial-backups.md`](partial-backups.md) §16.
+[`../archive/replication-design-detail.md`](../archive/replication-design-detail.md) §16.
 
 Resolved during Phases 4-5: validation outcomes and wording; all-generated-assets
 cache clearing; latest-snapshot backup retention with manual recovery.

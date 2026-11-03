@@ -7,7 +7,7 @@ Status: implemented. TypeScript and Zod definitions live in
 The behavior is defined in
 [`../product/partial-backups.md`](../product/partial-backups.md). The module
 layout and test plan are in
-[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md).
+[`../archive/replication-implementation-plan.md`](../archive/replication-implementation-plan.md).
 
 ## Contract layout
 

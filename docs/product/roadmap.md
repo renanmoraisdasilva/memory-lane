@@ -1,12 +1,12 @@
 # Roadmap
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03
 
 ## Current state
 
 Phases 0-5, post-v0.1 replication, and duplicate quarantine are implemented.
-Phase 6 automated hardening is complete; the physical-drive, replication, and
-clean-VM release pass remains.
+Phase 6 automated hardening and v0.1 automated acceptance are complete; the
+physical-drive, replication, and clean-VM release pass remains.
 
 - Electron shell, secure preload/IPC, DB worker, migrations, drive identity,
   logging, quality gates, and Windows packaging.
@@ -68,7 +68,7 @@ Adoption-first replication is implemented as a separate post-v0.1 release slice:
 
 Specifications:
 [`partial-backups.md`](partial-backups.md),
-[`replication-implementation-plan.md`](replication-implementation-plan.md),
+[`replication-implementation-plan.md`](../archive/replication-implementation-plan.md),
 [`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md),
 [`../adr/0007-promote-full-copy-to-source.md`](../adr/0007-promote-full-copy-to-source.md),
 [`../contracts/replication.md`](../contracts/replication.md).

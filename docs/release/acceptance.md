@@ -2,6 +2,10 @@
 
 Status: v0.1 and replication automated criteria complete; manual release pass pending.
 
+Requirement-level evidence and pass/fail status live in
+[`../traceability/matrix.md`](../traceability/matrix.md). This table is the human
+acceptance summary.
+
 | # | Criterion | Evidence | Status |
 |---|---|---|---|
 | 1 | Local-only, no accounts, telemetry, or network services | Offline Settings statement, no network clients, CSP self/localhost only | Automated |
@@ -58,7 +62,7 @@ marked complete in `release-checklist.md` with a date and tester. No manual row
 may be waived without updating the product scope.
 
 Replication has its own acceptance rows and matrix in
-[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md).
+[`../archive/replication-implementation-plan.md`](../archive/replication-implementation-plan.md).
 Its rows are accepted only when automated-green or recorded in
 `release-checklist.md`; they are not part of v0.1 acceptance.
 

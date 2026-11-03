@@ -267,7 +267,7 @@
       "currentText": "Source files remain unmodified; only the source archive's catalog database is written.",
       "proposedText": "The app writes the source archive's catalog database and app-managed caches. It does not write source archive files, except for the quarantine mover.",
       "sources": [
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/release/security-review.md"
       ],
       "adrs": ["docs/adr/0008-replication-implementation-boundaries.md"],
@@ -1785,8 +1785,8 @@
       "currentText": "Fresh catalogs migrate to the current schema (8)",
       "proposedText": "Fresh catalogs migrate to the current catalog schema.",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1807,8 +1807,8 @@
       "currentText": "Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage",
       "proposedText": "Existing schema 6 catalogs migrate without losing files, dates, hashes, or coverage",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1829,8 +1829,8 @@
       "currentText": "`archive_identity` has one stable `catalog_id` and `role = source` for existing archives",
       "proposedText": "`archive_identity` has one stable `catalog_id` and `role = source` for existing archives",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1851,8 +1851,8 @@
       "currentText": "`files.source_membership` defaults/backfills to `source`",
       "proposedText": "`files.source_membership` defaults/backfills to `source`",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1873,8 +1873,8 @@
       "currentText": "Replica and run tables enforce status, path, and uniqueness constraints",
       "proposedText": "Replica and run tables enforce status, path, and uniqueness constraints",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1895,8 +1895,8 @@
       "currentText": "At most one active run per source is enforced",
       "proposedText": "At most one active run per source is enforced",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1917,8 +1917,8 @@
       "currentText": "Hash records store source size and modified time; legacy values rehash only when the file changed after hashing",
       "proposedText": "Hash records store source size and modified time; legacy values rehash only when the file changed after hashing",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1939,8 +1939,8 @@
       "currentText": "A destination catalog can be opened while the source catalog stays open",
       "proposedText": "A destination catalog can be opened while the source catalog stays open",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1961,8 +1961,8 @@
       "currentText": "The source catalog cannot be opened as a destination",
       "proposedText": "The source catalog cannot be opened as a destination",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -1983,8 +1983,8 @@
       "currentText": "Duplicate catalog paths are rejected",
       "proposedText": "Duplicate catalog paths are rejected",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2005,8 +2005,8 @@
       "currentText": "Destination is identified by volume ID plus marker `destination_id`",
       "proposedText": "Destination is identified by volume ID plus marker `destination_id`",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2027,8 +2027,8 @@
       "currentText": "Two identical drives are not merged by volume ID collision",
       "proposedText": "Two identical drives are not merged by volume ID collision",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2049,8 +2049,8 @@
       "currentText": "Same-volume or overlapping source/destination roots are hard-rejected",
       "proposedText": "Same-volume or overlapping source/destination roots are hard-rejected",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2071,8 +2071,8 @@
       "currentText": "Destination root subfolder is stored relative and survives letter changes",
       "proposedText": "Destination root subfolder is stored relative and survives letter changes",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2093,8 +2093,8 @@
       "currentText": "Destination library resolves files through `relative_path` after a letter change",
       "proposedText": "Destination library resolves files through `relative_path` after a letter change",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2115,8 +2115,8 @@
       "currentText": "Missing marker adoption still works",
       "proposedText": "Missing marker adoption still works",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2137,8 +2137,8 @@
       "currentText": "Adoption matches path/size, unique name/size, then unique hash",
       "proposedText": "Adoption matches path/size, unique name/size, then unique hash",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2159,8 +2159,8 @@
       "currentText": "First-adoption different hash is a conflict and is never overwritten",
       "proposedText": "First-adoption different hash is a conflict and is never overwritten",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2181,8 +2181,8 @@
       "currentText": "Prior verified stale copy is replaceable only after approval",
       "proposedText": "Prior verified stale copy is replaceable only after approval",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2203,8 +2203,8 @@
       "currentText": "Destination changed or missing file is re-verified before coverage",
       "proposedText": "Destination changed or missing file is re-verified before coverage",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2225,8 +2225,8 @@
       "currentText": "Ambiguous file is reported, never guessed",
       "proposedText": "Ambiguous file is reported, never guessed",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2247,8 +2247,8 @@
       "currentText": "Only-on-drive extra is visible, never coverage, never copied/deleted",
       "proposedText": "Only-on-drive extra is visible, never coverage, never copied/deleted",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2269,8 +2269,8 @@
       "currentText": "Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release",
       "proposedText": "Source-missing replica is reported as a separate attention count; no restore or reveal/open in the first release",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2291,8 +2291,8 @@
       "currentText": "Symlink/junction/reparse escape is skipped or rejected",
       "proposedText": "Symlink/junction/reparse escape is skipped or rejected",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2313,8 +2313,8 @@
       "currentText": "Destination local catalog is reused or created once",
       "proposedText": "Destination local catalog is reused or created once",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2335,8 +2335,8 @@
       "currentText": "Adoption progress is visible; pause, resume, and restart recover the session",
       "proposedText": "Adoption progress is visible; pause, resume, and restart recover the session",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2357,8 +2357,8 @@
       "currentText": "Source index is written, timestamped, and readable without the source",
       "proposedText": "Source index is written, timestamped, and readable without the source",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2379,8 +2379,8 @@
       "currentText": "Marker/source-index write failure is a warning, not a backup failure",
       "proposedText": "Marker/source-index write failure is a warning, not a backup failure",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2401,8 +2401,8 @@
       "currentText": "Union coverage counts each source file once",
       "proposedText": "Union coverage counts each source file once",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2423,8 +2423,8 @@
       "currentText": "Intentional full-copy overlap is labelled separately",
       "proposedText": "Intentional full-copy overlap is labelled separately",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2445,8 +2445,8 @@
       "currentText": "Offline coverage is last-known and qualified",
       "proposedText": "Offline coverage is last-known and qualified",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2467,8 +2467,8 @@
       "currentText": "Retired/lost coverage is excluded from active coverage",
       "proposedText": "Retired/lost coverage is excluded from active coverage",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2489,8 +2489,8 @@
       "currentText": "Source-missing and orphan files do not count as current coverage",
       "proposedText": "Source-missing and orphan files do not count as current coverage",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2511,8 +2511,8 @@
       "currentText": "Coverage labels name full copy, partial drives, and all destinations",
       "proposedText": "Coverage labels name full copy, partial drives, and all destinations",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2533,8 +2533,8 @@
       "currentText": "No 100% all-destination claim when no full copy exists",
       "proposedText": "No 100% all-destination claim when no full copy exists",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2558,8 +2558,8 @@
       "currentText": "Plan covers the entire present source archive, no file selection",
       "proposedText": "Plan covers the entire present source archive, no file selection",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2580,8 +2580,8 @@
       "currentText": "Oldest-first order; equal dates by path; undated last",
       "proposedText": "Oldest-first order; equal dates by path; undated last",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2602,8 +2602,8 @@
       "currentText": "Partial destinations fill in priority order and stop at allocation",
       "proposedText": "Partial destinations fill in priority order and stop at allocation",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2624,8 +2624,8 @@
       "currentText": "No source file goes to two partial destinations",
       "proposedText": "No source file goes to two partial destinations",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2649,8 +2649,8 @@
       "currentText": "Full copy receives every source file independently",
       "proposedText": "Full copy receives every source file independently",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2674,8 +2674,8 @@
       "currentText": "Full copy and partial jobs can each be absent or both present",
       "proposedText": "Full copy and partial jobs can each be absent or both present",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2699,8 +2699,8 @@
       "currentText": "Completed full copy is excluded from default later runs",
       "proposedText": "Completed full copy is excluded from default later runs",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2721,8 +2721,8 @@
       "currentText": "Offline earlier destination keeps its range; later destinations do not steal it",
       "proposedText": "Offline earlier destination keeps its range; later destinations do not steal it",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2743,8 +2743,8 @@
       "currentText": "Connected-drives-only mode is advanced, off by default, and warns",
       "proposedText": "Connected-drives-only mode is advanced, off by default, and warns",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2765,8 +2765,8 @@
       "currentText": "Exact remainder count, bytes, and starting date are reported",
       "proposedText": "Exact remainder count, bytes, and starting date are reported",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2787,8 +2787,8 @@
       "currentText": "Full-copy shortfall is exact; default blocks; explicit partial fallback allowed",
       "proposedText": "Full-copy shortfall is exact; default blocks; explicit partial fallback allowed",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2812,8 +2812,8 @@
       "currentText": "Incompatible file tries later destinations and reports unused capacity",
       "proposedText": "Incompatible file tries later destinations and reports unused capacity",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2834,8 +2834,8 @@
       "currentText": "No destinations shows add-destination state and disables Start",
       "proposedText": "No destinations shows add-destination state and disables Start",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2856,8 +2856,8 @@
       "currentText": "All destinations offline keeps plan readable but disables Start",
       "proposedText": "All destinations offline keeps plan readable but disables Start",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2878,8 +2878,8 @@
       "currentText": "Stale replacement reserve use is shown and keeps 1 GiB free",
       "proposedText": "Stale replacement reserve use is shown and keeps 1 GiB free",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2900,8 +2900,8 @@
       "currentText": "New copies never consume the reserve",
       "proposedText": "New copies never consume the reserve",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2922,8 +2922,8 @@
       "currentText": "Plan hash changes when source or destination inputs change",
       "proposedText": "Plan hash changes when source or destination inputs change",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2944,8 +2944,8 @@
       "currentText": "Start run creates one run and opens the run route",
       "proposedText": "Start run creates one run and opens the run route",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2966,8 +2966,8 @@
       "currentText": "Second Start opens the active run instead of creating another",
       "proposedText": "Second Start opens the active run instead of creating another",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -2988,8 +2988,8 @@
       "currentText": "Pause finishes the current file and persists progress",
       "proposedText": "Pause finishes the current file and persists progress",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3010,8 +3010,8 @@
       "currentText": "Resume continues without recopying verified files",
       "proposedText": "Resume continues without recopying verified files",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3032,8 +3032,8 @@
       "currentText": "Stop after current file ends in `stopped` and keeps verified files",
       "proposedText": "Stop after current file ends in `stopped` and keeps verified files",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3054,8 +3054,8 @@
       "currentText": "App shutdown marks the run `interrupted`; restart offers resume",
       "proposedText": "App shutdown marks the run `interrupted`; restart offers resume",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3076,8 +3076,8 @@
       "currentText": "Every screen can reach the run via chip/banner",
       "proposedText": "Every screen can reach the run via chip/banner",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3098,8 +3098,8 @@
       "currentText": "Plan and destination edits are locked while running; reason is shown",
       "proposedText": "Plan and destination edits are locked while running; reason is shown",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3120,8 +3120,8 @@
       "currentText": "Pause unlocks plan/destination edits",
       "proposedText": "Pause unlocks plan/destination edits",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3142,8 +3142,8 @@
       "currentText": "Replan increments `planRevision` and appends an event",
       "proposedText": "Replan increments `planRevision` and appends an event",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3164,8 +3164,8 @@
       "currentText": "Verified files are never moved or recopied by replan",
       "proposedText": "Verified files are never moved or recopied by replan",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3186,8 +3186,8 @@
       "currentText": "Adding a destination during a run is queued for the next plan",
       "proposedText": "Adding a destination during a run is queued for the next plan",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3208,8 +3208,8 @@
       "currentText": "Promotion is blocked while running or paused",
       "proposedText": "Promotion is blocked while running or paused",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3233,8 +3233,8 @@
       "currentText": "Source switching is blocked while running or paused",
       "proposedText": "Source switching is blocked while running or paused",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3255,8 +3255,8 @@
       "currentText": "Scan/validation and replication cannot run together",
       "proposedText": "Scan/validation and replication cannot run together",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3280,8 +3280,8 @@
       "currentText": "Copy writes to a temp file, hashes the stream once, checks source/size, then renames",
       "proposedText": "Copy writes to a temp file, hashes the stream once, checks source/size, then renames",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3302,8 +3302,8 @@
       "currentText": "Source change during copy discards temp and retries once",
       "proposedText": "Source change during copy discards temp and retries once",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3327,8 +3327,8 @@
       "currentText": "Source hash unknown uses size/mtime and streamed hash",
       "proposedText": "Source hash unknown uses size/mtime and streamed hash",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3349,8 +3349,8 @@
       "currentText": "Hash mismatch discards temp and marks failed",
       "proposedText": "Hash mismatch discards temp and marks failed",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3371,8 +3371,8 @@
       "currentText": "Crash mid-copy leaves no partial file counted; temp is cleaned",
       "proposedText": "Crash mid-copy leaves no partial file counted; temp is cleaned",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3393,8 +3393,8 @@
       "currentText": "Disk full pauses partial destination and marks full copy incomplete",
       "proposedText": "Disk full pauses partial destination and marks full copy incomplete",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3418,8 +3418,8 @@
       "currentText": "Locked/permission-denied file retries, then fails without killing run",
       "proposedText": "Locked/permission-denied file retries, then fails without killing run",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3443,8 +3443,8 @@
       "currentText": "Destination/source disconnect pauses safely; no substituted drive",
       "proposedText": "Destination/source disconnect pauses safely; no substituted drive",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3468,8 +3468,8 @@
       "currentText": "Destination write outside root or via symlink is rejected",
       "proposedText": "Destination write outside root or via symlink is rejected",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3493,8 +3493,8 @@
       "currentText": "Destination local library updates are derived; failure does not invalidate backup",
       "proposedText": "Destination local library updates are derived; failure does not invalidate backup",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3515,8 +3515,8 @@
       "currentText": "Copied thumbnail cache is reused only when source hash/version matches",
       "proposedText": "Copied thumbnail cache is reused only when source hash/version matches",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3537,8 +3537,8 @@
       "currentText": "Full copy completes only with zero stale/missing/conflict/failed/remainder",
       "proposedText": "Full copy completes only with zero stale/missing/conflict/failed/remainder",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3562,8 +3562,8 @@
       "currentText": "Full copy out of space becomes incomplete and does not spill",
       "proposedText": "Full copy out of space becomes incomplete and does not spill",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3584,8 +3584,8 @@
       "currentText": "Source growth degrades full copy to incomplete with shortfall",
       "proposedText": "Source growth degrades full copy to incomplete with shortfall",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3606,8 +3606,8 @@
       "currentText": "Promotion requires complete full copy, connected/confirmed identity, no active work",
       "proposedText": "Promotion requires complete full copy, connected/confirmed identity, no active work",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3631,8 +3631,8 @@
       "currentText": "Promotion preserves `catalog_id`, dates, overrides, duplicates, coverage",
       "proposedText": "Promotion preserves `catalog_id`, dates, overrides, duplicates, coverage",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3656,8 +3656,8 @@
       "currentText": "Promotion rebases source root and keeps `source_relative_path` stable",
       "proposedText": "Promotion rebases source root and keeps `source_relative_path` stable",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3681,8 +3681,8 @@
       "currentText": "Old source becomes a demoted destination; 1 TB keep/retire applies",
       "proposedText": "Old source becomes a demoted destination; 1 TB keep/retire applies",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3706,8 +3706,8 @@
       "currentText": "Promotion rollback works before first change; refused after",
       "proposedText": "Promotion rollback works before first change; refused after",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3731,8 +3731,8 @@
       "currentText": "Promotion merge failure restores snapshots",
       "proposedText": "Promotion merge failure restores snapshots",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3756,8 +3756,8 @@
       "currentText": "Destination-only files stay out of promoted source; remain local",
       "proposedText": "Destination-only files stay out of promoted source; remain local",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3781,8 +3781,8 @@
       "currentText": "Active source cannot be registered as a destination in this release",
       "proposedText": "Active source cannot be registered as a destination in this release",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3803,8 +3803,8 @@
       "currentText": "Destination-scoped media resolves only destination file IDs",
       "proposedText": "Destination-scoped media resolves only destination file IDs",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3825,8 +3825,8 @@
       "currentText": "All destination writes are confined to the allowlisted writer",
       "proposedText": "All destination writes are confined to the allowlisted writer",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3847,8 +3847,8 @@
       "currentText": "No source file content or metadata is modified",
       "proposedText": "No source file content or metadata is modified",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -3869,8 +3869,8 @@
       "currentText": "No restore-to-source or destination reveal/open IPC exists; source files are never written",
       "proposedText": "No restore-to-source or destination reveal/open IPC exists; source files are never written",
       "sources": [
-        "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
-        "docs/product/partial-backups.md#14-acceptance-criteria",
+        "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+        "docs/product/partial-backups.md#13-acceptance-criteria",
         "docs/contracts/replication.md"
       ],
       "adrs": [],
@@ -5047,11 +5047,11 @@
       "title": "The replication matrix names schema 8, but the catalog is at 12",
       "claims": [
         {
-          "source": "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+          "source": "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
           "text": "R-01 says fresh catalogs migrate to the current schema (8)."
         },
         {
-          "source": "docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix",
+          "source": "docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix",
           "text": "R-02 says existing schema 6 catalogs migrate without data loss."
         }
       ],

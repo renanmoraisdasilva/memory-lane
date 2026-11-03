@@ -120,8 +120,8 @@ Generated from `docs/traceability/requirements.json`.
 
 **Claims**
 
-- `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-01 says fresh catalogs migrate to the current schema (8).
-- `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-02 says existing schema 6 catalogs migrate without data loss.
+- `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-01 says fresh catalogs migrate to the current schema (8).
+- `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`: R-02 says existing schema 6 catalogs migrate without data loss.
 
 **Contradicted by**
 

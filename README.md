@@ -330,30 +330,10 @@ packaging uses Electron Builder, NSIS, and a Windows CI runner.
 
 ## Documentation
 
-Start at [`docs/README.md`](docs/README.md).
-
-| Document | Purpose |
-| --- | --- |
-| [`product/product-specification.md`](docs/product/product-specification.md) | Product vision and requirements |
-| [`product/scope-and-implementation.md`](docs/product/scope-and-implementation.md) | Scope, architecture, data model, quality gates |
-| [`product/roadmap.md`](docs/product/roadmap.md) | Delivered phases and next work |
-| [`product/partial-backups.md`](docs/product/partial-backups.md) | Replication behavior: adoption, copies, libraries, promotion |
-| [`product/replication-implementation-plan.md`](docs/product/replication-implementation-plan.md) | Replication slices, architecture, test matrix |
-| [`product/duplicate-quarantine-plan.md`](docs/product/duplicate-quarantine-plan.md) | Duplicate quarantine behavior, keeper rule, guardrails, and edge cases |
-| [`traceability/README.md`](docs/traceability/README.md) | Requirement ledger, review workflow, and generated matrix |
-| [`archive/phase-history.md`](docs/archive/phase-history.md) | Preserved Phase 3-6 scope, decisions, and limits |
-| [`contracts/scan.md`](docs/contracts/scan.md) | Scan IPC, state, stages, and reports |
-| [`contracts/library.md`](docs/contracts/library.md) | Library IPC, media protocol, viewer |
-| [`contracts/health.md`](docs/contracts/health.md) | Health IPC, duplicates, validation |
-| [`contracts/other-files.md`](docs/contracts/other-files.md) | Other files IPC and categories |
-| [`contracts/settings.md`](docs/contracts/settings.md) | Settings, cache, backup, recovery |
-| [`contracts/replication.md`](docs/contracts/replication.md) | Replication IPC, runs, destinations, media, promotion |
-| [`release/acceptance.md`](docs/release/acceptance.md) | v0.1 and replication acceptance criteria and sign-off |
-| [`release/release-checklist.md`](docs/release/release-checklist.md) | Clean-VM, physical-drive, and replication release pass |
-| [`release/security-review.md`](docs/release/security-review.md) | Trust boundaries, controls, residual risks |
-| [`release/codec-matrix.md`](docs/release/codec-matrix.md) | Codec expectations and external fallbacks |
-| [`release/third-party-notices.md`](docs/release/third-party-notices.md) | Bundled FFmpeg license and source notice |
-| [`adr/`](docs/adr/README.md) | Architecture decision records |
+Start at [`docs/README.md`](docs/README.md). It indexes the product
+specification, current scope, contracts, ADRs, release material, and the
+traceability ledger. The generated requirement-to-test matrix is at
+[`docs/traceability/matrix.md`](docs/traceability/matrix.md).
 
 The static files in `ui-mockups/` are a design reference only; the screenshots
 above are captured from the packaged application.

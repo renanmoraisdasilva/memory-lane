@@ -35,7 +35,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-51
 - **Proposed:** Start run creates one run and opens the run route
 - **Current / source:** Start run creates one run and opens the run route
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -51,7 +51,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-52
 - **Proposed:** Second Start opens the active run instead of creating another
 - **Current / source:** Second Start opens the active run instead of creating another
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -67,7 +67,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-53
 - **Proposed:** Pause finishes the current file and persists progress
 - **Current / source:** Pause finishes the current file and persists progress
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -83,7 +83,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-54
 - **Proposed:** Resume continues without recopying verified files
 - **Current / source:** Resume continues without recopying verified files
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -99,7 +99,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-55
 - **Proposed:** Stop after current file ends in `stopped` and keeps verified files
 - **Current / source:** Stop after current file ends in `stopped` and keeps verified files
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -115,7 +115,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-56
 - **Proposed:** App shutdown marks the run `interrupted`; restart offers resume
 - **Current / source:** App shutdown marks the run `interrupted`; restart offers resume
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -131,7 +131,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-57
 - **Proposed:** Every screen can reach the run via chip/banner
 - **Current / source:** Every screen can reach the run via chip/banner
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -147,7 +147,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-58
 - **Proposed:** Plan and destination edits are locked while running; reason is shown
 - **Current / source:** Plan and destination edits are locked while running; reason is shown
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -163,7 +163,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-59
 - **Proposed:** Pause unlocks plan/destination edits
 - **Current / source:** Pause unlocks plan/destination edits
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -179,7 +179,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-60
 - **Proposed:** Replan increments `planRevision` and appends an event
 - **Current / source:** Replan increments `planRevision` and appends an event
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -195,7 +195,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-61
 - **Proposed:** Verified files are never moved or recopied by replan
 - **Current / source:** Verified files are never moved or recopied by replan
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -211,7 +211,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-62
 - **Proposed:** Adding a destination during a run is queued for the next plan
 - **Current / source:** Adding a destination during a run is queued for the next plan
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -227,7 +227,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-63
 - **Proposed:** Promotion is blocked while running or paused
 - **Current / source:** Promotion is blocked while running or paused
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/promotion-policy.test.ts`, `src/renderer/src/features/replication/ReplicationPromotionPage.test.tsx`
@@ -243,7 +243,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-64
 - **Proposed:** Source switching is blocked while running or paused
 - **Current / source:** Source switching is blocked while running or paused
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `tests/integration/replication-run-controls.test.ts`
@@ -259,7 +259,7 @@ Kinds: outcome 8, invariant 6, constraint 1.
 - **Legacy ID:** R-65
 - **Proposed:** Scan/validation and replication cannot run together
 - **Current / source:** Scan/validation and replication cannot run together
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/workloads/application/workload-coordinator.test.ts`, `tests/integration/scan-service.test.ts`

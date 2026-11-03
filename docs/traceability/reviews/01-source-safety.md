@@ -152,7 +152,7 @@ Kinds: invariant 13, constraint 2, outcome 10, non-goal 3.
 - **Status:** verified
 - **Proposed:** The app writes the source archive's catalog database and app-managed caches. It does not write source archive files, except for the quarantine mover.
 - **Current / source:** Source files remain unmodified; only the source archive's catalog database is written.
-- **Sources:** `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/release/security-review.md`
+- **Sources:** `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/release/security-review.md`
 - **ADRs:** `docs/adr/0008-replication-implementation-boundaries.md`
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/connection.test.ts`, `src/main/db/source-index-writer.test.ts`

@@ -1,7 +1,7 @@
 # Replication implementation plan
 
 Status: implemented in Slices 1-3. Design and behavior live in
-[`partial-backups.md`](partial-backups.md). Contracts live in
+[`partial-backups.md`](../product/partial-backups.md). Contracts live in
 [`../contracts/replication.md`](../contracts/replication.md). The cross-cutting
 architecture decision is
 [`../adr/0008-replication-implementation-boundaries.md`](../adr/0008-replication-implementation-boundaries.md).
@@ -962,7 +962,7 @@ Definition of done for the feature:
 | Windows path/case/symlink behavior | Wrong file matching or overwrite | Normalized path keys, lstat/realpath checks, collision tests |
 | Destination local catalog and media scope | Large secondary feature | Reuse catalog schema; add destination-scoped media in Slice 2; keep source media unchanged |
 | Test flakiness from real filesystem timing | Unreliable CI | Deterministic temp fixtures, polling helpers, fault injection at interfaces, no fixed sleeps |
-| Scope creep from dual-role, sidecars, selected second copies | Delays release | Explicitly deferred in §16 of the spec; dedicated destinations only |
+| Scope creep from dual-role, sidecars, selected second copies | Delays release | Explicitly deferred in [§16 of the design detail](replication-design-detail.md#16-resolved-decisions-and-deferred-choices); dedicated destinations only |
 | Existing tests hard-code schema 6 | Broad test churn | Update fixtures once in Slice 1; use `CATALOG_SCHEMA_VERSION` in tests |
 
 ## 13. Deferred work

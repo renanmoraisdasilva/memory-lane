@@ -6,7 +6,7 @@
 Detailed feature behavior:
 [`../product/partial-backups.md`](../product/partial-backups.md).
 Implementation plan and test matrix:
-[`../product/replication-implementation-plan.md`](../product/replication-implementation-plan.md).
+[`../archive/replication-implementation-plan.md`](../archive/replication-implementation-plan.md).
 IPC and worker contracts:
 [`../contracts/replication.md`](../contracts/replication.md).
 

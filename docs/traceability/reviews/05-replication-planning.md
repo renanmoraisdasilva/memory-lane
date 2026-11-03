@@ -46,7 +46,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-25
 - **Proposed:** Source index is written, timestamped, and readable without the source
 - **Current / source:** Source index is written, timestamped, and readable without the source
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/db/source-index-writer.test.ts`
@@ -62,7 +62,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-26
 - **Proposed:** Marker/source-index write failure is a warning, not a backup failure
 - **Current / source:** Marker/source-index write failure is a warning, not a backup failure
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/infrastructure/destination-marker.test.ts`
@@ -78,7 +78,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-27
 - **Proposed:** Union coverage counts each source file once
 - **Current / source:** Union coverage counts each source file once
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -94,7 +94,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-28
 - **Proposed:** Intentional full-copy overlap is labelled separately
 - **Current / source:** Intentional full-copy overlap is labelled separately
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -110,7 +110,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-29
 - **Proposed:** Offline coverage is last-known and qualified
 - **Current / source:** Offline coverage is last-known and qualified
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -126,7 +126,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-30
 - **Proposed:** Retired/lost coverage is excluded from active coverage
 - **Current / source:** Retired/lost coverage is excluded from active coverage
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -142,7 +142,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-31
 - **Proposed:** Source-missing and orphan files do not count as current coverage
 - **Current / source:** Source-missing and orphan files do not count as current coverage
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/coverage.test.ts`
@@ -158,7 +158,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-32
 - **Proposed:** Coverage labels name full copy, partial drives, and all destinations
 - **Current / source:** Coverage labels name full copy, partial drives, and all destinations
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -174,7 +174,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-33
 - **Proposed:** No 100% all-destination claim when no full copy exists
 - **Current / source:** No 100% all-destination claim when no full copy exists
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`, `src/renderer/src/features/replication/ReplicationPlanPage.test.tsx`
@@ -190,7 +190,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-34
 - **Proposed:** Plan covers the entire present source archive, no file selection
 - **Current / source:** Plan covers the entire present source archive, no file selection
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -206,7 +206,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-35
 - **Proposed:** Oldest-first order; equal dates by path; undated last
 - **Current / source:** Oldest-first order; equal dates by path; undated last
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/chronology.test.ts`
@@ -222,7 +222,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-36
 - **Proposed:** Partial destinations fill in priority order and stop at allocation
 - **Current / source:** Partial destinations fill in priority order and stop at allocation
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -238,7 +238,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-37
 - **Proposed:** No source file goes to two partial destinations
 - **Current / source:** No source file goes to two partial destinations
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`, `src/main/modules/replication/infrastructure/file-copier.test.ts`
@@ -254,7 +254,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-38
 - **Proposed:** Full copy receives every source file independently
 - **Current / source:** Full copy receives every source file independently
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`, `src/main/modules/replication/infrastructure/file-copier.test.ts`
@@ -270,7 +270,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-39
 - **Proposed:** Full copy and partial jobs can each be absent or both present
 - **Current / source:** Full copy and partial jobs can each be absent or both present
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`, `src/renderer/src/features/replication/ReplicationPlanPage.test.tsx`
@@ -286,7 +286,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-40
 - **Proposed:** Completed full copy is excluded from default later runs
 - **Current / source:** Completed full copy is excluded from default later runs
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -302,7 +302,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-41
 - **Proposed:** Offline earlier destination keeps its range; later destinations do not steal it
 - **Current / source:** Offline earlier destination keeps its range; later destinations do not steal it
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -318,7 +318,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-42
 - **Proposed:** Connected-drives-only mode is advanced, off by default, and warns
 - **Current / source:** Connected-drives-only mode is advanced, off by default, and warns
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -334,7 +334,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-43
 - **Proposed:** Exact remainder count, bytes, and starting date are reported
 - **Current / source:** Exact remainder count, bytes, and starting date are reported
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -350,7 +350,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-44
 - **Proposed:** Full-copy shortfall is exact; default blocks; explicit partial fallback allowed
 - **Current / source:** Full-copy shortfall is exact; default blocks; explicit partial fallback allowed
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`, `tests/integration/replication-full-copy.test.ts`
@@ -366,7 +366,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-45
 - **Proposed:** Incompatible file tries later destinations and reports unused capacity
 - **Current / source:** Incompatible file tries later destinations and reports unused capacity
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -382,7 +382,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-46
 - **Proposed:** No destinations shows add-destination state and disables Start
 - **Current / source:** No destinations shows add-destination state and disables Start
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -398,7 +398,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-47
 - **Proposed:** All destinations offline keeps plan readable but disables Start
 - **Current / source:** All destinations offline keeps plan readable but disables Start
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
@@ -414,7 +414,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-48
 - **Proposed:** Stale replacement reserve use is shown and keeps 1 GiB free
 - **Current / source:** Stale replacement reserve use is shown and keeps 1 GiB free
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/destination-summary.test.ts`
@@ -430,7 +430,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-49
 - **Proposed:** New copies never consume the reserve
 - **Current / source:** New copies never consume the reserve
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/application/destination-summary.test.ts`
@@ -446,7 +446,7 @@ Kinds: outcome 12, invariant 13, constraint 1.
 - **Legacy ID:** R-50
 - **Proposed:** Plan hash changes when source or destination inputs change
 - **Current / source:** Plan hash changes when source or destination inputs change
-- **Sources:** `docs/product/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#14-acceptance-criteria`, `docs/contracts/replication.md`
+- **Sources:** `docs/archive/replication-implementation-plan.md#9-acceptance-criteria-matrix`, `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
 - **Existing tests:** `src/main/modules/replication/domain/plan-builder.test.ts`
