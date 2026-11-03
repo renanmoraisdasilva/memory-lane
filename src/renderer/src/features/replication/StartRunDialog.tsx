@@ -202,44 +202,46 @@ export function StartRunDialog({
         </>
       }
     >
-      <div className={styles.fieldGrid}>
-        <div className={styles.field}>
-          <label htmlFor="run-scope">Run scope</label>
-          <Select
-            id="run-scope"
-            value={scope}
-            onChange={setScope}
-            options={scopes.map((candidate) => ({
-              value: candidate,
-              label: SCOPE_LABELS[candidate],
-            }))}
-          />
+      <div className={styles.startRunBody}>
+        <div className={`${styles.fieldGrid} ${styles.fieldGridStacked}`}>
+          <div className={styles.field}>
+            <label htmlFor="run-scope">Run scope</label>
+            <Select
+              id="run-scope"
+              value={scope}
+              onChange={setScope}
+              options={scopes.map((candidate) => ({
+                value: candidate,
+                label: SCOPE_LABELS[candidate],
+              }))}
+            />
+          </div>
         </div>
+        {scopes.length === 0 ? (
+          <Callout tone="amber" title="No runnable scope">
+            The full copy is short of safe space. Change its goal to partial coverage or connect a
+            larger destination.
+          </Callout>
+        ) : null}
+        {shortfall ? (
+          <Callout tone="amber" title="Full copy does not fit">
+            The full copy is short {formatCount(plan.fullCopy?.shortfallFiles ?? 0)} files. Only
+            partial coverage can run until the destination has more space.
+          </Callout>
+        ) : null}
+        <StartRunSummary plan={plan} scope={scope} />
+        {staleWarning ? (
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={replaceStale}
+              onChange={(event) => setReplaceStale(event.target.checked)}
+            />
+            Replace stale or missing copies on their current destination
+          </label>
+        ) : null}
+        {start.error === null ? null : <Alert>{start.error.message}</Alert>}
       </div>
-      {scopes.length === 0 ? (
-        <Callout tone="amber" title="No runnable scope">
-          The full copy is short of safe space. Change its goal to partial coverage or connect a
-          larger destination.
-        </Callout>
-      ) : null}
-      {shortfall ? (
-        <Callout tone="amber" title="Full copy does not fit">
-          The full copy is short {formatCount(plan.fullCopy?.shortfallFiles ?? 0)} files. Only
-          partial coverage can run until the destination has more space.
-        </Callout>
-      ) : null}
-      <StartRunSummary plan={plan} scope={scope} />
-      {staleWarning ? (
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={replaceStale}
-            onChange={(event) => setReplaceStale(event.target.checked)}
-          />
-          Replace stale or missing copies on their current destination
-        </label>
-      ) : null}
-      {start.error === null ? null : <Alert>{start.error.message}</Alert>}
     </Modal>
   );
 }
