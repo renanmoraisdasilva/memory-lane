@@ -147,8 +147,8 @@ Kinds: outcome 19, invariant 5, constraint 1.
 
 - **Kind:** outcome
 - **Status:** verified
-- **Proposed:** The missing list is offset-paged and returns the IDs of every matching file so Select all covers more than the visible page. Dismiss and restore accept up to 50,000 IDs per request.
-- **Current / source:** The missing list is offset-paged, includes fileIds for every matching file, and dismiss/restore accept up to 50,000 ids.
+- **Proposed:** The missing and disregarded lists are offset-paged in the UI and return the IDs of every matching file so Select all covers more than the visible page. The disregarded list is newest-first. Dismiss and restore accept up to 50,000 IDs per request.
+- **Current / source:** The missing list is offset-paged in the UI, includes fileIds for every matching file, and dismiss/restore accept up to 50,000 ids. The disregarded list is ordered by dismissed_at descending.
 - **Sources:** `docs/contracts/health.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/health.md`
