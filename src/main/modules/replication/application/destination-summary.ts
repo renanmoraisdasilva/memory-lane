@@ -114,6 +114,8 @@ export function toDestinationSummary(
     reserveBytes: record.reserveBytes,
     verifiedBytes: record.verifiedBytes,
     verifiedFiles: record.verifiedFiles,
+    unverifiedFiles:
+      record.conflictFiles + record.staleFiles + record.missingFiles + record.failedFiles,
     availableBytes: availableBytes(record, drive),
     lastSeenAt: record.lastSeenAt,
     lastVerifiedAt: record.lastVerifiedAt,

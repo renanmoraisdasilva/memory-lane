@@ -86,6 +86,16 @@ describe("destination summary", () => {
     ).toBe(200);
   });
 
+  it("[ML-REPL-099] counts unverified source replicas", () => {
+    expect(
+      toDestinationSummary(
+        { ...record, conflictFiles: 1, staleFiles: 2, missingFiles: 3, failedFiles: 4 },
+        drive,
+        0,
+      ).unverifiedFiles,
+    ).toBe(10);
+  });
+
   it("[ML-REPL-031] labels offline, retired, and lost destinations", () => {
     expect(toDestinationSummary(record, undefined, 0)).toMatchObject({
       connection: "offline",

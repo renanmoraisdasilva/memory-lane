@@ -218,6 +218,16 @@
   background: var(--panel-2);
 }
 
+.destinationCardDone {
+  background: var(--panel-2);
+  opacity: 0.58;
+}
+
+.destinationCardDone:hover {
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+
 .destinationTop {
   display: flex;
   align-items: flex-start;
@@ -236,6 +246,165 @@
   margin: 3px 0 0;
   color: var(--faint);
   font-size: 10.5px;
+}
+
+.destinationTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.stateMark {
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stateMarkVerified {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.stateMarkUnverified {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
+.stateMarkDone,
+.stateMarkEmpty {
+  background: var(--panel-3);
+  color: var(--faint);
+}
+
+.statusPills {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.spaceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.spaceHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--faint);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spaceHead strong {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.spaceTrack {
+  position: relative;
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--panel-3);
+}
+
+.spaceUsed,
+.spaceUsedFull {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+}
+
+.spaceUsedFull {
+  background: var(--faint);
+}
+
+.spaceReserve {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  border-left: 1px solid rgba(15, 15, 17, 0.55);
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(147, 139, 129, 0.28) 0 2px,
+    transparent 2px 5px
+  );
+}
+
+.spaceFoot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--faint);
+  font-size: 10.5px;
+}
+
+.spaceSafe {
+  color: var(--text-2);
+  font-weight: 550;
+}
+
+.destinationCardDone .spaceSafe {
+  color: var(--muted);
+}
+
+.spaceFree {
+  cursor: help;
+  border-bottom: 1px dotted var(--line);
+}
+
+.coverageLine {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 1px;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.coverageCheck {
+  color: var(--green);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.coverageUnverified {
+  color: var(--amber);
+}
+
+.coverageUnverified .coverageCheck {
+  color: var(--amber);
+  font-weight: 700;
+}
+
+.coverageDone,
+.coverageEmpty {
+  color: var(--faint);
+}
+
+.coverageDone .coverageCheck,
+.coverageEmpty .coverageCheck {
+  color: var(--faint);
 }
 
 .badges {

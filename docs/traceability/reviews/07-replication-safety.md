@@ -1,12 +1,12 @@
 # Batch 7 review — Replication: copy, promotion, and safety
 
-Status: **implemented**. Requirements: **31**. Conflicts: **0**.
+Status: **implemented**. Requirements: **32**. Conflicts: **0**.
 
 This sheet is generated from `docs/traceability/requirements.json`. This batch is accepted; the matrix is the live view. New requirements start at `needs-review`.
 
-Kinds: invariant 17, outcome 11, constraint 3.
+Kinds: invariant 17, outcome 12, constraint 3.
 
-Verification: automated-test 31.
+Verification: automated-test 32.
 
 ## Summary
 
@@ -43,6 +43,7 @@ Verification: automated-test 31.
 | ML-REPL-096 | constraint | verified | automated-test | Run progress never reports verified above planned |
 | ML-REPL-097 | outcome | verified | automated-test | A completed run with failed files says so |
 | ML-REPL-098 | outcome | verified | automated-test | Unreadable source files have specific error codes |
+| ML-REPL-099 | outcome | verified | automated-test | Destination cards separate verification from space |
 
 ## Requirements
 
@@ -566,6 +567,22 @@ Verification: automated-test 31.
 - **Test notes:** The file copier test covers EPERM/EACCES, EBUSY, ENOENT, EIO, and unknown mappings.
 - **Conflicts:** _none_
 - **Notes:** Makes source access failures actionable instead of looking like a replication bug.
+- **Decision:** verified
+
+### ML-REPL-099 — Destination cards separate verification from space
+
+- **Kind:** outcome
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** Each destination card shows source verification with a green check when every present source replica is verified and a yellow warning when any replica is unverified. Drive space is a separate neutral bar. A full drive with no unverified source files is greyed out and marked Full and done; a full drive with unverified files stays yellow and asks for verification.
+- **Sources:** `docs/product/partial-backups.md#12-ui-specification`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/renderer/src/features/replication/components.tsx`, `src/renderer/src/features/replication/replication.module.css`, `src/shared/contracts/replication/types.ts`, `src/main/modules/replication/application/destination-summary.ts`
+- **Proving tests:** `src/main/modules/replication/application/destination-summary.test.ts`, `src/renderer/src/features/replication/ReplicationOverviewPage.test.tsx`
+- **Test notes:** The overview page tests cover verified, unverified, full/done, and full/unverified cards; the destination summary test covers the unverified count.
+- **Conflicts:** _none_
+- **Notes:** Verification color is separate from capacity color so a full drive does not look verified.
 - **Decision:** verified
 
 ## Conflicts

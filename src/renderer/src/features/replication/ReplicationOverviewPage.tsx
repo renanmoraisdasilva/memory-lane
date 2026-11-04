@@ -6,7 +6,8 @@ import { Alert, Callout } from "../../components/ui/Callout";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { formatCount } from "../../lib/format";
 import { AddDestinationDrawer } from "./AddDestinationDrawer";
-import { CoverageCard, DestinationCard, formatSize, Stat } from "./components";
+import { CoverageCard, formatSize, Stat } from "./components";
+import { DestinationCard } from "./destination-cards";
 import { useReplicationOverview } from "./use-replication";
 import styles from "./replication.module.css";
 

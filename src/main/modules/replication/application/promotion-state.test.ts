@@ -44,6 +44,7 @@ function summary(
       reserveBytes: 0,
       verifiedBytes: 100,
       verifiedFiles: 10,
+      unverifiedFiles: 0,
       availableBytes: 1_000_000,
       lastSeenAt: null,
       lastVerifiedAt: null,

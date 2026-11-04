@@ -49,6 +49,7 @@ function summary(
     reserveBytes: 0,
     verifiedBytes: overrides.verifiedBytes ?? 0,
     verifiedFiles: overrides.verifiedFiles ?? 0,
+    unverifiedFiles: 0,
     availableBytes,
     lastSeenAt: null,
     lastVerifiedAt: null,

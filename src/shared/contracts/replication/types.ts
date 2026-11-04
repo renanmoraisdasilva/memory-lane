@@ -59,6 +59,7 @@ export const DestinationSummarySchema = z.object({
   reserveBytes: z.number().int().nonnegative(),
   verifiedBytes: z.number().int().nonnegative(),
   verifiedFiles: z.number().int().nonnegative(),
+  unverifiedFiles: z.number().int().nonnegative(),
   availableBytes: z.number().int().nonnegative(),
   lastSeenAt: z.string().nullable(),
   lastVerifiedAt: z.string().nullable(),

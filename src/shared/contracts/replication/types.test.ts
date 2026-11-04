@@ -27,6 +27,7 @@ const destination = {
   reserveBytes: 100,
   verifiedBytes: 200,
   verifiedFiles: 2,
+  unverifiedFiles: 0,
   availableBytes: 300,
   lastSeenAt: "2026-11-01T12:00:00.000Z",
   lastVerifiedAt: "2026-11-01T12:00:00.000Z",

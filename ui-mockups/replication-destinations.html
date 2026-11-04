@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memory Lane — Destination card states</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      min-height: 100%;
+      background:
+        radial-gradient(900px 460px at 18% -10%, rgba(242, 179, 92, 0.07), transparent 62%),
+        var(--bg);
+    }
+
+    .mock {
+      width: min(1080px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 32px 0 40px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--faint);
+      font-size: 9.5px;
+      font-weight: 650;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .section-head {
+      display: block;
+      margin: 0;
+    }
+
+    .section-head h1 {
+      margin: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .section-head p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .destinations {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .destination {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px;
+      border: 1px solid var(--line-soft);
+      border-radius: 9px;
+      background: var(--panel);
+    }
+
+    .destination.is-retired {
+      background: var(--panel-2);
+      opacity: 0.58;
+    }
+
+    .destination-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .status-pills {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .destination-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .destination-name {
+      margin: 0;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .destination-name span {
+      color: var(--faint);
+      font-weight: 500;
+    }
+
+    .state-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .state-mark.is-verified {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .state-mark.is-unverified {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .state-mark.is-retired {
+      background: var(--panel-3);
+      color: var(--faint);
+    }
+
+    .destination-meta {
+      margin: 3px 0 0;
+      color: var(--faint);
+      font-size: 10.5px;
+    }
+
+    .space {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .space-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--faint);
+      font-size: 9.5px;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .space-head strong {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 550;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .track {
+      position: relative;
+      overflow: hidden;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--panel-3);
+    }
+
+    .track span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .track .used {
+      background: var(--blue);
+    }
+
+    .destination.is-full .track .used {
+      background: var(--faint);
+    }
+
+    .track .reserve {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 2.1%;
+      height: 100%;
+      border-left: 1px solid rgba(15, 15, 17, 0.55);
+      background: repeating-linear-gradient(
+        135deg,
+        rgba(147, 139, 129, 0.28) 0 2px,
+        transparent 2px 5px
+      );
+    }
+
+    .space-foot {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--faint);
+      font-size: 10.5px;
+    }
+
+    .space-foot .safe {
+      color: var(--text-2);
+      font-weight: 550;
+    }
+
+    .space-foot .free {
+      cursor: help;
+      border-bottom: 1px dotted var(--line);
+    }
+
+    .destination.is-full .space-foot .safe {
+      color: var(--muted);
+    }
+
+    .coverage-line {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding-top: 1px;
+      color: var(--muted);
+      font-size: 10.5px;
+    }
+
+    .coverage-line .check {
+      font-size: 11px;
+      line-height: 1;
+    }
+
+    .destination.is-verified .coverage-line .check {
+      color: var(--green);
+    }
+
+    .destination.is-unverified .coverage-line {
+      color: var(--amber);
+    }
+
+    .destination.is-unverified .coverage-line .check {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .destination.is-retired .coverage-line {
+      color: var(--faint);
+    }
+
+    .destination.is-retired .coverage-line .check {
+      color: var(--faint);
+    }
+
+    .note {
+      margin: 18px 0 0;
+      color: var(--faint);
+      font-size: 10.5px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      .mock {
+        width: min(100% - 28px, 560px);
+        padding-top: 24px;
+      }
+
+      .destinations {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="mock">
+    <p class="eyebrow">Proposed destination states · fake data</p>
+
+    <section class="section">
+      <div class="section-head">
+        <h1>Destinations</h1>
+        <p>Fill order runs top to bottom. Existing files are never moved.</p>
+      </div>
+
+      <section class="destinations" aria-label="Destination states">
+        <article class="destination is-verified">
+          <header class="destination-head">
+            <div>
+              <div class="destination-title">
+                <h2 class="destination-name">Archive A <span>(G:)</span></h2>
+                <span class="state-mark is-verified" aria-label="Fully verified">✓</span>
+              </div>
+              <p class="destination-meta">Partial · priority 1</p>
+            </div>
+            <div class="status-pills">
+              <span class="pill pill--green">Connected</span>
+            </div>
+          </header>
+
+          <div class="space">
+            <div class="space-head">
+              <span>Space used</span>
+              <strong>64%</strong>
+            </div>
+            <div class="track" role="img" aria-label="64 percent of the drive is used">
+              <span class="used" style="width:64%"></span>
+              <span class="reserve" aria-hidden="true"></span>
+            </div>
+            <div class="space-foot">
+              <span class="safe">510 GB safe to add</span>
+              <span class="free" title="540 GB free, including the 30 GB safety reserve">540 GB free</span>
+            </div>
+          </div>
+
+          <div class="coverage-line">
+            <span class="check">✓</span> 910 GB · 42,000 source files verified
+          </div>
+        </article>
+
+        <article class="destination is-unverified">
+          <header class="destination-head">
+            <div>
+              <div class="destination-title">
+                <h2 class="destination-name">Archive B <span>(F:)</span></h2>
+                <span class="state-mark is-unverified" aria-label="Not fully verified">!</span>
+              </div>
+              <p class="destination-meta">Partial · priority 2</p>
+            </div>
+            <div class="status-pills">
+              <span class="pill pill--green">Connected</span>
+            </div>
+          </header>
+
+          <div class="space">
+            <div class="space-head">
+              <span>Space used</span>
+              <strong>42%</strong>
+            </div>
+            <div class="track" role="img" aria-label="42 percent of the drive is used">
+              <span class="used" style="width:42%"></span>
+              <span class="reserve" aria-hidden="true"></span>
+            </div>
+            <div class="space-foot">
+              <span class="safe">700 GB safe to add</span>
+              <span class="free" title="740 GB free, including the 40 GB safety reserve">740 GB free</span>
+            </div>
+          </div>
+
+          <div class="coverage-line">
+            <span class="check">!</span> 42,000 of 44,200 source files verified
+          </div>
+        </article>
+
+        <article class="destination is-verified is-retired is-full">
+          <header class="destination-head">
+            <div>
+              <div class="destination-title">
+                <h2 class="destination-name">Archive C <span>(H:)</span></h2>
+                <span class="state-mark is-retired" aria-label="Full and verified">✓</span>
+              </div>
+              <p class="destination-meta">Partial · done</p>
+            </div>
+            <div class="status-pills">
+              <span class="pill pill--muted">Retired</span>
+              <span class="pill">Full</span>
+            </div>
+          </header>
+
+          <div class="space">
+            <div class="space-head">
+              <span>Space used</span>
+              <strong>98%</strong>
+            </div>
+            <div class="track" role="img" aria-label="The drive is full, with only the safety reserve left">
+              <span class="used" style="width:97.9%"></span>
+              <span class="reserve" aria-hidden="true"></span>
+            </div>
+            <div class="space-foot">
+              <span class="safe">No safe space</span>
+              <span>19 GB reserve</span>
+            </div>
+          </div>
+
+          <div class="coverage-line">
+            <span class="check">✓</span> 1.2 TB · 120,000 source files verified
+          </div>
+        </article>
+
+        <article class="destination is-unverified is-full">
+          <header class="destination-head">
+            <div>
+              <div class="destination-title">
+                <h2 class="destination-name">Archive D <span>(I:)</span></h2>
+                <span class="state-mark is-unverified" aria-label="Full but not fully verified">!</span>
+              </div>
+              <p class="destination-meta">Partial · needs verification</p>
+            </div>
+            <div class="status-pills">
+              <span class="pill pill--amber">Offline</span>
+              <span class="pill">Full</span>
+            </div>
+          </header>
+
+          <div class="space">
+            <div class="space-head">
+              <span>Space used</span>
+              <strong>98%</strong>
+            </div>
+            <div class="track" role="img" aria-label="The drive is full, with only the safety reserve left">
+              <span class="used" style="width:97.9%"></span>
+              <span class="reserve" aria-hidden="true"></span>
+            </div>
+            <div class="space-foot">
+              <span class="safe">No safe space</span>
+              <span>19 GB reserve</span>
+            </div>
+          </div>
+
+          <div class="coverage-line">
+            <span class="check">!</span> 118,000 of 120,000 source files verified
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <p class="note">
+      A green check means fully verified; a yellow ! means not fully verified. The green Connected
+      pill only means the drive is connected; the Full pill is capacity, not verification. Grey =
+      full and done, retired from the plan; reconnect only to verify. Space bars are neutral: blue
+      while active, grey when full. The striped end is the safety reserve; “safe to add” excludes
+      it, even on a full drive.
+    </p>
+  </main>
+</body>
+</html>

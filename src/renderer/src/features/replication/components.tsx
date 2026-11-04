@@ -1,12 +1,11 @@
-import { Link } from "react-router-dom";
-import { CircleDashed, HardDrive, ShieldCheck } from "lucide-react";
+import { CircleDashed, ShieldCheck } from "lucide-react";
 import type {
   CoverageMapCell,
   CoverageSummary,
   DestinationConnection,
   DestinationSummary,
 } from "@shared/contracts/replication/types";
-import { Pill, type PillTone } from "../../components/ui/Pill";
+import type { PillTone } from "../../components/ui/Pill";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { formatBytes, formatCount, formatDateTime } from "../../lib/format";
 import styles from "./replication.module.css";
@@ -31,6 +30,7 @@ export function goalLabel(goal: DestinationSummary["goal"]): string {
 export function connectionTone(connection: DestinationConnection): PillTone {
   if (connection === "connected") return "green";
   if (connection === "offline") return "amber";
+  if (connection === "retired") return "muted";
   return "red";
 }
 
@@ -95,68 +95,6 @@ export function CoverageCard({ coverage }: { coverage: CoverageSummary }): React
         </p>
       )}
     </section>
-  );
-}
-
-export function DestinationCard({
-  destination,
-  href,
-}: {
-  destination: DestinationSummary;
-  href: string;
-}): React.JSX.Element {
-  const letter = destination.letter === null ? "" : ` (${destination.letter})`;
-  const attention =
-    destination.attention.onlyOnDriveFiles + destination.attention.sourceMissingFiles;
-  return (
-    <Link className={styles.destinationCard} to={href}>
-      <div className={styles.destinationTop}>
-        <div>
-          <h3 className={styles.destinationName}>
-            {destination.label}
-            {letter}
-          </h3>
-          <p className={styles.destinationMeta}>
-            {goalLabel(destination.goal)} · priority {String(destination.priority + 1)}
-            {destination.isFirstInFillOrder ? " · fills first" : ""}
-          </p>
-        </div>
-        <Pill tone={connectionTone(destination.connection)}>
-          {connectionLabel(destination.connection)}
-        </Pill>
-      </div>
-      <div className={styles.badges}>
-        <Pill tone={destination.goal === "full_copy" ? "blue" : "neutral"}>
-          <HardDrive size={12} aria-hidden="true" /> {formatSize(destination.verifiedBytes)}
-        </Pill>
-        <Pill tone="muted">{formatCount(destination.verifiedFiles)} files</Pill>
-        {destination.fullCopyStatus === "complete" ? (
-          <Pill tone="green">Full copy complete</Pill>
-        ) : null}
-      </div>
-      <div className={styles.progressBlock}>
-        <ProgressBar
-          processed={destination.verifiedFiles}
-          total={
-            destination.verifiedFiles + destination.attention.sourceMissingFiles > 0
-              ? destination.verifiedFiles + destination.attention.sourceMissingFiles
-              : null
-          }
-          label={`${destination.label} verified coverage`}
-          tone="green"
-          thin
-        />
-        <div className={styles.progressLegend}>
-          <span>{formatSize(destination.availableBytes)} safe to add</span>
-          <span>{formatSize(destination.freeBytes)} free</span>
-        </div>
-      </div>
-      {attention === 0 ? null : (
-        <p className={styles.attention}>
-          {formatCount(attention)} files need attention on this drive.
-        </p>
-      )}
-    </Link>
   );
 }
 

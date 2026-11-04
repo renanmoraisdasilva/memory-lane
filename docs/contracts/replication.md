@@ -132,11 +132,18 @@ loading state and offers Retry.
 `DestinationSummary` contains:
 
 - destination ID, label, mount, filesystem, goal, connection state;
-- capacity, verified bytes, available safe bytes, last-known qualifier;
+- capacity, verified bytes, verified source files, unverified source files, available safe
+  bytes, last-known qualifier;
 - fill order for partial destinations;
 - one attention count and link target;
 - full-copy status and shortfall when applicable;
 - identity confidence only when not confirmed.
+
+`unverifiedFiles` counts conflict, stale, missing, and failed replicas. Source-missing
+replicas are recovery items, not source coverage, and remain in the attention counts.
+The overview card shows source verification separately from drive space. A full drive
+with no unverified source files is shown as `Full` and `done`; a full drive with
+unverified files stays yellow.
 
 The full destination detail adds identity, root, layout, allocation, reserve,
 coverage map, local-library status, source-index timestamp, health counts, and

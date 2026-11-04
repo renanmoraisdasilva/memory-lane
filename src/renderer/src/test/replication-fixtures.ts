@@ -34,6 +34,7 @@ export const replicationDestination: DestinationSummary = {
   reserveBytes: 100_000_000,
   verifiedBytes: 400_000_000,
   verifiedFiles: 200,
+  unverifiedFiles: 0,
   availableBytes: 900_000_000,
   lastSeenAt: "2026-11-01T12:00:00.000Z",
   lastVerifiedAt: "2026-11-01T12:00:00.000Z",

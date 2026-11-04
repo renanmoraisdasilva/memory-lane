@@ -4547,6 +4547,31 @@
       "status": "verified",
       "conflictsWith": [],
       "notes": "Makes source access failures actionable instead of looking like a replication bug."
+    },
+    {
+      "id": "ML-REPL-099",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "outcome",
+      "title": "Destination cards separate verification from space",
+      "text": "Each destination card shows source verification with a green check when every present source replica is verified and a yellow warning when any replica is unverified. Drive space is a separate neutral bar. A full drive with no unverified source files is greyed out and marked Full and done; a full drive with unverified files stays yellow and asks for verification.",
+      "sources": [
+        "docs/product/partial-backups.md#12-ui-specification",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/renderer/src/features/replication/components.tsx",
+        "src/renderer/src/features/replication/replication.module.css",
+        "src/shared/contracts/replication/types.ts",
+        "src/main/modules/replication/application/destination-summary.ts"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "The overview page tests cover verified, unverified, full/done, and full/unverified cards; the destination summary test covers the unverified count.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Verification color is separate from capacity color so a full drive does not look verified."
     }
   ],
   "conflicts": [
