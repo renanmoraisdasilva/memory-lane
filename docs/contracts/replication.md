@@ -124,6 +124,11 @@ no run at all.
 - one attention aggregate with only-on-drive and source-missing counts;
 - active or paused run summary, if any.
 
+The first read after opening a large cold catalog may exceed the normal request
+timeout. The overview uses the long maintenance timeout for its aggregate
+source and coverage reads. If a transient read still fails, the page keeps the
+loading state and offers Retry.
+
 `DestinationSummary` contains:
 
 - destination ID, label, mount, filesystem, goal, connection state;

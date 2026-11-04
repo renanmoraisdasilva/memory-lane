@@ -49,6 +49,21 @@ describe("ReplicationOverviewPage", () => {
     await waitFor(() => expect(client.startAdoption).toHaveBeenCalledWith("dest-1"));
   });
 
+  it("[ML-REPL-095] retries the overview after a transient startup failure", async () => {
+    const getOverview = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Database request timed out: replication.listDestinations"))
+      .mockResolvedValue(replicationOverview);
+    const client = createReplicationFixtureClient({ getOverview });
+    renderOverview(client);
+
+    expect(await screen.findByText("Could not load the backup overview.")).toBeVisible();
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByRole("heading", { name: "Backup destinations" })).toBeVisible();
+    expect(getOverview).toHaveBeenCalledTimes(2);
+  });
+
   it("shows the add-destination empty state", async () => {
     const client = createReplicationFixtureClient({
       getOverview: vi.fn(async () => ({ ...replicationOverview, destinations: [] })),

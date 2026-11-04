@@ -3,9 +3,9 @@
 Generated from `docs/traceability/requirements.json`. Test links are derived from
 `[ML-...]` tags in test names; the ledger does not store test paths.
 
-Requirements: **215**. Status: verified 167, non-goal 4, implemented 43, deferred 1.
+Requirements: **216**. Status: verified 168, non-goal 4, implemented 43, deferred 1.
 
-Verification: automated-test 200, none 4, manual 10, automated-check 1.
+Verification: automated-test 201, none 4, manual 10, automated-check 1.
 
 | ID | Requirement | Kind | Status | Verification | Tests | Result |
 |---|---|---|---|---|---:|---|
@@ -224,6 +224,7 @@ Verification: automated-test 200, none 4, manual 10, automated-check 1.
 | ML-REL-017 | A clean Windows VM release pass is required | constraint | deferred | manual | 0 | deferred |
 | ML-REL-018 | WMV and 3GP compatible playback works | outcome | implemented | manual | 2 | manual |
 | ML-REPL-094 | Backup overview uses aggregate coverage queries | constraint | verified | automated-test | 1 | pass |
+| ML-REPL-095 | Backup overview recovers from a slow startup read | outcome | verified | automated-test | 2 | pass |
 
 Result values: `pass`, `fail`, and `mixed` come from `docs/traceability/test-results.json`;
 `e2e` means Playwright tags only; `script`, `manual`, and `inspection` follow the recorded

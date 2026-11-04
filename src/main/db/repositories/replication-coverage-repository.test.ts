@@ -86,6 +86,20 @@ function insertReplica(
 }
 
 describe("replication coverage repository", () => {
+  it("reports full coverage percentages for an empty catalog", () => {
+    const db = new Database(":memory:");
+    runMigrations(db, catalogMigrations);
+
+    const summary = getCoverageSummary(db);
+
+    expect(summary.sourceFiles).toBe(0);
+    expect(summary.sourceBytes).toBe(0);
+    expect(summary.partialPercent).toBe(100);
+    expect(summary.allDestinationPercent).toBe(100);
+    expect(summary.coverageAsOf).toBeNull();
+    db.close();
+  });
+
   it("computes destination coverage, overlap, coverage map, and health", () => {
     const db = new Database(":memory:");
     runMigrations(db, catalogMigrations);

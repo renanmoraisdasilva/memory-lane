@@ -46,6 +46,8 @@ const MAINTENANCE_METHODS: ReadonlySet<DbMethod> = new Set<DbMethod>([
   "replication.listSourceFiles",
   "replication.listVerifiedCoverage",
   "replication.listDestinations",
+  "replication.getSourceIdentity",
+  "replication.getCoverageSummary",
   "replication.saveSourceHash",
   "replication.registerDestination",
   "replication.updateDestination",

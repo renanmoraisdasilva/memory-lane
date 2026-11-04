@@ -137,6 +137,16 @@ export function ReplicationOverviewPage(): React.JSX.Element {
     return (
       <div className={styles.page}>
         <Alert>Could not load the backup overview.</Alert>
+        <div className={styles.actions}>
+          <button
+            className={styles.secondaryButton}
+            type="button"
+            disabled={overview.isFetching}
+            onClick={() => void overview.refetch()}
+          >
+            {overview.isFetching ? "Retrying…" : "Retry"}
+          </button>
+        </div>
       </div>
     );
   }

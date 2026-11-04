@@ -1,12 +1,12 @@
 # Batch 7 review — Replication: copy, promotion, and safety
 
-Status: **implemented**. Requirements: **27**. Conflicts: **0**.
+Status: **implemented**. Requirements: **28**. Conflicts: **0**.
 
 This sheet is generated from `docs/traceability/requirements.json`. This batch is accepted; the matrix is the live view. New requirements start at `needs-review`.
 
-Kinds: invariant 17, outcome 8, constraint 2.
+Kinds: invariant 17, outcome 9, constraint 2.
 
-Verification: automated-test 27.
+Verification: automated-test 28.
 
 ## Summary
 
@@ -39,6 +39,7 @@ Verification: automated-test 27.
 | ML-REPL-092 | invariant | verified | automated-test | No source file content or metadata is modified |
 | ML-REPL-093 | invariant | implemented | automated-test | No restore-to-source or destination reveal IPC exists |
 | ML-REPL-094 | constraint | verified | automated-test | Backup overview uses aggregate coverage queries |
+| ML-REPL-095 | outcome | verified | automated-test | Backup overview recovers from a slow startup read |
 
 ## Requirements
 
@@ -498,6 +499,22 @@ Verification: automated-test 27.
 - **Test notes:** The PlanService overview test asserts the aggregate coverage method is used and the heavy source/coverage list methods are not called; the repository test checks the aggregate values.
 - **Conflicts:** _none_
 - **Notes:** Performance follow-up for startup/overview timeouts on large catalogs.
+- **Decision:** verified
+
+### ML-REPL-095 — Backup overview recovers from a slow startup read
+
+- **Kind:** outcome
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** The first Backup overview read after opening a large cold catalog uses the long maintenance timeout for its aggregate reads. If a transient read still fails, the page keeps a loading state and offers a Retry action instead of a dead-end error.
+- **Sources:** `docs/product/partial-backups.md#12-ui-specification`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/main/clients/db-client.ts`, `src/main/modules/replication/application/plan-service.ts`, `src/renderer/src/features/replication/ReplicationOverviewPage.tsx`
+- **Proving tests:** `src/main/clients/db-client.test.ts`, `src/renderer/src/features/replication/ReplicationOverviewPage.test.tsx`
+- **Test notes:** The db-client test covers the long timeout for aggregate coverage reads; the overview page test covers the transient error and Retry action.
+- **Conflicts:** _none_
+- **Notes:** Startup reliability follow-up for large catalogs.
 - **Decision:** verified
 
 ## Conflicts

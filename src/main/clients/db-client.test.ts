@@ -26,6 +26,7 @@ const workerMocks = vi.hoisted(() => {
         request.method === "slow" ||
         request.method === "replication.saveAdoptionBatch" ||
         request.method === "replication.listVerifiedCoverage" ||
+        request.method === "replication.getCoverageSummary" ||
         request.method === "library.getSummary"
       ) {
         return;
@@ -145,6 +146,23 @@ describe("DbWorkerClient", () => {
     const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db");
     let rejected = false;
     const request = client.request("replication.listVerifiedCoverage", {}).catch(() => {
+      rejected = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(rejected).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(50_000);
+    expect(rejected).toBe(true);
+    await request;
+    await client.close();
+  });
+
+  it("[ML-REPL-095] gives the overview's cold-catalog reads a longer timeout", async () => {
+    vi.useFakeTimers();
+    const client = new DbWorkerClient("db-worker.js", "C:\\data\\app.db");
+    let rejected = false;
+    const request = client.request("replication.getCoverageSummary", {}).catch(() => {
       rejected = true;
     });
 

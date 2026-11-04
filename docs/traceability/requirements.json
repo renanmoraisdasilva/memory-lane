@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "project": "memory-lane",
-  "updated": "2026-11-03",
+  "updated": "2026-11-04",
   "statusValues": [
     "needs-review",
     "accepted",
@@ -4456,6 +4456,30 @@
       "status": "verified",
       "conflictsWith": [],
       "notes": "Performance follow-up for startup/overview timeouts on large catalogs."
+    },
+    {
+      "id": "ML-REPL-095",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "outcome",
+      "title": "Backup overview recovers from a slow startup read",
+      "text": "The first Backup overview read after opening a large cold catalog uses the long maintenance timeout for its aggregate reads. If a transient read still fails, the page keeps a loading state and offers a Retry action instead of a dead-end error.",
+      "sources": [
+        "docs/product/partial-backups.md#12-ui-specification",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/main/clients/db-client.ts",
+        "src/main/modules/replication/application/plan-service.ts",
+        "src/renderer/src/features/replication/ReplicationOverviewPage.tsx"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "The db-client test covers the long timeout for aggregate coverage reads; the overview page test covers the transient error and Retry action.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Startup reliability follow-up for large catalogs."
     }
   ],
   "conflicts": [
