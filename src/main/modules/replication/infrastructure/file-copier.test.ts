@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDestinationWriter } from "./destination-writer";
-import { copyVerifiedFile, type CopySourceExpectation } from "./file-copier";
+import { copyFailureCode, copyVerifiedFile, type CopySourceExpectation } from "./file-copier";
 
 const roots: string[] = [];
 
@@ -37,6 +37,15 @@ afterEach(async () => {
 });
 
 describe("file copier", () => {
+  it("[ML-REPL-098] classifies source access failures", () => {
+    expect(copyFailureCode("EPERM")).toBe("SOURCE_PERMISSION_DENIED");
+    expect(copyFailureCode("EACCES")).toBe("SOURCE_PERMISSION_DENIED");
+    expect(copyFailureCode("EBUSY")).toBe("SOURCE_BUSY");
+    expect(copyFailureCode("ENOENT")).toBe("SOURCE_MISSING");
+    expect(copyFailureCode("EIO")).toBe("SOURCE_IO_ERROR");
+    expect(copyFailureCode("UNKNOWN")).toBe("COPY_FAILED");
+  });
+
   it("[ML-REPL-068] [ML-REPL-070] streams, hashes, verifies, and renames a copy", async () => {
     const root = await createRoot("memory-lane-copy-");
     const sourcePath = path.join(root, "source.bin");
@@ -181,6 +190,6 @@ describe("file copier", () => {
       allowReplace: false,
     });
     expect(missing.status).toBe("failed");
-    expect(missing).toMatchObject({ retryable: false });
+    expect(missing).toMatchObject({ retryable: false, code: "SOURCE_MISSING" });
   });
 });

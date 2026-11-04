@@ -49,6 +49,7 @@ interface RunFileStatements {
   replica: Database.Statement;
   deleteConflictingReplica: Database.Statement;
   incrementRun: Database.Statement;
+  previousReplica: Database.Statement;
 }
 
 function prepareStatements(db: Database.Database): RunFileStatements {
@@ -90,29 +91,24 @@ function prepareStatements(db: Database.Database): RunFileStatements {
     ),
     incrementRun: db.prepare(
       `UPDATE replication_runs
-       SET copied_files = copied_files + ?,
-           copied_bytes = copied_bytes + ?,
-           verified_files = verified_files + ?,
-           verified_bytes = verified_bytes + ?,
-           failed_files = failed_files + ?,
-           failed_bytes = failed_bytes + ?,
-           stale_files = stale_files + ?,
-           stale_bytes = stale_bytes + ?,
+       SET copied_files = MAX(0, copied_files + ?),
+           copied_bytes = MAX(0, copied_bytes + ?),
+           verified_files = MAX(0, verified_files + ?),
+           verified_bytes = MAX(0, verified_bytes + ?),
+           failed_files = MAX(0, failed_files + ?),
+           failed_bytes = MAX(0, failed_bytes + ?),
+           stale_files = MAX(0, stale_files + ?),
+           stale_bytes = MAX(0, stale_bytes + ?),
            last_heartbeat_at = ?
        WHERE id = ?`,
+    ),
+    previousReplica: db.prepare(
+      `SELECT status, size_bytes, copied_at FROM replica_files WHERE replica_id = ? AND file_id = ?`,
     ),
   };
 }
 
-function count(flag: boolean): number {
-  return flag ? 1 : 0;
-}
-
-function bytes(flag: boolean, size: number): number {
-  return flag ? size : 0;
-}
-
-function runCounts(input: RunFileResultInput): {
+interface RunCounts {
   copiedFiles: number;
   copiedBytes: number;
   verifiedFiles: number;
@@ -121,31 +117,71 @@ function runCounts(input: RunFileResultInput): {
   failedBytes: number;
   staleFiles: number;
   staleBytes: number;
-} {
-  const verified = input.status === "verified";
-  const stale = input.status === "stale";
-  const failed = input.status === "failed" || input.status === "conflict";
-  const copied = verified || input.status === "copied";
+}
+
+function zeroCounts(): RunCounts {
   return {
-    copiedFiles: count(copied),
-    copiedBytes: bytes(copied, input.sizeBytes),
-    verifiedFiles: count(verified),
-    verifiedBytes: bytes(verified, input.sizeBytes),
-    failedFiles: count(failed),
-    failedBytes: bytes(failed, input.sizeBytes),
-    staleFiles: count(stale),
-    staleBytes: bytes(stale, input.sizeBytes),
+    copiedFiles: 0,
+    copiedBytes: 0,
+    verifiedFiles: 0,
+    verifiedBytes: 0,
+    failedFiles: 0,
+    failedBytes: 0,
+    staleFiles: 0,
+    staleBytes: 0,
+  };
+}
+
+function countsForStatus(status: string, sizeBytes: number): RunCounts {
+  const counts = zeroCounts();
+  if (status === "verified") {
+    counts.copiedFiles = 1;
+    counts.copiedBytes = sizeBytes;
+    counts.verifiedFiles = 1;
+    counts.verifiedBytes = sizeBytes;
+  } else if (status === "copied") {
+    counts.copiedFiles = 1;
+    counts.copiedBytes = sizeBytes;
+  } else if (status === "stale") {
+    counts.staleFiles = 1;
+    counts.staleBytes = sizeBytes;
+  } else if (status === "failed" || status === "conflict") {
+    counts.failedFiles = 1;
+    counts.failedBytes = sizeBytes;
+  }
+  return counts;
+}
+
+function subtractCounts(next: RunCounts, previous: RunCounts): RunCounts {
+  return {
+    copiedFiles: next.copiedFiles - previous.copiedFiles,
+    copiedBytes: next.copiedBytes - previous.copiedBytes,
+    verifiedFiles: next.verifiedFiles - previous.verifiedFiles,
+    verifiedBytes: next.verifiedBytes - previous.verifiedBytes,
+    failedFiles: next.failedFiles - previous.failedFiles,
+    failedBytes: next.failedBytes - previous.failedBytes,
+    staleFiles: next.staleFiles - previous.staleFiles,
+    staleBytes: next.staleBytes - previous.staleBytes,
   };
 }
 
 export function saveRunFileResult(db: Database.Database, input: RunFileResultInput): void {
   const statements = prepareStatements(db);
-  const counts = runCounts(input);
   const copiedAt =
     input.status === "verified" || input.status === "copied" ? input.lastCheckedAt : null;
   const verifiedAt = input.status === "verified" ? input.lastCheckedAt : null;
 
   db.transaction(() => {
+    const previous = statements.previousReplica.get(input.destinationRowId, input.fileId) as
+      { status: string; size_bytes: number; copied_at: string | null } | undefined;
+    const counts = subtractCounts(
+      countsForStatus(input.status, input.sizeBytes),
+      previous === undefined ? zeroCounts() : countsForStatus(previous.status, previous.size_bytes),
+    );
+    const wasCopied = previous !== undefined && previous.copied_at !== null;
+    const isCopied = input.status === "copied" || input.status === "verified";
+    counts.copiedFiles = isCopied && !wasCopied ? 1 : 0;
+    counts.copiedBytes = isCopied && !wasCopied ? input.sizeBytes : 0;
     statements.deleteConflictingReplica.run(
       input.destinationRowId,
       input.relativePathKey,

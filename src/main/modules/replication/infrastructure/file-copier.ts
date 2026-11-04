@@ -21,6 +21,9 @@ export interface CopyFileInput {
   allowReplace: boolean;
 }
 
+export type CopyFailureCode =
+  "SOURCE_PERMISSION_DENIED" | "SOURCE_BUSY" | "SOURCE_MISSING" | "SOURCE_IO_ERROR" | "COPY_FAILED";
+
 export type FileCopyResult =
   | {
       status: "verified";
@@ -31,7 +34,7 @@ export type FileCopyResult =
   | { status: "source_changed"; message: string }
   | { status: "conflict"; message: string }
   | { status: "insufficient_space"; message: string }
-  | { status: "failed"; message: string; retryable: boolean };
+  | { status: "failed"; message: string; retryable: boolean; code: CopyFailureCode };
 
 function errorCode(error: unknown): string | null {
   return typeof error === "object" && error !== null && "code" in error
@@ -41,6 +44,22 @@ function errorCode(error: unknown): string | null {
 
 function retryableCode(code: string | null): boolean {
   return code === "EACCES" || code === "EPERM" || code === "EBUSY" || code === "EMFILE";
+}
+
+export function copyFailureCode(code: string | null): CopyFailureCode {
+  if (code === "EACCES" || code === "EPERM") {
+    return "SOURCE_PERMISSION_DENIED";
+  }
+  if (code === "EBUSY" || code === "EMFILE") {
+    return "SOURCE_BUSY";
+  }
+  if (code === "ENOENT") {
+    return "SOURCE_MISSING";
+  }
+  if (code === "EIO") {
+    return "SOURCE_IO_ERROR";
+  }
+  return "COPY_FAILED";
 }
 
 function hashingTransform(hash: ReturnType<typeof createHash>): Transform {
@@ -71,7 +90,12 @@ function failedResult(error: unknown): FileCopyResult {
   if (code === "ENOSPC") {
     return { status: "insufficient_space", message };
   }
-  return { status: "failed", message, retryable: retryableCode(code) };
+  return {
+    status: "failed",
+    message,
+    retryable: retryableCode(code),
+    code: copyFailureCode(code),
+  };
 }
 
 async function preflight(input: CopyFileInput): Promise<FileCopyResult | null> {
@@ -129,6 +153,7 @@ async function writeVerifiedCopy(input: CopyFileInput): Promise<FileCopyResult> 
         status: "failed",
         message: "The destination file could not be verified after the copy",
         retryable: true,
+        code: "COPY_FAILED",
       };
     }
     return {

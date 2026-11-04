@@ -14,24 +14,28 @@ import { formatSize } from "./components";
 import { useRunControl, useRunEvents, useRunState } from "./use-replication";
 import styles from "./replication.module.css";
 
-function statusTone(
-  status: ReplicationRunState["status"],
-): "green" | "amber" | "red" | "blue" | "muted" {
-  if (status === "completed") return "green";
-  if (status === "failed") return "red";
-  if (status === "running") return "blue";
-  if (status === "paused" || status === "interrupted" || status === "stopping") return "amber";
+function statusTone(state: ReplicationRunState): "green" | "amber" | "red" | "blue" | "muted" {
+  if (state.status === "completed") {
+    return state.failedFiles > 0 ? "amber" : "green";
+  }
+  if (state.status === "failed") return "red";
+  if (state.status === "running") return "blue";
+  if (state.status === "paused" || state.status === "interrupted" || state.status === "stopping") {
+    return "amber";
+  }
   return "muted";
 }
 
-function statusLabel(status: ReplicationRunState["status"]): string {
-  if (status === "running") return "Running";
-  if (status === "paused") return "Paused";
-  if (status === "stopping") return "Stopping";
-  if (status === "completed") return "Completed";
-  if (status === "stopped") return "Stopped";
-  if (status === "failed") return "Failed";
-  if (status === "interrupted") return "Interrupted";
+function statusLabel(state: ReplicationRunState): string {
+  if (state.status === "completed") {
+    return state.failedFiles > 0 ? "Completed with errors" : "Completed";
+  }
+  if (state.status === "running") return "Running";
+  if (state.status === "paused") return "Paused";
+  if (state.status === "stopping") return "Stopping";
+  if (state.status === "stopped") return "Stopped";
+  if (state.status === "failed") return "Failed";
+  if (state.status === "interrupted") return "Interrupted";
   return "Planned";
 }
 
@@ -112,7 +116,7 @@ function RunHeader({
         </p>
       </div>
       <div className={styles.badges}>
-        <Pill tone={statusTone(state.status)}>{statusLabel(state.status)}</Pill>
+        <Pill tone={statusTone(state)}>{statusLabel(state)}</Pill>
         <Pill tone="neutral">{state.scope.replaceAll("_", " ")}</Pill>
         <RunActions capabilities={state.capabilities} controls={controls} />
       </div>
@@ -274,7 +278,7 @@ function RunPageBody({
         <Callout
           tone={state.status === "failed" ? "red" : "amber"}
           icon={<AlertTriangle size={15} aria-hidden="true" />}
-          title={statusLabel(state.status)}
+          title={statusLabel(state)}
         >
           {state.capabilities.lockedReason}
         </Callout>

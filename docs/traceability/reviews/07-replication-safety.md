@@ -1,12 +1,12 @@
 # Batch 7 review — Replication: copy, promotion, and safety
 
-Status: **implemented**. Requirements: **28**. Conflicts: **0**.
+Status: **implemented**. Requirements: **31**. Conflicts: **0**.
 
 This sheet is generated from `docs/traceability/requirements.json`. This batch is accepted; the matrix is the live view. New requirements start at `needs-review`.
 
-Kinds: invariant 17, outcome 9, constraint 2.
+Kinds: invariant 17, outcome 11, constraint 3.
 
-Verification: automated-test 28.
+Verification: automated-test 31.
 
 ## Summary
 
@@ -40,6 +40,9 @@ Verification: automated-test 28.
 | ML-REPL-093 | invariant | implemented | automated-test | No restore-to-source or destination reveal IPC exists |
 | ML-REPL-094 | constraint | verified | automated-test | Backup overview uses aggregate coverage queries |
 | ML-REPL-095 | outcome | verified | automated-test | Backup overview recovers from a slow startup read |
+| ML-REPL-096 | constraint | verified | automated-test | Run progress never reports verified above planned |
+| ML-REPL-097 | outcome | verified | automated-test | A completed run with failed files says so |
+| ML-REPL-098 | outcome | verified | automated-test | Unreadable source files have specific error codes |
 
 ## Requirements
 
@@ -515,6 +518,54 @@ Verification: automated-test 28.
 - **Test notes:** The db-client test covers the long timeout for aggregate coverage reads; the overview page test covers the transient error and Retry action.
 - **Conflicts:** _none_
 - **Notes:** Startup reliability follow-up for large catalogs.
+- **Decision:** verified
+
+### ML-REPL-096 — Run progress never reports verified above planned
+
+- **Kind:** constraint
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** Run progress uses the original planned total or the cumulative verified, failed, stale, and remainder work, so the planned total is never smaller than the verified total. Repeated failures and re-verifications update the run counters by status deltas instead of counting the same file twice.
+- **Sources:** `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/main/modules/replication/application/run-state.ts`, `src/main/modules/replication/application/run-service.ts`, `src/main/db/repositories/replication-run-file-repository.ts`
+- **Proving tests:** `src/main/db/repositories/replication-run-repository.test.ts`, `src/main/modules/replication/application/run-state.test.ts`
+- **Test notes:** run-state and run repository tests cover derived totals and failed-to-verified transitions.
+- **Conflicts:** _none_
+- **Notes:** Fixes cumulative counters being compared with the last remaining plan.
+- **Decision:** verified
+
+### ML-REPL-097 — A completed run with failed files says so
+
+- **Kind:** outcome
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** A run that finished with failed files is labelled Completed with errors and keeps the failed count visible.
+- **Sources:** `docs/product/partial-backups.md#12-ui-specification`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/renderer/src/features/replication/ReplicationRunPage.tsx`
+- **Proving tests:** `src/renderer/src/features/replication/ReplicationRunPage.test.tsx`
+- **Test notes:** The replication run page test covers the completed-with-errors label and failed count.
+- **Conflicts:** _none_
+- **Notes:** A successful runner can still leave unreadable or failed files.
+- **Decision:** verified
+
+### ML-REPL-098 — Unreadable source files have specific error codes
+
+- **Kind:** outcome
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** A Windows permission, busy, or missing-file failure is reported as SOURCE_PERMISSION_DENIED, SOURCE_BUSY, or SOURCE_MISSING instead of a generic replication state error.
+- **Sources:** `docs/product/partial-backups.md#13-acceptance-criteria`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/main/modules/replication/infrastructure/file-copier.ts`, `src/main/modules/replication/application/run-file-copy.ts`
+- **Proving tests:** `src/main/modules/replication/infrastructure/file-copier.test.ts`
+- **Test notes:** The file copier test covers EPERM/EACCES, EBUSY, ENOENT, EIO, and unknown mappings.
+- **Conflicts:** _none_
+- **Notes:** Makes source access failures actionable instead of looking like a replication bug.
 - **Decision:** verified
 
 ## Conflicts

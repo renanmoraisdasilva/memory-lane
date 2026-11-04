@@ -201,9 +201,63 @@ describe("replication run repository", () => {
       lastError: "locked",
     });
     expect(getRun(db, run.id)).toMatchObject({
-      verifiedFiles: 1,
+      copiedFiles: 1,
+      copiedBytes: 10,
+      verifiedFiles: 0,
+      verifiedBytes: 0,
       failedFiles: 1,
       failedBytes: 10,
+    });
+
+    saveRunFileResult(db, {
+      runId: run.id,
+      destinationRowId: destinationId,
+      fileId,
+      relativePath: "a.jpg",
+      relativePathKey: "a.jpg",
+      sourceRelativePath: "photos\\a.jpg",
+      sourceRelativePathKey: "photos\\a.jpg",
+      sizeBytes: 10,
+      sha256: null,
+      status: "failed",
+      sourceSizeAtVerify: 10,
+      sourceModifiedAtFsAtVerify: now,
+      destinationSizeAtVerify: null,
+      destinationModifiedAtFsAtVerify: null,
+      lastCheckedAt: now,
+      lastError: "locked again",
+    });
+    expect(getRun(db, run.id)).toMatchObject({
+      copiedFiles: 1,
+      verifiedFiles: 0,
+      failedFiles: 1,
+      failedBytes: 10,
+    });
+
+    saveRunFileResult(db, {
+      runId: run.id,
+      destinationRowId: destinationId,
+      fileId,
+      relativePath: "a.jpg",
+      relativePathKey: "a.jpg",
+      sourceRelativePath: "photos\\a.jpg",
+      sourceRelativePathKey: "photos\\a.jpg",
+      sizeBytes: 10,
+      sha256: "a".repeat(64),
+      status: "verified",
+      sourceSizeAtVerify: 10,
+      sourceModifiedAtFsAtVerify: now,
+      destinationSizeAtVerify: 10,
+      destinationModifiedAtFsAtVerify: now,
+      lastCheckedAt: now,
+      lastError: null,
+    });
+    expect(getRun(db, run.id)).toMatchObject({
+      copiedFiles: 1,
+      verifiedFiles: 1,
+      verifiedBytes: 10,
+      failedFiles: 0,
+      failedBytes: 0,
     });
 
     const event = appendRunEvent(db, {
@@ -227,6 +281,72 @@ describe("replication run repository", () => {
     const secondPage = listRunEvents(db, run.id, firstPage.nextCursor, 10);
     expect(secondPage.events.map((item) => item.type)).toEqual(["completed"]);
     expect(secondPage.nextCursor).toBeNull();
+    db.close();
+  });
+
+  it("[ML-REPL-096] counts copied and stale transitions by status delta", () => {
+    const { db, destinationId, fileId } = setup();
+    const run = createRun(db, {
+      scope: "partial_only",
+      goal: "extend_coverage",
+      planRevision: 1,
+      planHash: "hash-1",
+      destinationSnapshot: "[]",
+      plannedFiles: 1,
+      plannedBytes: 10,
+      remainderFiles: 0,
+      remainderBytes: 0,
+      now,
+    });
+    function save(status: "copied" | "stale" | "verified"): void {
+      saveRunFileResult(db, {
+        runId: run.id,
+        destinationRowId: destinationId,
+        fileId,
+        relativePath: "a.jpg",
+        relativePathKey: "a.jpg",
+        sourceRelativePath: "photos\\a.jpg",
+        sourceRelativePathKey: "photos\\a.jpg",
+        sizeBytes: 10,
+        sha256: status === "verified" ? "a".repeat(64) : null,
+        status,
+        sourceSizeAtVerify: 10,
+        sourceModifiedAtFsAtVerify: now,
+        destinationSizeAtVerify: status === "verified" ? 10 : null,
+        destinationModifiedAtFsAtVerify: status === "verified" ? now : null,
+        lastCheckedAt: now,
+        lastError: status === "verified" ? null : status,
+      });
+    }
+
+    save("copied");
+    expect(getRun(db, run.id)).toMatchObject({ copiedFiles: 1, verifiedFiles: 0 });
+
+    save("stale");
+    expect(getRun(db, run.id)).toMatchObject({
+      copiedFiles: 1,
+      verifiedFiles: 0,
+      staleFiles: 1,
+      staleBytes: 10,
+    });
+
+    save("verified");
+    expect(getRun(db, run.id)).toMatchObject({
+      copiedFiles: 1,
+      verifiedFiles: 1,
+      verifiedBytes: 10,
+      staleFiles: 0,
+      staleBytes: 0,
+    });
+
+    save("stale");
+    expect(getRun(db, run.id)).toMatchObject({
+      copiedFiles: 1,
+      verifiedFiles: 0,
+      verifiedBytes: 0,
+      staleFiles: 1,
+      staleBytes: 10,
+    });
     db.close();
   });
 });

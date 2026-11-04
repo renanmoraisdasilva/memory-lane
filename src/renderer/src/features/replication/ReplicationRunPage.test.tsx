@@ -58,6 +58,35 @@ describe("ReplicationRunPage", () => {
     await waitFor(() => expect(client.replan).toHaveBeenCalledTimes(1));
   });
 
+  it("[ML-REPL-097] labels a completed run with failed files", async () => {
+    const completedWithErrors = {
+      ...runningRun,
+      status: "completed" as const,
+      failedFiles: 151,
+      percent: 99,
+      currentFile: null,
+      currentDestinationLabel: null,
+      speedBytesPerSecond: null,
+      etaSeconds: 0,
+      capabilities: {
+        ...runningRun.capabilities,
+        canPause: false,
+        canResume: false,
+        canStop: false,
+        canEditPlan: false,
+        lockedReason: null,
+      },
+    };
+    renderRun(
+      createReplicationFixtureClient({
+        getRunState: vi.fn(async () => completedWithErrors),
+      }),
+    );
+
+    expect((await screen.findAllByText("Completed with errors")).length).toBeGreaterThan(0);
+    expect(screen.getByText("151")).toBeVisible();
+  });
+
   it("shows the empty state before the first run", async () => {
     renderRun();
     expect(await screen.findByText("No backup run yet")).toBeVisible();

@@ -143,6 +143,7 @@ async function copyWithRetries(input: {
     status: "failed",
     message: "The copy did not start",
     retryable: false,
+    code: "COPY_FAILED",
   };
   for (let attempt = 1; attempt <= MAX_FAILED_RETRIES; attempt += 1) {
     const freeBytes = await writer.freeBytes();
@@ -254,7 +255,7 @@ async function applyCopyResult(
     return "continue";
   }
   addError(dependencies.control, {
-    code: "REPLICATION_STATE_INVALID",
+    code: result.code,
     message: result.message,
     retryable: result.retryable,
   });

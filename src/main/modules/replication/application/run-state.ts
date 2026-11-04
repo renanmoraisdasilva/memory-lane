@@ -97,12 +97,29 @@ function capabilitiesFor(status: ReplicationRunStatus): RunCapabilities {
   return CAPABILITIES[status];
 }
 
+export function workTotals(run: ReplicationRunRecord): {
+  plannedFiles: number;
+  plannedBytes: number;
+} {
+  return {
+    plannedFiles: Math.max(
+      run.plannedFiles,
+      run.verifiedFiles + run.failedFiles + run.staleFiles + run.remainderFiles,
+    ),
+    plannedBytes: Math.max(
+      run.plannedBytes,
+      run.verifiedBytes + run.failedBytes + run.staleBytes + run.remainderBytes,
+    ),
+  };
+}
+
 function percentFor(run: ReplicationRunRecord): number {
-  if (run.plannedBytes > 0) {
-    return Math.min(100, Math.round((run.verifiedBytes / run.plannedBytes) * 10000) / 100);
+  const totals = workTotals(run);
+  if (totals.plannedBytes > 0) {
+    return Math.min(100, Math.round((run.verifiedBytes / totals.plannedBytes) * 10000) / 100);
   }
-  if (run.plannedFiles > 0) {
-    return Math.min(100, Math.round((run.verifiedFiles / run.plannedFiles) * 10000) / 100);
+  if (totals.plannedFiles > 0) {
+    return Math.min(100, Math.round((run.verifiedFiles / totals.plannedFiles) * 10000) / 100);
   }
   return 0;
 }
@@ -138,7 +155,8 @@ function errorsFor(run: ReplicationRunRecord, control: RunControl | null) {
 }
 
 function etaFor(run: ReplicationRunRecord, control: RunControl | null): number | null {
-  if (control === null || run.plannedBytes === 0 || control.speedBytesPerSecond === null) {
+  const totals = workTotals(run);
+  if (control === null || totals.plannedBytes === 0 || control.speedBytesPerSecond === null) {
     return null;
   }
   if (control.speedBytesPerSecond <= 0) {
@@ -146,7 +164,7 @@ function etaFor(run: ReplicationRunRecord, control: RunControl | null): number |
   }
   return Math.max(
     0,
-    Math.round((run.plannedBytes - run.verifiedBytes) / control.speedBytesPerSecond),
+    Math.round((totals.plannedBytes - run.verifiedBytes) / control.speedBytesPerSecond),
   );
 }
 
@@ -155,6 +173,7 @@ export function buildRunState(
   control: RunControl | null,
 ): ReplicationRunState {
   const active = control !== null;
+  const totals = workTotals(run);
   return {
     id: run.id,
     status: run.status,
@@ -170,8 +189,8 @@ export function buildRunState(
     currentDestinationId: active ? control.currentDestinationId : null,
     currentDestinationLabel: active ? control.currentDestinationLabel : null,
     currentFile: active ? control.currentFile : null,
-    plannedFiles: run.plannedFiles,
-    plannedBytes: run.plannedBytes,
+    plannedFiles: totals.plannedFiles,
+    plannedBytes: totals.plannedBytes,
     copiedFiles: run.copiedFiles,
     copiedBytes: run.copiedBytes,
     verifiedFiles: run.verifiedFiles,

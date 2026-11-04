@@ -167,6 +167,13 @@ maintenance actions.
 - error list with retryable flags;
 - a `capabilities` object:
 
+`plannedFiles` and `plannedBytes` are the run's total work and are never smaller
+than `verified + failed + stale + remainder`. `failedFiles` counts distinct
+failed files, not retry attempts. A completed run with failed files is labelled
+**Completed with errors**. Copy failures use a specific code:
+`SOURCE_PERMISSION_DENIED`, `SOURCE_BUSY`, `SOURCE_MISSING`, `SOURCE_IO_ERROR`,
+or `COPY_FAILED`.
+
 ```ts
 interface ReplicationCapabilities {
   canPause: boolean;

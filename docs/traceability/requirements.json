@@ -4480,6 +4480,73 @@
       "status": "verified",
       "conflictsWith": [],
       "notes": "Startup reliability follow-up for large catalogs."
+    },
+    {
+      "id": "ML-REPL-096",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "constraint",
+      "title": "Run progress never reports verified above planned",
+      "text": "Run progress uses the original planned total or the cumulative verified, failed, stale, and remainder work, so the planned total is never smaller than the verified total. Repeated failures and re-verifications update the run counters by status deltas instead of counting the same file twice.",
+      "sources": [
+        "docs/product/partial-backups.md#13-acceptance-criteria",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/main/modules/replication/application/run-state.ts",
+        "src/main/modules/replication/application/run-service.ts",
+        "src/main/db/repositories/replication-run-file-repository.ts"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "run-state and run repository tests cover derived totals and failed-to-verified transitions.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Fixes cumulative counters being compared with the last remaining plan."
+    },
+    {
+      "id": "ML-REPL-097",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "outcome",
+      "title": "A completed run with failed files says so",
+      "text": "A run that finished with failed files is labelled Completed with errors and keeps the failed count visible.",
+      "sources": [
+        "docs/product/partial-backups.md#12-ui-specification",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": ["src/renderer/src/features/replication/ReplicationRunPage.tsx"],
+      "verificationMethod": "automated-test",
+      "testNotes": "The replication run page test covers the completed-with-errors label and failed count.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "A successful runner can still leave unreadable or failed files."
+    },
+    {
+      "id": "ML-REPL-098",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "outcome",
+      "title": "Unreadable source files have specific error codes",
+      "text": "A Windows permission, busy, or missing-file failure is reported as SOURCE_PERMISSION_DENIED, SOURCE_BUSY, or SOURCE_MISSING instead of a generic replication state error.",
+      "sources": [
+        "docs/product/partial-backups.md#13-acceptance-criteria",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/main/modules/replication/infrastructure/file-copier.ts",
+        "src/main/modules/replication/application/run-file-copy.ts"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "The file copier test covers EPERM/EACCES, EBUSY, ENOENT, EIO, and unknown mappings.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Makes source access failures actionable instead of looking like a replication bug."
     }
   ],
   "conflicts": [
