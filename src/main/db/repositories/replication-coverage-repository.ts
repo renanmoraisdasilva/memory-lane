@@ -239,10 +239,12 @@ export function getDestinationReplicaHealth(
 ): ReplicaStatusCounts {
   const rows = db
     .prepare(
-      `SELECT status, COUNT(*) AS count
-       FROM replica_files
-       WHERE replica_id = ?
-       GROUP BY status`,
+      `SELECT rf.status, COUNT(*) AS count
+       FROM replica_files rf
+       JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+         AND f.source_membership = 'source'
+       WHERE rf.replica_id = ?
+       GROUP BY rf.status`,
     )
     .all(destinationRowId);
   const counts: ReplicaStatusCounts = {

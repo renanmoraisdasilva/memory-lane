@@ -170,4 +170,41 @@ describe("replication destination repository", () => {
     });
     db.close();
   });
+
+  it("[ML-REPL-099] ignores unverified replicas whose source is missing", () => {
+    const db = createDb();
+    const destination = insertDestinationRow(db);
+    const insert = db.prepare(
+      `INSERT INTO replica_files (
+        replica_id, file_id, relative_path, relative_path_key, source_relative_path,
+        source_relative_path_key, size_bytes, status
+      ) VALUES (?, ?, ?, ?, ?, ?, 100, ?)`,
+    );
+    for (const status of ["conflict", "stale", "missing", "failed"]) {
+      for (const [suffix, state] of [
+        ["present", "present"],
+        ["source-missing", "missing"],
+      ] as const) {
+        const fileId = insertFile(db, state);
+        const relativePath = `${status}-${suffix}.jpg`;
+        insert.run(
+          destination.id,
+          fileId,
+          relativePath,
+          relativePath,
+          `photos/${relativePath}`,
+          `photos/${relativePath}`,
+          status,
+        );
+      }
+    }
+
+    expect(getDestination(db, destination.id)).toMatchObject({
+      conflictFiles: 1,
+      staleFiles: 1,
+      missingFiles: 1,
+      failedFiles: 1,
+    });
+    db.close();
+  });
 });

@@ -139,11 +139,12 @@ loading state and offers Retry.
 - full-copy status and shortfall when applicable;
 - identity confidence only when not confirmed.
 
-`unverifiedFiles` counts conflict, stale, missing, and failed replicas. Source-missing
-replicas are recovery items, not source coverage, and remain in the attention counts.
-The overview card shows source verification separately from drive space. A full drive
-with no unverified source files is shown as `Full` and `done`; a full drive with
-unverified files stays yellow.
+`unverifiedFiles` counts conflict, stale, missing, and failed replicas for present
+source files. Unverified replicas whose source is missing are not actionable and do
+not count against destination coverage; verified source-missing replicas remain in
+the attention counts. The overview card shows source verification separately from
+drive space. A full drive with no unverified source files is shown as `Full` and
+`done`; a full drive with unverified files stays yellow.
 
 The full destination detail adds identity, root, layout, allocation, reserve,
 coverage map, local-library status, source-index timestamp, health counts, and

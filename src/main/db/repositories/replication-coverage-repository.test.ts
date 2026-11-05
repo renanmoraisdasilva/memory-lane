@@ -122,6 +122,7 @@ describe("replication coverage repository", () => {
     createFile(db, 4, 40);
     createFile(db, 5, 50);
     createFile(db, 6, 60);
+    createFile(db, 7, 70, "missing");
     db.prepare(
       `INSERT INTO file_dates (file_id, resolved_date, precision)
        VALUES (1, '2011-07-04T15:30:00.000Z', 'exact'),
@@ -169,6 +170,13 @@ describe("replication coverage repository", () => {
       replicaId: first.id,
       fileId: 6,
       size: 60,
+      status: "missing",
+      sha256: null,
+    });
+    insertReplica(db, {
+      replicaId: first.id,
+      fileId: 7,
+      size: 70,
       status: "missing",
       sha256: null,
     });

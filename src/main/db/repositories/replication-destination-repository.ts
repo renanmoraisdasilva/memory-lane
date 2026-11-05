@@ -117,12 +117,20 @@ const SELECT_DESTINATION = `
     (SELECT MAX(rf.verified_at) FROM replica_files rf
       WHERE rf.replica_id = d.id AND rf.status = 'verified') AS last_verified_at,
     (SELECT COUNT(*) FROM replica_files rf
+      JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+        AND f.source_membership = 'source'
       WHERE rf.replica_id = d.id AND rf.status = 'conflict') AS conflict_files,
     (SELECT COUNT(*) FROM replica_files rf
+      JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+        AND f.source_membership = 'source'
       WHERE rf.replica_id = d.id AND rf.status = 'stale') AS stale_files,
     (SELECT COUNT(*) FROM replica_files rf
+      JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+        AND f.source_membership = 'source'
       WHERE rf.replica_id = d.id AND rf.status = 'missing') AS missing_files,
     (SELECT COUNT(*) FROM replica_files rf
+      JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+        AND f.source_membership = 'source'
       WHERE rf.replica_id = d.id AND rf.status = 'failed') AS failed_files
   FROM replica_destinations d
 `;

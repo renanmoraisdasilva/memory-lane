@@ -575,13 +575,13 @@ Verification: automated-test 33.
 - **Kind:** outcome
 - **Status:** verified
 - **Verification:** automated-test
-- **Text:** Each destination card shows source verification with a green check when every present source replica is verified and a yellow warning when any replica is unverified. Drive space is a separate neutral bar. A full drive with no unverified source files is greyed out and marked Full and done; a full drive with unverified files stays yellow and asks for verification.
+- **Text:** Each destination card shows source verification with a green check when every present source replica is verified and a yellow warning when any present source replica is unverified. Unverified replicas whose source file is missing do not count as coverage gaps. Drive space is a separate neutral bar. A full drive with no unverified source files is greyed out and marked Full and done; a full drive with unverified files stays yellow and asks for verification.
 - **Sources:** `docs/product/partial-backups.md#12-ui-specification`, `docs/contracts/replication.md`
 - **ADRs:** _none_
 - **Contracts:** `docs/contracts/replication.md`
-- **Implementation:** `src/renderer/src/features/replication/components.tsx`, `src/renderer/src/features/replication/replication.module.css`, `src/shared/contracts/replication/types.ts`, `src/main/modules/replication/application/destination-summary.ts`
-- **Proving tests:** `src/main/modules/replication/application/destination-summary.test.ts`, `src/renderer/src/features/replication/ReplicationOverviewPage.test.tsx`
-- **Test notes:** The overview page tests cover verified, unverified, full/done, and full/unverified cards; the destination summary test covers the unverified count.
+- **Implementation:** `src/renderer/src/features/replication/components.tsx`, `src/renderer/src/features/replication/replication.module.css`, `src/shared/contracts/replication/types.ts`, `src/main/modules/replication/application/destination-summary.ts`, `src/main/db/repositories/replication-destination-repository.ts`, `src/main/db/repositories/replication-coverage-repository.ts`
+- **Proving tests:** `src/main/db/repositories/replication-destination-repository.test.ts`, `src/main/modules/replication/application/destination-summary.test.ts`, `src/renderer/src/features/replication/ReplicationOverviewPage.test.tsx`
+- **Test notes:** The overview page tests cover verified, unverified, full/done, and full/unverified cards; destination repository tests cover the unverified count and exclusion of source-missing replicas.
 - **Conflicts:** _none_
 - **Notes:** Verification color is separate from capacity color so a full drive does not look verified.
 - **Decision:** verified
