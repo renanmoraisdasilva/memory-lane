@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "project": "memory-lane",
-  "updated": "2026-11-04",
+  "updated": "2026-11-05",
   "statusValues": [
     "needs-review",
     "accepted",
@@ -4572,6 +4572,35 @@
       "status": "verified",
       "conflictsWith": [],
       "notes": "Verification color is separate from capacity color so a full drive does not look verified."
+    },
+    {
+      "id": "ML-REPL-100",
+      "batch": 7,
+      "capability": "replication",
+      "kind": "outcome",
+      "title": "Planner replaces stale and missing replicas on their destination",
+      "text": "Before the partial fill, the planner schedules stale and missing replicas on their existing connected destination even when another destination already verifies the source file. Replacement copies are included in the plan's files-to-copy counts and free-after space; replacements that do not fit are reported and are never reassigned.",
+      "sources": [
+        "docs/product/partial-backups.md#85-assignment-algorithm",
+        "docs/product/partial-backups.md#92-stale-replacement",
+        "docs/contracts/replication.md"
+      ],
+      "adrs": [],
+      "contracts": ["docs/contracts/replication.md"],
+      "implementation": [
+        "src/main/modules/replication/domain/plan-builder.ts",
+        "src/main/modules/replication/domain/plan-warnings.ts",
+        "src/main/modules/replication/domain/replacement-planner.ts",
+        "src/main/modules/replication/application/plan-service.ts",
+        "src/main/db/repositories/replication-coverage-repository.ts",
+        "src/main/db/replication-coverage-db-handlers.ts",
+        "src/main/db/replication-worker-protocol.ts"
+      ],
+      "verificationMethod": "automated-test",
+      "testNotes": "Plan builder tests cover replacement-first ordering, capacity blocking, and the replacement warnings; the coverage repository test covers the replaceable query.",
+      "status": "verified",
+      "conflictsWith": [],
+      "notes": "Missing replicas that are already covered elsewhere still heal locally instead of leaving the destination permanently yellow."
     }
   ],
   "conflicts": [

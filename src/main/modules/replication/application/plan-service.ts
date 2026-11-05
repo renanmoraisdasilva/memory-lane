@@ -46,6 +46,11 @@ interface CoveragePayload {
   lastVerifiedAt: string | null;
 }
 
+interface ReplacementPayload {
+  destinationRowId: number;
+  fileId: number;
+}
+
 export interface PlanServiceDependencies {
   db: DbClient;
   listDetected: () => Promise<DetectedDrive[]>;
@@ -196,7 +201,7 @@ export class PlanService {
   }
 
   private async load(): Promise<PlanData> {
-    const [records, drives, identity, sources, coverageRows] = await Promise.all([
+    const [records, drives, identity, sources, coverageRows, replacementRows] = await Promise.all([
       this.dependencies.db.request<ReplicationDestinationRecord[]>(
         "replication.listDestinations",
         {},
@@ -205,12 +210,19 @@ export class PlanService {
       this.dependencies.db.request<ArchiveIdentity>("replication.getSourceIdentity", {}),
       this.dependencies.db.request<ReplicationSourceFile[]>("replication.listSourceFiles", {}),
       this.dependencies.db.request<CoveragePayload[]>("replication.listVerifiedCoverage", {}),
+      this.dependencies.db.request<ReplacementPayload[]>("replication.listReplicaReplacements", {}),
     ]);
     const drivesByVolume = new Map(drives.map((drive) => [drive.volumeId, drive]));
     const firstPriority = firstPartialPriority(records);
     const coverageById = new Map(
       coverageRows.map((row) => [row.destinationRowId, new Set(row.verifiedFileIds)]),
     );
+    const replacementsById = new Map<number, Set<number>>();
+    for (const row of replacementRows) {
+      const ids = replacementsById.get(row.destinationRowId) ?? new Set<number>();
+      ids.add(row.fileId);
+      replacementsById.set(row.destinationRowId, ids);
+    }
     const files = sourceFacts(sources);
     const refreshedRecords = await this.refreshFullCopyStatuses({
       files,
@@ -245,6 +257,7 @@ export class PlanService {
       planDestinations.push({
         summary,
         verifiedFileIds: coverageById.get(record.id) ?? new Set(),
+        replacementFileIds: replacementsById.get(record.id) ?? new Set(),
         conflictFiles: record.conflictFiles,
         staleFiles: record.staleFiles,
         missingFiles: record.missingFiles,

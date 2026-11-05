@@ -30,6 +30,7 @@ export const REPLICATION_DB_METHODS = [
   "replication.markInterruptedAdoptions",
   "replication.getCoverageSummary",
   "replication.listVerifiedCoverage",
+  "replication.listReplicaReplacements",
   "replication.getDestinationCoverageMap",
   "replication.getDestinationReplicaHealth",
   "replication.getOverlapBytes",

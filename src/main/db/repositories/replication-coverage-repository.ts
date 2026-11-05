@@ -92,6 +92,42 @@ export function listVerifiedCoverage(db: Database.Database): DestinationCoverage
   }));
 }
 
+const ReplacementRowSchema = z.object({
+  destination_id: z.number().int().positive(),
+  file_id: z.number().int().positive(),
+});
+
+export interface ReplicaReplacement {
+  destinationRowId: number;
+  fileId: number;
+}
+
+export function listReplicaReplacements(db: Database.Database): ReplicaReplacement[] {
+  const rows = db
+    .prepare(
+      `SELECT rf.replica_id AS destination_id, rf.file_id
+       FROM replica_files rf
+       JOIN replica_destinations d ON d.id = rf.replica_id AND d.status = 'active'
+       JOIN files f ON f.id = rf.file_id AND f.state = 'present'
+         AND f.source_membership = 'source'
+       WHERE rf.status IN ('stale', 'missing')
+       ORDER BY rf.replica_id ASC, rf.file_id ASC`,
+    )
+    .all();
+  return rows.map((row) => {
+    const parsed = ReplacementRowSchema.safeParse(row);
+    if (!parsed.success) {
+      throw new AppError(APP_ERROR_CODES.DB_ERROR, "Replacement row is invalid", {
+        issues: parsed.error.issues,
+      });
+    }
+    return {
+      destinationRowId: parsed.data.destination_id,
+      fileId: parsed.data.file_id,
+    };
+  });
+}
+
 export function getCoverageSummary(db: Database.Database): CoverageSummary {
   const row = db
     .prepare(

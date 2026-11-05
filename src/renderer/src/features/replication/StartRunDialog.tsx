@@ -75,11 +75,11 @@ function StartRunSummary({
     <>
       <div className={styles.statGrid}>
         <div className={styles.stat}>
-          <span>New files</span>
+          <span>Files to copy</span>
           <strong>{formatCount(totals.files)}</strong>
         </div>
         <div className={styles.stat}>
-          <span>New bytes</span>
+          <span>Bytes to copy</span>
           <strong>{formatSize(totals.bytes)}</strong>
         </div>
         <div className={styles.stat}>
@@ -96,11 +96,11 @@ function StartRunSummary({
             </div>
             <div className={styles.rowStats}>
               <div className={styles.rowStat}>
-                <span>New files</span>
+                <span>Files to copy</span>
                 <strong>{formatCount(plan.fullCopy.newFiles)}</strong>
               </div>
               <div className={styles.rowStat}>
-                <span>New bytes</span>
+                <span>Bytes to copy</span>
                 <strong>{formatSize(plan.fullCopy.newBytes)}</strong>
               </div>
               <div className={styles.rowStat}>
@@ -121,11 +121,11 @@ function StartRunSummary({
                 </div>
                 <div className={styles.rowStats}>
                   <div className={styles.rowStat}>
-                    <span>New files</span>
+                    <span>Files to copy</span>
                     <strong>{formatCount(row.newFiles)}</strong>
                   </div>
                   <div className={styles.rowStat}>
-                    <span>New bytes</span>
+                    <span>Bytes to copy</span>
                     <strong>{formatSize(row.newBytes)}</strong>
                   </div>
                   <div className={styles.rowStat}>

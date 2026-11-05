@@ -3,9 +3,9 @@
 Generated from `docs/traceability/requirements.json`. Test links are derived from
 `[ML-...]` tags in test names; the ledger does not store test paths.
 
-Requirements: **220**. Status: verified 172, non-goal 4, implemented 43, deferred 1.
+Requirements: **221**. Status: verified 173, non-goal 4, implemented 43, deferred 1.
 
-Verification: automated-test 205, none 4, manual 10, automated-check 1.
+Verification: automated-test 206, none 4, manual 10, automated-check 1.
 
 | ID | Requirement | Kind | Status | Verification | Tests | Result |
 |---|---|---|---|---|---:|---|
@@ -229,6 +229,7 @@ Verification: automated-test 205, none 4, manual 10, automated-check 1.
 | ML-REPL-097 | A completed run with failed files says so | outcome | verified | automated-test | 1 | pass |
 | ML-REPL-098 | Unreadable source files have specific error codes | outcome | verified | automated-test | 1 | pass |
 | ML-REPL-099 | Destination cards separate verification from space | outcome | verified | automated-test | 2 | pass |
+| ML-REPL-100 | Planner replaces stale and missing replicas on their destination | outcome | verified | automated-test | 2 | pass |
 
 Result values: `pass`, `fail`, and `mixed` come from `docs/traceability/test-results.json`;
 `e2e` means Playwright tags only; `script`, `manual`, and `inspection` follow the recorded

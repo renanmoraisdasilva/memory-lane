@@ -112,6 +112,32 @@ function replicaWarnings(active: PlanDestinationInput[]): PlanWarning[] {
   ];
 }
 
+interface ReplacementWarningInput {
+  plannedFiles: number;
+  skippedFiles: number;
+}
+
+function replacementWarnings(replacements: ReplacementWarningInput): PlanWarning[] {
+  const warnings: PlanWarning[] = [];
+  if (replacements.plannedFiles > 0) {
+    pushWarning(
+      warnings,
+      "replica_replacement",
+      "warning",
+      `${String(replacements.plannedFiles)} stale or missing ${replacements.plannedFiles === 1 ? "replica" : "replicas"} will be replaced on the existing ${replacements.plannedFiles === 1 ? "destination" : "destinations"}.`,
+    );
+  }
+  if (replacements.skippedFiles > 0) {
+    pushWarning(
+      warnings,
+      "replica_replacement_blocked",
+      "warning",
+      `${String(replacements.skippedFiles)} stale or missing ${replacements.skippedFiles === 1 ? "replica" : "replicas"} cannot be replaced because the destination lacks safe free space.`,
+    );
+  }
+  return warnings;
+}
+
 function shortfallWarnings(input: PlanInput): PlanWarning[] {
   const shortfallBytes = activeDestinations(input.destinations).reduce((total, destination) => {
     if (destination.summary.goal !== "full_copy") {
@@ -134,7 +160,11 @@ function shortfallWarnings(input: PlanInput): PlanWarning[] {
   ];
 }
 
-export function buildWarnings(input: PlanInput, remainder: SourceFileFacts[]): PlanWarning[] {
+export function buildWarnings(
+  input: PlanInput,
+  remainder: SourceFileFacts[],
+  replacements: ReplacementWarningInput,
+): PlanWarning[] {
   const active = activeDestinations(input.destinations);
   const hasPartialDestination = active.some(
     (destination) => destination.summary.goal === "extend_coverage",
@@ -143,6 +173,7 @@ export function buildWarnings(input: PlanInput, remainder: SourceFileFacts[]): P
     ...destinationWarnings(input, active),
     ...sourceWarnings(input, remainder, hasPartialDestination),
     ...replicaWarnings(active),
+    ...replacementWarnings(replacements),
     ...shortfallWarnings(input),
   ];
 }

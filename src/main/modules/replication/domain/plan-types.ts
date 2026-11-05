@@ -5,6 +5,7 @@ import type { ReplicaStatusCounts, SourceFileFacts } from "./replication-types";
 export interface PlanDestinationInput extends ReplicaStatusCounts {
   summary: DestinationSummary;
   verifiedFileIds: ReadonlySet<number>;
+  replacementFileIds: ReadonlySet<number>;
 }
 
 export interface PlanInput {

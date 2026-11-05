@@ -8,6 +8,7 @@ import {
   getDestinationOverlapBytes,
   getDestinationReplicaHealth,
   getOverlapBytes,
+  listReplicaReplacements,
   listVerifiedCoverage,
 } from "./repositories/replication-coverage-repository";
 import { ReplicationDestinationIdParamsSchema } from "./replication-worker-protocol";
@@ -24,6 +25,7 @@ export function createReplicationCoverageDbHandlers(
         verifiedBytes: coverage.verifiedBytes,
         lastVerifiedAt: coverage.lastVerifiedAt,
       })),
+    "replication.listReplicaReplacements": () => listReplicaReplacements(options.getCatalog()),
     "replication.getDestinationCoverageMap": (params) =>
       getDestinationCoverageMap(
         options.getCatalog(),

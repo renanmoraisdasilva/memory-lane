@@ -277,6 +277,7 @@ describe("replication database handlers", () => {
     expect(harness.handler.handle("replication.listVerifiedCoverage", {})).toMatchObject([
       { destinationRowId: created.id, verifiedFileIds: [1], verifiedBytes: 10 },
     ]);
+    expect(harness.handler.handle("replication.listReplicaReplacements", {})).toEqual([]);
     expect(
       harness.handler.handle("replication.getDestinationCoverageMap", {
         destinationId: created.id,

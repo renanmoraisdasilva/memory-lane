@@ -6,7 +6,7 @@ import type {
   DestinationSummary,
 } from "@shared/contracts/replication/types";
 import { computeCoverage } from "./coverage";
-import { buildReplicationPlan } from "./plan-builder";
+import { buildReplicationExecutionPlan, buildReplicationPlan } from "./plan-builder";
 import type { PlanDestinationInput, PlanInput } from "./plan-types";
 import type { SourceFileFacts } from "./replication-types";
 
@@ -71,14 +71,21 @@ function destination(
   id: number,
   goal: DestinationGoal,
   availableBytes: number,
-  options: { verifiedFileIds?: number[] } & Parameters<typeof summary>[3] = {},
+  options: {
+    verifiedFileIds?: number[];
+    replacementFileIds?: number[];
+    conflictFiles?: number;
+    staleFiles?: number;
+    missingFiles?: number;
+  } & Parameters<typeof summary>[3] = {},
 ): PlanDestinationInput {
   return {
     summary: summary(id, goal, availableBytes, options),
     verifiedFileIds: new Set(options.verifiedFileIds ?? []),
-    conflictFiles: 0,
-    staleFiles: 0,
-    missingFiles: 0,
+    replacementFileIds: new Set(options.replacementFileIds ?? []),
+    conflictFiles: options.conflictFiles ?? 0,
+    staleFiles: options.staleFiles ?? 0,
+    missingFiles: options.missingFiles ?? 0,
   };
 }
 
@@ -205,6 +212,70 @@ describe("replication plan builder", () => {
     expect(plan.fullCopy).toBeNull();
     expect(plan.partial).toBeNull();
     expect(plan.warnings.map((warning) => warning.code)).toContain("no_destination");
+  });
+
+  it("[ML-REPL-100] plans a missing replica on its existing destination before the fill", () => {
+    const execution = buildReplicationExecutionPlan(
+      planFor(
+        [source(1, 20, "2001-01-01T00:00:00.000Z"), source(2, 40, "2002-01-01T00:00:00.000Z")],
+        [
+          destination(1, "extend_coverage", 0, { verifiedFileIds: [1] }),
+          destination(2, "extend_coverage", 50, {
+            priority: 2,
+            replacementFileIds: [1],
+            missingFiles: 1,
+          }),
+        ],
+      ),
+    );
+
+    expect(execution.partialFiles.get(2)?.map((file) => file.id)).toEqual([1]);
+    expect(execution.plan.partial?.rows[1]).toMatchObject({
+      newFiles: 1,
+      newBytes: 20,
+      freeAfterBytes: 30,
+    });
+    expect(execution.plan.warnings.map((warning) => warning.code)).toContain("replica_replacement");
+    expect(execution.plan.executionScopes).toContain("partial_only");
+    expect(execution.plan.canStart).toBe(true);
+  });
+
+  it("[ML-REPL-100] reports a replacement that does not fit the destination", () => {
+    const plan = buildReplicationPlan(
+      planFor(
+        [source(1, 20, "2001-01-01T00:00:00.000Z")],
+        [
+          destination(1, "extend_coverage", 10, {
+            replacementFileIds: [1],
+            missingFiles: 1,
+          }),
+          destination(2, "extend_coverage", 0, { priority: 2, verifiedFileIds: [1] }),
+        ],
+      ),
+    );
+
+    expect(plan.partial?.rows[0]).toMatchObject({ newFiles: 0, newBytes: 0 });
+    expect(plan.warnings.map((warning) => warning.code)).toContain("replica_replacement_blocked");
+  });
+
+  it("[ML-REPL-100] leaves replacements on an offline destination for reconnect", () => {
+    const plan = buildReplicationPlan(
+      planFor(
+        [source(1, 20, "2001-01-01T00:00:00.000Z")],
+        [
+          destination(1, "extend_coverage", 100, {
+            connection: "offline",
+            replacementFileIds: [1],
+            missingFiles: 1,
+          }),
+          destination(2, "extend_coverage", 0, { priority: 2, verifiedFileIds: [1] }),
+        ],
+      ),
+    );
+
+    expect(plan.partial?.rows[0]).toMatchObject({ newFiles: 0, newBytes: 0 });
+    expect(plan.warnings.map((warning) => warning.code)).not.toContain("replica_replacement");
+    expect(plan.warnings.map((warning) => warning.code)).toContain("replica_review");
   });
 
   it("[ML-REPL-052] is deterministic for the same inputs and changes when destination state changes", () => {

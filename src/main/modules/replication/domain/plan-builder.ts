@@ -15,6 +15,7 @@ import {
   type ReplicationExecutionPlan,
 } from "./plan-types";
 import { buildWarnings } from "./plan-warnings";
+import { buildReplacements } from "./replacement-planner";
 import type { SourceFileFacts } from "./replication-types";
 
 interface PartialRowDraft {
@@ -106,8 +107,8 @@ interface AssignmentResult {
 function assignCandidates(
   candidates: SourceFileFacts[],
   ordered: PlanDestinationInput[],
+  remaining: number[],
 ): AssignmentResult {
-  const remaining = ordered.map((destination) => destination.summary.availableBytes);
   const assigned = ordered.map<SourceFileFacts[]>(() => []);
   const remainder: SourceFileFacts[] = [];
   let current = 0;
@@ -140,6 +141,7 @@ function buildPartial(
   allSourceFiles: SourceFileFacts[],
   candidates: SourceFileFacts[],
   destinations: PlanDestinationInput[],
+  replacementsByDestination: ReadonlyMap<number, SourceFileFacts[]>,
 ): {
   job: ReplicationPlan["partial"];
   assignedIds: Set<number>;
@@ -158,43 +160,52 @@ function buildPartial(
     };
   }
 
-  const rows: PartialRowDraft[] = ordered.map((destination) => ({
-    destination: destination.summary,
-    adoptedFiles: destination.verifiedFileIds.size,
-    adoptedBytes: bytesOf(
-      allSourceFiles.filter((file) => destination.verifiedFileIds.has(file.id)),
-    ),
-    newFiles: 0,
-    newBytes: 0,
-    newRangeStart: null,
-    newRangeEnd: null,
-    freeAfterBytes: destination.summary.availableBytes,
-    offline: destination.summary.connection === "offline",
-  }));
-  const { assigned, remaining, remainder } = assignCandidates(candidates, ordered);
+  const rows: PartialRowDraft[] = ordered.map((destination) => {
+    const replacementFiles = replacementsByDestination.get(destination.summary.id) ?? [];
+    const replacementBytes = bytesOf(replacementFiles);
+    return {
+      destination: destination.summary,
+      adoptedFiles: destination.verifiedFileIds.size,
+      adoptedBytes: bytesOf(
+        allSourceFiles.filter((file) => destination.verifiedFileIds.has(file.id)),
+      ),
+      newFiles: replacementFiles.length,
+      newBytes: replacementBytes,
+      newRangeStart: null,
+      newRangeEnd: null,
+      freeAfterBytes: Math.max(0, destination.summary.availableBytes - replacementBytes),
+      offline: destination.summary.connection === "offline",
+    };
+  });
+  const { assigned, remaining, remainder } = assignCandidates(
+    candidates,
+    ordered,
+    rows.map((row) => row.freeAfterBytes),
+  );
 
-  for (const [index, files] of assigned.entries()) {
-    const row = rows[index];
-    const capacity = remaining[index];
-    if (row === undefined || capacity === undefined) {
-      continue;
+  const filesByDestination = new Map<number, SourceFileFacts[]>();
+  for (const [index, row] of rows.entries()) {
+    const replacementFiles = replacementsByDestination.get(row.destination.id) ?? [];
+    const newFiles = assigned[index] ?? [];
+    const copyFiles = [...replacementFiles, ...newFiles];
+    if (copyFiles.length > 0) {
+      filesByDestination.set(row.destination.id, copyFiles);
     }
-    row.newFiles = files.length;
-    row.newBytes = bytesOf(files);
-    row.freeAfterBytes = capacity;
-    const range = rangeFor(files);
+    const capacity = remaining[index];
+    if (capacity !== undefined) {
+      row.freeAfterBytes = capacity;
+    }
+    row.newFiles += newFiles.length;
+    row.newBytes += bytesOf(newFiles);
+    const range = rangeFor(copyFiles);
     row.newRangeStart = range.start;
     row.newRangeEnd = range.end;
   }
 
-  const assignedIds = new Set(assigned.flat().map((file) => file.id));
-  const filesByDestination = new Map<number, SourceFileFacts[]>();
-  for (const [index, files] of assigned.entries()) {
-    const row = rows[index];
-    if (row !== undefined) {
-      filesByDestination.set(row.destination.id, files);
-    }
-  }
+  const assignedIds = new Set<number>([
+    ...[...replacementsByDestination.values()].flat().map((file) => file.id),
+    ...assigned.flat().map((file) => file.id),
+  ]);
   return {
     job: {
       kind: "partial",
@@ -305,14 +316,22 @@ export function buildReplicationExecutionPlan(input: PlanInput): ReplicationExec
   );
   const fullCopyResult = buildFullCopy(sourceFiles, fullDestinations[0] ?? null);
   const fullCopy = fullCopyResult?.job ?? null;
-  const candidates = sourceFiles.filter((file) => !input.coverage.unionIds.has(file.id));
-  const partialResult = buildPartial(sourceFiles, candidates, partialDestinations);
+  const replacements = buildReplacements(sourceFiles, partialDestinations);
+  const candidates = sourceFiles.filter(
+    (file) => !input.coverage.unionIds.has(file.id) && !replacements.assignedIds.has(file.id),
+  );
+  const partialResult = buildPartial(
+    sourceFiles,
+    candidates,
+    partialDestinations,
+    replacements.filesByDestination,
+  );
   const remainder: PlanRemainder = {
     files: partialResult.remainder.length,
     bytes: bytesOf(partialResult.remainder),
     startDate: startDateFor(partialResult.remainder),
   };
-  const warnings = buildWarnings(input, partialResult.remainder);
+  const warnings = buildWarnings(input, partialResult.remainder, replacements);
   const blocked = warnings.find((warning) => warning.severity === "blocking");
   const executionScopes = scopesFor(fullCopy, partialResult.job);
 

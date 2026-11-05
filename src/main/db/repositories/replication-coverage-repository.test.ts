@@ -12,6 +12,7 @@ import {
   getDestinationOverlapBytes,
   getDestinationReplicaHealth,
   getOverlapBytes,
+  listReplicaReplacements,
   listVerifiedCoverage,
 } from "./replication-coverage-repository";
 
@@ -233,6 +234,51 @@ describe("replication coverage repository", () => {
     db.prepare("UPDATE files SET size = 21 WHERE id = 2").run();
     expect(listVerifiedCoverage(db)[0]?.verifiedFileIds).toEqual(new Set([1]));
     expect(getOverlapBytes(db)).toBe(0);
+    db.close();
+  });
+
+  it("[ML-REPL-100] lists stale and missing replicas for active destinations", () => {
+    const db = new Database(":memory:");
+    runMigrations(db, catalogMigrations);
+    createFile(db, 1, 10);
+    createFile(db, 2, 20);
+    createFile(db, 3, 30, "missing");
+    const active = insertDestinationRow(db, "dest-active");
+    const retired = insertDestinationRow(db, "dest-retired");
+    db.prepare("UPDATE replica_destinations SET status = 'retired' WHERE id = ?").run(retired.id);
+    insertReplica(db, {
+      replicaId: active.id,
+      fileId: 1,
+      size: 10,
+      status: "stale",
+      sha256: "a".repeat(64),
+    });
+    insertReplica(db, {
+      replicaId: active.id,
+      fileId: 2,
+      size: 20,
+      status: "missing",
+      sha256: null,
+    });
+    insertReplica(db, {
+      replicaId: active.id,
+      fileId: 3,
+      size: 30,
+      status: "missing",
+      sha256: null,
+    });
+    insertReplica(db, {
+      replicaId: retired.id,
+      fileId: 1,
+      size: 10,
+      status: "missing",
+      sha256: null,
+    });
+
+    expect(listReplicaReplacements(db)).toEqual([
+      { destinationRowId: active.id, fileId: 1 },
+      { destinationRowId: active.id, fileId: 2 },
+    ]);
     db.close();
   });
 });

@@ -1,12 +1,12 @@
 # Batch 7 review — Replication: copy, promotion, and safety
 
-Status: **implemented**. Requirements: **32**. Conflicts: **0**.
+Status: **implemented**. Requirements: **33**. Conflicts: **0**.
 
 This sheet is generated from `docs/traceability/requirements.json`. This batch is accepted; the matrix is the live view. New requirements start at `needs-review`.
 
-Kinds: invariant 17, outcome 12, constraint 3.
+Kinds: invariant 17, outcome 13, constraint 3.
 
-Verification: automated-test 32.
+Verification: automated-test 33.
 
 ## Summary
 
@@ -44,6 +44,7 @@ Verification: automated-test 32.
 | ML-REPL-097 | outcome | verified | automated-test | A completed run with failed files says so |
 | ML-REPL-098 | outcome | verified | automated-test | Unreadable source files have specific error codes |
 | ML-REPL-099 | outcome | verified | automated-test | Destination cards separate verification from space |
+| ML-REPL-100 | outcome | verified | automated-test | Planner replaces stale and missing replicas on their destination |
 
 ## Requirements
 
@@ -583,6 +584,22 @@ Verification: automated-test 32.
 - **Test notes:** The overview page tests cover verified, unverified, full/done, and full/unverified cards; the destination summary test covers the unverified count.
 - **Conflicts:** _none_
 - **Notes:** Verification color is separate from capacity color so a full drive does not look verified.
+- **Decision:** verified
+
+### ML-REPL-100 — Planner replaces stale and missing replicas on their destination
+
+- **Kind:** outcome
+- **Status:** verified
+- **Verification:** automated-test
+- **Text:** Before the partial fill, the planner schedules stale and missing replicas on their existing connected destination even when another destination already verifies the source file. Replacement copies are included in the plan's files-to-copy counts and free-after space; replacements that do not fit are reported and are never reassigned.
+- **Sources:** `docs/product/partial-backups.md#85-assignment-algorithm`, `docs/product/partial-backups.md#92-stale-replacement`, `docs/contracts/replication.md`
+- **ADRs:** _none_
+- **Contracts:** `docs/contracts/replication.md`
+- **Implementation:** `src/main/modules/replication/domain/plan-builder.ts`, `src/main/modules/replication/domain/plan-warnings.ts`, `src/main/modules/replication/domain/replacement-planner.ts`, `src/main/modules/replication/application/plan-service.ts`, `src/main/db/repositories/replication-coverage-repository.ts`, `src/main/db/replication-coverage-db-handlers.ts`, `src/main/db/replication-worker-protocol.ts`
+- **Proving tests:** `src/main/db/repositories/replication-coverage-repository.test.ts`, `src/main/modules/replication/domain/plan-builder.test.ts`
+- **Test notes:** Plan builder tests cover replacement-first ordering, capacity blocking, and the replacement warnings; the coverage repository test covers the replaceable query.
+- **Conflicts:** _none_
+- **Notes:** Missing replicas that are already covered elsewhere still heal locally instead of leaving the destination permanently yellow.
 - **Decision:** verified
 
 ## Conflicts

@@ -153,9 +153,11 @@ maintenance actions.
 
 - source scope: file count, bytes, undated count;
 - full-copy jobs and partial jobs that exist;
-- per-destination adopted bytes, new files/bytes, new-file date range, free
+- per-destination adopted bytes, files/bytes to copy, copy date range, free
   after, reserve, and a link target for the existing date map;
-- replacement summary and reserve warning;
+- replacement summary and reserve warning; stale and missing replicas are
+  scheduled on their existing connected destination before the partial fill,
+  even when another destination already verifies the file;
 - projected coverage with explicit scope labels;
 - partial remainder and full-copy shortfall;
 - warnings and blocking reasons;

@@ -161,13 +161,13 @@ export function PartialCard({ plan }: { plan: ReplicationPlan }): React.JSX.Elem
                 </strong>
               </div>
               <div className={styles.rowStat}>
-                <span>New in plan</span>
+                <span>Files to copy</span>
                 <strong>
                   {formatCount(row.newFiles)} · {formatSize(row.newBytes)}
                 </strong>
               </div>
               <div className={styles.rowStat}>
-                <span>New range</span>
+                <span>Copy range</span>
                 <strong>
                   {row.newRangeStart === null ? "No dated files" : row.newRangeStart.slice(0, 10)}
                 </strong>
